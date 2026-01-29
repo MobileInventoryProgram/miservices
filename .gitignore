@@ -1,0 +1,10 @@
+.DS_Store
+**/node_modules/
+**/.env
+**/.env*.local
+**/.next/
+**/.vercel/
+**/.local/
+**/.replit
+**/attached_assets/
+**/*.bin
