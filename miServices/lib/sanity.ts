@@ -1,9 +1,9 @@
 import { createClient } from '@sanity/client';
 import imageUrlBuilder from '@sanity/image-url';
-import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
+import type { SanityImageSource } from '@sanity/image-url';
 
 export const sanityClient = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'rg2gwvf1',
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'a4q9j3x1',
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
   apiVersion: '2024-01-01',
   useCdn: process.env.NODE_ENV === 'production',
@@ -261,6 +261,147 @@ export function estimateReadingTime(body: any[]): number {
   return Math.ceil(wordCount / wordsPerMinute) || 1;
 }
 
+// Franchisee types
+export interface SanityFranchiseeOwner {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  profilePicture?: {
+    asset: {
+      _ref: string;
+      url?: string;
+    };
+  };
+}
+
+export interface SanityFranchisee {
+  _id: string;
+  companyName: string;
+  slug: string;
+  territory: string;
+  postCodes: string;
+  townsCities: string;
+  tags: string[];
+  isActive: boolean;
+  locationDescription?: any[];
+  owners: SanityFranchiseeOwner[];
+}
+
+export interface TransformedFranchisee {
+  id: string;
+  companyName: string;
+  slug: string;
+  territory: string;
+  postCodes: string;
+  townsCities: string;
+  tags: string[];
+  profilePicture: string | null;
+  locationDescription?: any[];
+  owners: Array<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    name: string;
+    email: string;
+    phone: string;
+    profilePicture: string | null;
+  }>;
+  firstName: string;
+  lastName: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+
+// Franchisee GROQ fields
+const franchiseeFields = `
+  _id,
+  companyName,
+  "slug": slug.current,
+  territory,
+  postCodes,
+  townsCities,
+  tags,
+  isActive,
+  locationDescription,
+  owners[] {
+    firstName,
+    lastName,
+    email,
+    phone,
+    profilePicture {
+      asset->{
+        _ref,
+        url
+      }
+    }
+  }
+`;
+
+function transformFranchisee(doc: SanityFranchisee): TransformedFranchisee {
+  const owners = (doc.owners || []).map((owner, index) => ({
+    id: `${doc._id}-owner-${index}`,
+    firstName: owner.firstName || '',
+    lastName: owner.lastName || '',
+    name: `${owner.firstName || ''} ${owner.lastName || ''}`.trim(),
+    email: owner.email || '',
+    phone: owner.phone || '',
+    profilePicture: owner.profilePicture?.asset?.url || null,
+  }));
+
+  const firstOwner = owners[0];
+
+  return {
+    id: doc._id,
+    companyName: doc.companyName || '',
+    slug: doc.slug || '',
+    territory: doc.territory || '',
+    postCodes: doc.postCodes || '',
+    townsCities: doc.townsCities || '',
+    tags: doc.tags || [],
+    profilePicture: firstOwner?.profilePicture || null,
+    locationDescription: doc.locationDescription,
+    owners,
+    firstName: firstOwner?.firstName || '',
+    lastName: firstOwner?.lastName || '',
+    name: firstOwner?.name || '',
+    email: firstOwner?.email || '',
+    phone: firstOwner?.phone || '',
+  };
+}
+
+// Franchisee functions
+export async function getFranchisees(): Promise<TransformedFranchisee[]> {
+  try {
+    const docs: SanityFranchisee[] = await sanityClient.fetch(
+      `*[_type == "franchisee" && isActive == true] | order(territory asc) {
+        ${franchiseeFields}
+      }`
+    );
+    return docs.map(transformFranchisee);
+  } catch (error) {
+    console.error('Error fetching franchisees:', error);
+    return [];
+  }
+}
+
+export async function getFranchiseeBySlug(slug: string): Promise<TransformedFranchisee | null> {
+  try {
+    const doc: SanityFranchisee | null = await sanityClient.fetch(
+      `*[_type == "franchisee" && slug.current == $slug && isActive == true][0] {
+        ${franchiseeFields}
+      }`,
+      { slug }
+    );
+    if (!doc) return null;
+    return transformFranchisee(doc);
+  } catch (error) {
+    console.error('Error fetching franchisee:', error);
+    return null;
+  }
+}
+
 // Service fields for queries
 const serviceFields = `
   _id,
@@ -320,5 +461,216 @@ export async function getAllServiceSlugs(): Promise<string[]> {
   } catch (error) {
     console.error('Error fetching service slugs:', error);
     return [];
+  }
+}
+
+// ─── Members Area ───────────────────────────────────────────────
+
+// Authenticated write client for mutations
+export const sanityWriteClient = createClient({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'a4q9j3x1',
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
+  apiVersion: '2024-01-01',
+  useCdn: false,
+  token: process.env.SANITY_API_TOKEN,
+});
+
+// Member types
+export interface SanityMember {
+  _id: string;
+  email: string;
+  name?: string;
+  hashedPassword: string;
+  role: 'franchisee' | 'admin';
+  territory?: string;
+  isActive: boolean;
+  resetToken?: string;
+  resetTokenExpiry?: string;
+}
+
+export interface SanityMemberDocument {
+  _id: string;
+  title: string;
+  slug: string;
+  category: 'documents' | 'pricing' | 'assets' | 'contacts' | 'quoting';
+  subcategory?: 'general' | 'operating-procedures' | 'personnel' | 'training';
+  description?: string;
+  file?: {
+    asset: {
+      _ref: string;
+      url: string;
+    };
+  };
+  body?: any[];
+  publishedAt: string;
+  isPublished: boolean;
+  order: number;
+}
+
+// Member queries
+export async function getMemberByEmail(email: string): Promise<SanityMember | null> {
+  try {
+    const member = await sanityWriteClient.fetch(
+      `*[_type == "member" && email == $email && isActive == true][0] {
+        _id,
+        email,
+        name,
+        hashedPassword,
+        role,
+        territory,
+        isActive,
+        resetToken,
+        resetTokenExpiry
+      }`,
+      { email }
+    );
+    return member;
+  } catch (error) {
+    console.error('Error fetching member by email:', error);
+    return null;
+  }
+}
+
+export async function getMemberByResetToken(token: string): Promise<SanityMember | null> {
+  try {
+    const member = await sanityWriteClient.fetch(
+      `*[_type == "member" && resetToken == $resetToken && isActive == true][0] {
+        _id,
+        email,
+        name,
+        hashedPassword,
+        role,
+        territory,
+        isActive,
+        resetToken,
+        resetTokenExpiry
+      }`,
+      { resetToken: token }
+    );
+    return member;
+  } catch (error) {
+    console.error('Error fetching member by reset token:', error);
+    return null;
+  }
+}
+
+// Document queries
+const memberDocFields = `
+  _id,
+  title,
+  "slug": slug.current,
+  category,
+  subcategory,
+  description,
+  file {
+    asset->{
+      _ref,
+      url
+    }
+  },
+  body,
+  publishedAt,
+  isPublished,
+  order
+`;
+
+export async function getMemberDocuments(): Promise<SanityMemberDocument[]> {
+  try {
+    const docs = await sanityClient.fetch(
+      `*[_type == "memberDocument" && isPublished == true] | order(order asc, publishedAt desc) {
+        ${memberDocFields}
+      }`
+    );
+    return docs;
+  } catch (error) {
+    console.error('Error fetching member documents:', error);
+    return [];
+  }
+}
+
+export async function getMemberDocumentsByCategory(
+  category: string
+): Promise<SanityMemberDocument[]> {
+  try {
+    const docs = await sanityClient.fetch(
+      `*[_type == "memberDocument" && isPublished == true && category == $category] | order(order asc, publishedAt desc) {
+        ${memberDocFields}
+      }`,
+      { category }
+    );
+    return docs;
+  } catch (error) {
+    console.error('Error fetching member documents by category:', error);
+    return [];
+  }
+}
+
+export async function getMemberDocumentBySlug(
+  slug: string
+): Promise<SanityMemberDocument | null> {
+  try {
+    const doc = await sanityClient.fetch(
+      `*[_type == "memberDocument" && slug.current == $slug && isPublished == true][0] {
+        ${memberDocFields}
+      }`,
+      { slug }
+    );
+    return doc;
+  } catch (error) {
+    console.error('Error fetching member document by slug:', error);
+    return null;
+  }
+}
+
+export async function getMemberDocumentsByCategoryAndSubcategory(
+  category: string,
+  subcategory: string
+): Promise<SanityMemberDocument[]> {
+  try {
+    const docs = await sanityClient.fetch(
+      `*[_type == "memberDocument" && isPublished == true && category == $category && subcategory == $subcategory] | order(order asc, publishedAt desc) {
+        ${memberDocFields}
+      }`,
+      { category, subcategory }
+    );
+    return docs;
+  } catch (error) {
+    console.error('Error fetching member documents by category and subcategory:', error);
+    return [];
+  }
+}
+
+export async function getDocumentsSubcategoryCounts(): Promise<Record<string, number>> {
+  try {
+    const docs = await sanityClient.fetch(
+      `*[_type == "memberDocument" && isPublished == true && category == "documents"] { subcategory }`
+    );
+    const counts: Record<string, number> = {};
+    for (const doc of docs) {
+      if (doc.subcategory) {
+        counts[doc.subcategory] = (counts[doc.subcategory] || 0) + 1;
+      }
+    }
+    return counts;
+  } catch (error) {
+    console.error('Error fetching documents subcategory counts:', error);
+    return {};
+  }
+}
+
+export async function getFranchiseeByTerritory(
+  territory: string
+): Promise<SanityFranchisee | null> {
+  try {
+    const doc = await sanityClient.fetch(
+      `*[_type == "franchisee" && territory == $territory && isActive == true][0] {
+        ${franchiseeFields}
+      }`,
+      { territory }
+    );
+    return doc;
+  } catch (error) {
+    console.error('Error fetching franchisee by territory:', error);
+    return null;
   }
 }
