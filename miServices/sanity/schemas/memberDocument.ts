@@ -78,6 +78,20 @@ export default defineType({
       description: 'Optional inline content for viewing in the browser',
     }),
     defineField({
+      name: 'targetFranchisees',
+      title: 'Assign to Franchisees',
+      description: 'Leave empty to show to all members. Select specific franchisees to restrict access.',
+      type: 'array',
+      of: [{ type: 'reference', to: [{ type: 'franchisee' }] }],
+    }),
+    defineField({
+      name: 'targetMembers',
+      title: 'Assign to Members',
+      description: 'Leave empty to show to all members. Select specific member accounts to restrict access.',
+      type: 'array',
+      of: [{ type: 'reference', to: [{ type: 'member' }] }],
+    }),
+    defineField({
       name: 'publishedAt',
       title: 'Published At',
       type: 'datetime',
@@ -114,8 +128,10 @@ export default defineType({
       category: 'category',
       subcategory: 'subcategory',
       isPublished: 'isPublished',
+      targetFranchisees: 'targetFranchisees',
+      targetMembers: 'targetMembers',
     },
-    prepare({ title, category, subcategory, isPublished }) {
+    prepare({ title, category, subcategory, isPublished, targetFranchisees, targetMembers }) {
       const categoryLabels: Record<string, string> = {
         documents: 'Documents',
         pricing: 'Pricing',
@@ -131,9 +147,12 @@ export default defineType({
       };
       const catLabel = categoryLabels[category] || category;
       const subLabel = subcategory ? ` → ${subcategoryLabels[subcategory] || subcategory}` : '';
+      const isTargeted =
+        (targetFranchisees && targetFranchisees.length > 0) ||
+        (targetMembers && targetMembers.length > 0);
       return {
-        title,
-        subtitle: `${catLabel}${subLabel}${isPublished === false ? ' (Draft)' : ''}`,
+        title: isTargeted ? `🔒 ${title}` : title,
+        subtitle: `${catLabel}${subLabel}${isPublished === false ? ' (Draft)' : ''}${isTargeted ? ' (Targeted)' : ''}`,
       };
     },
   },

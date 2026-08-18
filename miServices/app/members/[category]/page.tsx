@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { getMemberDocumentsByCategory } from '@/lib/sanity';
+import { getServerSession } from 'next-auth';
+import { notFound, redirect } from 'next/navigation';
+import { authOptions } from '@/lib/auth-options';
+import { getMemberDocumentsByCategory, type DocumentTargetingParams } from '@/lib/sanity';
 import CategoryDocuments from './CategoryDocuments';
 
 const VALID_CATEGORIES: Record<string, string> = {
@@ -23,13 +25,25 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user) {
+    redirect('/members/login');
+  }
+
   const categoryTitle = VALID_CATEGORIES[params.category];
 
   if (!categoryTitle) {
     notFound();
   }
 
-  const docs = await getMemberDocumentsByCategory(params.category);
+  const targeting: DocumentTargetingParams = {
+    memberId: session.user.id,
+    franchiseeId: session.user.franchiseeId || null,
+    role: session.user.role,
+  };
+
+  const docs = await getMemberDocumentsByCategory(params.category, targeting);
 
   return (
     <CategoryDocuments

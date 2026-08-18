@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { getMemberDocumentBySlug } from '@/lib/sanity';
+import { getServerSession } from 'next-auth';
+import { notFound, redirect } from 'next/navigation';
+import { authOptions } from '@/lib/auth-options';
+import { getMemberDocumentBySlug, type DocumentTargetingParams } from '@/lib/sanity';
 import DocumentView from './DocumentView';
 
 const VALID_SUBCATEGORIES: Record<string, string> = {
@@ -23,11 +25,23 @@ export async function generateMetadata({ params }: DocumentPageProps): Promise<M
 }
 
 export default async function DocumentPage({ params }: DocumentPageProps) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user) {
+    redirect('/members/login');
+  }
+
   if (!VALID_SUBCATEGORIES[params.subcategory]) {
     notFound();
   }
 
-  const doc = await getMemberDocumentBySlug(params.slug);
+  const targeting: DocumentTargetingParams = {
+    memberId: session.user.id,
+    franchiseeId: session.user.franchiseeId || null,
+    role: session.user.role,
+  };
+
+  const doc = await getMemberDocumentBySlug(params.slug, targeting);
 
   if (!doc || doc.category !== 'documents' || doc.subcategory !== params.subcategory) {
     notFound();

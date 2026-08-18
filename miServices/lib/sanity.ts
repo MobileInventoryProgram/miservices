@@ -275,6 +275,41 @@ export interface SanityFranchiseeOwner {
   };
 }
 
+export interface SanityTestimonial {
+  _key?: string;
+  clientName: string;
+  clientRole?: string;
+  quote: string;
+  rating?: number;
+}
+
+export interface SanityQualifications {
+  yearsExperience?: number;
+  dbsChecked?: boolean;
+  certifications?: string[];
+  additionalInfo?: string;
+}
+
+export interface SanityTeamMember {
+  _key?: string;
+  name: string;
+  role?: string;
+  bio?: string;
+  photo?: {
+    asset: {
+      _ref: string;
+      url?: string;
+    };
+  };
+}
+
+export interface SanityHighlightedService {
+  _key?: string;
+  serviceSlug?: string;
+  customServiceName?: string;
+  description?: string;
+}
+
 export interface SanityFranchisee {
   _id: string;
   companyName: string;
@@ -286,6 +321,40 @@ export interface SanityFranchisee {
   isActive: boolean;
   locationDescription?: any[];
   owners: SanityFranchiseeOwner[];
+  testimonials?: SanityTestimonial[];
+  qualifications?: SanityQualifications;
+  teamMembers?: SanityTeamMember[];
+  highlightedServices?: SanityHighlightedService[];
+}
+
+export interface TransformedTestimonial {
+  key: string;
+  clientName: string;
+  clientRole: string;
+  quote: string;
+  rating: number;
+}
+
+export interface TransformedTeamMember {
+  key: string;
+  name: string;
+  role: string;
+  bio: string;
+  photo: string | null;
+}
+
+export interface TransformedHighlightedService {
+  key: string;
+  serviceSlug: string;
+  customServiceName: string;
+  description: string;
+}
+
+export interface TransformedQualifications {
+  yearsExperience: number | null;
+  dbsChecked: boolean;
+  certifications: string[];
+  additionalInfo: string;
 }
 
 export interface TransformedFranchisee {
@@ -312,6 +381,10 @@ export interface TransformedFranchisee {
   name: string;
   email: string;
   phone: string;
+  testimonials: TransformedTestimonial[];
+  qualifications: TransformedQualifications;
+  teamMembers: TransformedTeamMember[];
+  highlightedServices: TransformedHighlightedService[];
 }
 
 // Franchisee GROQ fields
@@ -336,6 +409,37 @@ const franchiseeFields = `
         url
       }
     }
+  },
+  testimonials[] {
+    _key,
+    clientName,
+    clientRole,
+    quote,
+    rating
+  },
+  qualifications {
+    yearsExperience,
+    dbsChecked,
+    certifications,
+    additionalInfo
+  },
+  teamMembers[] {
+    _key,
+    name,
+    role,
+    bio,
+    photo {
+      asset->{
+        _ref,
+        url
+      }
+    }
+  },
+  highlightedServices[] {
+    _key,
+    serviceSlug,
+    customServiceName,
+    description
   }
 `;
 
@@ -351,6 +455,36 @@ function transformFranchisee(doc: SanityFranchisee): TransformedFranchisee {
   }));
 
   const firstOwner = owners[0];
+
+  const testimonials: TransformedTestimonial[] = (doc.testimonials || []).map((t, i) => ({
+    key: t._key || `testimonial-${i}`,
+    clientName: t.clientName || '',
+    clientRole: t.clientRole || '',
+    quote: t.quote || '',
+    rating: t.rating ?? 5,
+  }));
+
+  const qualifications: TransformedQualifications = {
+    yearsExperience: doc.qualifications?.yearsExperience ?? null,
+    dbsChecked: doc.qualifications?.dbsChecked ?? false,
+    certifications: doc.qualifications?.certifications || [],
+    additionalInfo: doc.qualifications?.additionalInfo || '',
+  };
+
+  const teamMembers: TransformedTeamMember[] = (doc.teamMembers || []).map((tm, i) => ({
+    key: tm._key || `team-${i}`,
+    name: tm.name || '',
+    role: tm.role || '',
+    bio: tm.bio || '',
+    photo: tm.photo?.asset?.url || null,
+  }));
+
+  const highlightedServices: TransformedHighlightedService[] = (doc.highlightedServices || []).map((hs, i) => ({
+    key: hs._key || `service-${i}`,
+    serviceSlug: hs.serviceSlug || '',
+    customServiceName: hs.customServiceName || '',
+    description: hs.description || '',
+  }));
 
   return {
     id: doc._id,
@@ -368,6 +502,10 @@ function transformFranchisee(doc: SanityFranchisee): TransformedFranchisee {
     name: firstOwner?.name || '',
     email: firstOwner?.email || '',
     phone: firstOwner?.phone || '',
+    testimonials,
+    qualifications,
+    teamMembers,
+    highlightedServices,
   };
 }
 
@@ -482,10 +620,9 @@ export interface SanityMember {
   name?: string;
   hashedPassword: string;
   role: 'franchisee' | 'admin';
+  franchiseeId?: string;
   territory?: string;
   isActive: boolean;
-  resetToken?: string;
-  resetTokenExpiry?: string;
 }
 
 export interface SanityMemberDocument {
@@ -505,6 +642,14 @@ export interface SanityMemberDocument {
   publishedAt: string;
   isPublished: boolean;
   order: number;
+  targetFranchisees?: Array<{ _ref: string }>;
+  targetMembers?: Array<{ _ref: string }>;
+}
+
+export interface DocumentTargetingParams {
+  memberId: string;
+  franchiseeId: string | null;
+  role: 'franchisee' | 'admin';
 }
 
 // Member queries
@@ -517,39 +662,15 @@ export async function getMemberByEmail(email: string): Promise<SanityMember | nu
         name,
         hashedPassword,
         role,
+        "franchiseeId": franchisee->._id,
         territory,
-        isActive,
-        resetToken,
-        resetTokenExpiry
+        isActive
       }`,
       { email }
     );
     return member;
   } catch (error) {
     console.error('Error fetching member by email:', error);
-    return null;
-  }
-}
-
-export async function getMemberByResetToken(token: string): Promise<SanityMember | null> {
-  try {
-    const member = await sanityWriteClient.fetch(
-      `*[_type == "member" && resetToken == $resetToken && isActive == true][0] {
-        _id,
-        email,
-        name,
-        hashedPassword,
-        role,
-        territory,
-        isActive,
-        resetToken,
-        resetTokenExpiry
-      }`,
-      { resetToken: token }
-    );
-    return member;
-  } catch (error) {
-    console.error('Error fetching member by reset token:', error);
     return null;
   }
 }
@@ -571,15 +692,45 @@ const memberDocFields = `
   body,
   publishedAt,
   isPublished,
-  order
+  order,
+  targetFranchisees,
+  targetMembers
 `;
 
-export async function getMemberDocuments(): Promise<SanityMemberDocument[]> {
+// GROQ filter for document targeting. Admins see everything.
+// Franchisees see: untargeted docs + docs targeted to their franchisee or member account.
+function buildTargetingFilter(params?: DocumentTargetingParams): {
+  filter: string;
+  queryParams: Record<string, string>;
+} {
+  if (!params || params.role === 'admin') {
+    return { filter: '', queryParams: {} };
+  }
+  const filter = ` && (
+    ((!defined(targetFranchisees) || length(targetFranchisees) == 0)
+      && (!defined(targetMembers) || length(targetMembers) == 0))
+    || $franchiseeId in targetFranchisees[]._ref
+    || $memberId in targetMembers[]._ref
+  )`;
+  return {
+    filter,
+    queryParams: {
+      franchiseeId: params.franchiseeId || '',
+      memberId: params.memberId,
+    },
+  };
+}
+
+export async function getMemberDocuments(
+  params?: DocumentTargetingParams
+): Promise<SanityMemberDocument[]> {
   try {
+    const { filter, queryParams } = buildTargetingFilter(params);
     const docs = await sanityClient.fetch(
-      `*[_type == "memberDocument" && isPublished == true] | order(order asc, publishedAt desc) {
+      `*[_type == "memberDocument" && isPublished == true${filter}] | order(order asc, publishedAt desc) {
         ${memberDocFields}
-      }`
+      }`,
+      queryParams
     );
     return docs;
   } catch (error) {
@@ -589,14 +740,16 @@ export async function getMemberDocuments(): Promise<SanityMemberDocument[]> {
 }
 
 export async function getMemberDocumentsByCategory(
-  category: string
+  category: string,
+  params?: DocumentTargetingParams
 ): Promise<SanityMemberDocument[]> {
   try {
+    const { filter, queryParams } = buildTargetingFilter(params);
     const docs = await sanityClient.fetch(
-      `*[_type == "memberDocument" && isPublished == true && category == $category] | order(order asc, publishedAt desc) {
+      `*[_type == "memberDocument" && isPublished == true && category == $category${filter}] | order(order asc, publishedAt desc) {
         ${memberDocFields}
       }`,
-      { category }
+      { category, ...queryParams }
     );
     return docs;
   } catch (error) {
@@ -606,14 +759,16 @@ export async function getMemberDocumentsByCategory(
 }
 
 export async function getMemberDocumentBySlug(
-  slug: string
+  slug: string,
+  params?: DocumentTargetingParams
 ): Promise<SanityMemberDocument | null> {
   try {
+    const { filter, queryParams } = buildTargetingFilter(params);
     const doc = await sanityClient.fetch(
-      `*[_type == "memberDocument" && slug.current == $slug && isPublished == true][0] {
+      `*[_type == "memberDocument" && slug.current == $slug && isPublished == true${filter}][0] {
         ${memberDocFields}
       }`,
-      { slug }
+      { slug, ...queryParams }
     );
     return doc;
   } catch (error) {
@@ -624,14 +779,16 @@ export async function getMemberDocumentBySlug(
 
 export async function getMemberDocumentsByCategoryAndSubcategory(
   category: string,
-  subcategory: string
+  subcategory: string,
+  params?: DocumentTargetingParams
 ): Promise<SanityMemberDocument[]> {
   try {
+    const { filter, queryParams } = buildTargetingFilter(params);
     const docs = await sanityClient.fetch(
-      `*[_type == "memberDocument" && isPublished == true && category == $category && subcategory == $subcategory] | order(order asc, publishedAt desc) {
+      `*[_type == "memberDocument" && isPublished == true && category == $category && subcategory == $subcategory${filter}] | order(order asc, publishedAt desc) {
         ${memberDocFields}
       }`,
-      { category, subcategory }
+      { category, subcategory, ...queryParams }
     );
     return docs;
   } catch (error) {
@@ -640,10 +797,14 @@ export async function getMemberDocumentsByCategoryAndSubcategory(
   }
 }
 
-export async function getDocumentsSubcategoryCounts(): Promise<Record<string, number>> {
+export async function getDocumentsSubcategoryCounts(
+  params?: DocumentTargetingParams
+): Promise<Record<string, number>> {
   try {
+    const { filter, queryParams } = buildTargetingFilter(params);
     const docs = await sanityClient.fetch(
-      `*[_type == "memberDocument" && isPublished == true && category == "documents"] { subcategory }`
+      `*[_type == "memberDocument" && isPublished == true && category == "documents"${filter}] { subcategory }`,
+      queryParams
     );
     const counts: Record<string, number> = {};
     for (const doc of docs) {
@@ -672,5 +833,229 @@ export async function getFranchiseeByTerritory(
   } catch (error) {
     console.error('Error fetching franchisee by territory:', error);
     return null;
+  }
+}
+
+/**
+ * Resolve the franchisee for the current session.
+ * Prefers the direct franchisee reference; falls back to territory string lookup.
+ */
+export async function getFranchiseeForSession(session: {
+  user: { franchiseeId?: string | null; territory?: string | null };
+}): Promise<SanityFranchisee | null> {
+  if (session.user.franchiseeId) {
+    try {
+      const doc: SanityFranchisee | null = await sanityClient.fetch(
+        `*[_type == "franchisee" && _id == $id && isActive == true][0] {
+          ${franchiseeFields}
+        }`,
+        { id: session.user.franchiseeId }
+      );
+      if (doc) return doc;
+    } catch (error) {
+      console.error('Error fetching franchisee by reference:', error);
+    }
+  }
+
+  if (session.user.territory) {
+    return getFranchiseeByTerritory(session.user.territory);
+  }
+
+  return null;
+}
+
+// ─── Pricing ────────────────────────────────────────────────────
+
+export interface SanityServiceRow {
+  _key: string;
+  serviceType: 'inventory' | 'combined' | 'checkout';
+  bedrooms: 'studio_1' | '2' | '3' | '4' | '5';
+  maxRooms: number;
+  unfurnishedPrice: number;
+  furnishedPrice: number;
+}
+
+export interface SanityFlatRate {
+  _key: string;
+  name: string;
+  price: number;
+  unit?: string;
+}
+
+export interface SanityAdditionalRoomRates {
+  unfurnishedPerRoom: number;
+  furnishedPerRoom: number;
+}
+
+export interface SanityPriceList {
+  _id: string;
+  title: string;
+  isDefault: boolean;
+  owner?: { _ref: string } | null;
+  availableToFranchisees?: boolean;
+  serviceRows: SanityServiceRow[];
+  flatRates: SanityFlatRate[];
+  additionalRoomRates: SanityAdditionalRoomRates;
+  cancellationFee: number;
+  terms?: any[];
+}
+
+export interface SanityPriceListSummary {
+  _id: string;
+  title: string;
+  isDefault: boolean;
+  isOwned: boolean;
+}
+
+const priceListFields = `
+  _id,
+  title,
+  isDefault,
+  "ownerRef": owner._ref,
+  availableToFranchisees,
+  serviceRows[] {
+    _key,
+    serviceType,
+    bedrooms,
+    maxRooms,
+    unfurnishedPrice,
+    furnishedPrice
+  },
+  flatRates[] {
+    _key,
+    name,
+    price,
+    unit
+  },
+  additionalRoomRates {
+    unfurnishedPerRoom,
+    furnishedPerRoom
+  },
+  cancellationFee,
+  terms
+`;
+
+/**
+ * All lists a franchisee can see: their own private lists + shared admin templates.
+ */
+export async function getPriceListsForFranchisee(
+  franchiseeId: string
+): Promise<(SanityPriceListSummary & { isOwned: boolean })[]> {
+  try {
+    const docs = await sanityClient.fetch(
+      `*[_type == "priceList" && (
+        owner._ref == $franchiseeId ||
+        (!defined(owner) && availableToFranchisees == true)
+      )] | order(title asc) {
+        _id,
+        title,
+        isDefault,
+        "isOwned": defined(owner)
+      }`,
+      { franchiseeId }
+    );
+    return docs;
+  } catch (error) {
+    console.error('Error fetching price lists for franchisee:', error);
+    return [];
+  }
+}
+
+/**
+ * Admin templates available for duplication.
+ */
+export async function getSharedTemplates(): Promise<SanityPriceList[]> {
+  try {
+    const docs = await sanityClient.fetch(
+      `*[_type == "priceList" && !defined(owner) && availableToFranchisees == true] | order(title asc) {
+        ${priceListFields}
+      }`
+    );
+    return docs;
+  } catch (error) {
+    console.error('Error fetching shared templates:', error);
+    return [];
+  }
+}
+
+/**
+ * Single list, verified owned by this franchisee.
+ */
+export async function getOwnedPriceList(
+  listId: string,
+  franchiseeId: string
+): Promise<SanityPriceList | null> {
+  try {
+    const doc = await sanityClient.fetch(
+      `*[_type == "priceList" && _id == $listId && owner._ref == $franchiseeId][0] {
+        ${priceListFields}
+      }`,
+      { listId, franchiseeId }
+    );
+    return doc;
+  } catch (error) {
+    console.error('Error fetching owned price list:', error);
+    return null;
+  }
+}
+
+/**
+ * Any list visible to this franchisee (owned or shared template), for read-only viewing.
+ */
+export async function getVisiblePriceList(
+  listId: string,
+  franchiseeId: string
+): Promise<SanityPriceList | null> {
+  try {
+    const doc = await sanityClient.fetch(
+      `*[_type == "priceList" && _id == $listId && (
+        owner._ref == $franchiseeId ||
+        (!defined(owner) && availableToFranchisees == true)
+      )][0] {
+        ${priceListFields}
+      }`,
+      { listId, franchiseeId }
+    );
+    return doc;
+  } catch (error) {
+    console.error('Error fetching visible price list:', error);
+    return null;
+  }
+}
+
+/**
+ * Franchisee's default list (for quoting pre-selection).
+ */
+export async function getFranchiseeDefaultList(
+  franchiseeId: string
+): Promise<SanityPriceList | null> {
+  try {
+    const doc = await sanityClient.fetch(
+      `*[_type == "priceList" && owner._ref == $franchiseeId && isDefault == true][0] {
+        ${priceListFields}
+      }`,
+      { franchiseeId }
+    );
+    return doc;
+  } catch (error) {
+    console.error('Error fetching franchisee default list:', error);
+    return null;
+  }
+}
+
+/**
+ * All admin templates (for Studio / admin use).
+ */
+export async function getAdminPriceLists(): Promise<SanityPriceList[]> {
+  try {
+    const docs = await sanityClient.fetch(
+      `*[_type == "priceList" && !defined(owner)] | order(title asc) {
+        ${priceListFields}
+      }`
+    );
+    return docs;
+  } catch (error) {
+    console.error('Error fetching admin price lists:', error);
+    return [];
   }
 }
