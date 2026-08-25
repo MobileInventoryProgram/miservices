@@ -9,14 +9,24 @@ import AboutStats from '@/components/about/AboutStats';
 import FeatureCards from '@/components/about/FeatureCards';
 import { FiFileText, FiCheckCircle, FiUsers, FiCalendar, FiCreditCard, FiClipboard, FiMapPin, FiAward } from 'react-icons/fi';
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
+
 export const metadata: Metadata = {
   title: 'About miServices | Property Reporting, Inventory & Inspection Specialists',
   description: 'Discover the story behind miServices. Established in 2009, now operating in 65+ territories, supporting over 700 letting agents with professional property reporting and inventory services.',
   openGraph: {
     title: 'About miServices | Property Reporting, Inventory & Inspection Specialists',
     description: 'Discover the story behind miServices. Established in 2009, now operating in 65+ territories, supporting over 700 letting agents with professional property reporting and inventory services.',
-    url: 'https://miservices.co.uk/about',
+    url: `${BASE_URL}/about`,
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'About miServices | Property Reporting, Inventory & Inspection Specialists',
+    description: 'Discover the story behind miServices. Established in 2009, now operating in 65+ territories.',
+  },
+  alternates: {
+    canonical: `${BASE_URL}/about`,
   },
 };
 

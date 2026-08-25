@@ -6,6 +6,9 @@ import PortableText from '@/components/PortableText';
 import { notFound } from 'next/navigation';
 import { FiCalendar, FiClock, FiArrowLeft, FiUser } from 'react-icons/fi';
 import type { Metadata } from 'next';
+import JsonLd from '@/components/JsonLd';
+
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
 
 export const revalidate = 60;
 
@@ -42,6 +45,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: imageUrl ? [imageUrl] : [],
       type: 'article',
       publishedTime: post.publishedAt,
+      url: `${BASE_URL}/news/${post.slug}`,
+      siteName: 'miServices',
+      locale: 'en_GB',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.excerpt,
+      images: imageUrl ? [imageUrl] : [],
+    },
+    alternates: {
+      canonical: `${BASE_URL}/news/${post.slug}`,
     },
   };
 }
@@ -61,8 +76,39 @@ export default async function PostPage({ params }: Props) {
     ? urlFor(post.author.image).width(100).height(100).url()
     : null;
 
+  const articleImageUrl = post.featuredImage?.asset
+    ? urlFor(post.featuredImage).width(1200).height(630).url()
+    : undefined;
+
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: post.title,
+    description: post.excerpt,
+    datePublished: post.publishedAt,
+    dateModified: post.publishedAt,
+    ...(articleImageUrl ? { image: articleImageUrl } : {}),
+    author: {
+      '@type': 'Person',
+      name: post.author?.name || 'miServices',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'miServices',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${BASE_URL}/logo.png`,
+      },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `${BASE_URL}/news/${post.slug}`,
+    },
+  };
+
   return (
     <>
+      <JsonLd data={articleSchema} />
       <article className="bg-white">
         <div className="relative bg-gradient-to-br from-brand-dark-blue to-brand-light-blue py-16 overflow-hidden">
           <div className="absolute inset-0 opacity-10">

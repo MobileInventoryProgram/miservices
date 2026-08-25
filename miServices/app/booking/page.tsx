@@ -2,13 +2,24 @@ import React from 'react';
 import { Metadata } from 'next';
 import BookingForm from '@/components/forms/BookingForm';
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
+
 export const metadata: Metadata = {
   title: 'Book a Property Report | miServices',
   description: 'Book an inventory, check-in, check-out, mid-term inspection or block management visit with miServices. Fast scheduling and nationwide coverage.',
   openGraph: {
     title: 'Book a Property Report | miServices',
-    description: 'Book an inventory, check-in, check-out, mid-term inspection or block management visit with miServices. Fast scheduling and nationwide coverage.',
+    description: 'Book an inventory, check-in, check-out, mid-term inspection or block management visit with miServices.',
+    url: `${BASE_URL}/booking`,
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Book a Property Report | miServices',
+    description: 'Book a property inspection with miServices. Fast scheduling and nationwide coverage.',
+  },
+  alternates: {
+    canonical: `${BASE_URL}/booking`,
   },
 };
 

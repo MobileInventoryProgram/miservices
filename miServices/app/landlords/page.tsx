@@ -2,10 +2,26 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { FiCheckCircle, FiHome, FiShield, FiDollarSign, FiFileText } from 'react-icons/fi';
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
+
 export const metadata: Metadata = {
   title: 'Services for Landlords | Inventory & Inspections',
-  description: 'Professional inventory reports, inspections & check-outs for landlords.',
+  description: 'Professional inventory reports, inspections & check-outs for landlords. Protect your deposit and investment with impartial third-party documentation.',
   keywords: 'landlord property inspections, inventory reports for landlords, deposit protection, property checks',
+  openGraph: {
+    title: 'Services for Landlords | Inventory & Inspections | miServices',
+    description: 'Professional inventory reports, inspections & check-outs for landlords.',
+    url: `${BASE_URL}/landlords`,
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Services for Landlords | miServices',
+    description: 'Professional inventory reports, inspections & check-outs for landlords.',
+  },
+  alternates: {
+    canonical: `${BASE_URL}/landlords`,
+  },
 };
 
 export default function Landlords() {

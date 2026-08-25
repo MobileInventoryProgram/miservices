@@ -153,20 +153,36 @@ export default function OurNetwork() {
     
     // Parse locations/towns array
     const locationsArray = franchisee.townsCities ? franchisee.townsCities.split(',').map(loc => loc.trim()) : [];
-    
+
     // Check if any owner name matches
-    const ownerNameMatch = franchisee.owners.some(owner => 
+    const ownerNameMatch = franchisee.owners.some(owner =>
       owner.name.toLowerCase().includes(search) ||
       owner.firstName.toLowerCase().includes(search) ||
       owner.lastName.toLowerCase().includes(search)
     );
-    
+
+    // Word-boundary match: checks if the search term appears as a complete word
+    // e.g. "chester" matches "Chester" but NOT "Manchester" or "Chesterfield"
+    const wordBoundaryMatch = (text: string, term: string) => {
+      const regex = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      return regex.test(text);
+    };
+
+    // Location match: exact word-boundary match on each individual town/city
+    const locationMatch = locationsArray.some(location =>
+      wordBoundaryMatch(location, search)
+    );
+
+    // Territory/company: use word-boundary matching too
+    const territoryMatch = franchisee.territory ? wordBoundaryMatch(franchisee.territory, search) : false;
+    const companyMatch = franchisee.companyName ? wordBoundaryMatch(franchisee.companyName, search) : false;
+
     return (
-      (franchisee.territory && franchisee.territory.toLowerCase().includes(search)) ||
-      (franchisee.companyName && franchisee.companyName.toLowerCase().includes(search)) ||
+      territoryMatch ||
+      companyMatch ||
       ownerNameMatch ||
       postcodeMatch ||
-      locationsArray.some(location => location.toLowerCase().includes(search))
+      locationMatch
     );
   });
 
@@ -346,7 +362,7 @@ export default function OurNetwork() {
                       </div>
                     )}
 
-                    <div className="pt-4 border-t border-gray-200">
+                    <div className="pt-4 border-t border-gray-200 space-y-2">
                       <span className="text-brand-light-blue font-medium group-hover:underline flex items-center">
                         View Profile & Book Service
                         <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">

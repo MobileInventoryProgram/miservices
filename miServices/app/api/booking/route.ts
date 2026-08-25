@@ -151,46 +151,58 @@ export async function POST(request: NextRequest) {
 
     const propertySizeDescription = `${propertySize.bedrooms} bed, ${propertySize.bathrooms} bath, ${propertySize.livingRooms} living room(s), ${propertySize.kitchens} kitchen(s)`;
 
-    const zapierWebhookUrl = process.env.ZAPIER_BOOKING_WEBHOOK_URL || 'https://hooks.zapier.com/hooks/catch/xxxxxxxx/xxxxxxxx/';
-
-    const zapierPayload = {
-      first_name: firstName,
-      last_name: lastName,
-      client_name: `${firstName} ${lastName}`,
-      phone: phone,
-      email: email,
-      company: company,
-      address: address,
-      postcode: postcode,
-      job_type: jobTypeLabels[jobType] || jobType,
-      job_category: jobTypeLabels[jobType] || jobType,
-      property_size: {
-        bedrooms: propertySize.bedrooms,
-        bathrooms: propertySize.bathrooms,
-        livingrooms: propertySize.livingRooms,
-        kitchens: propertySize.kitchens,
-      },
-      property_size_description: propertySizeDescription,
-      booking_date: bookingDate,
-      keys_location: keysLocation,
-      additional_info: additionalInfo,
-      job_description: `${jobTypeLabels[jobType] || jobType} - ${propertySizeDescription}`,
-      notes: `Keys: ${keysLocation || 'Not specified'}\nAdditional Info: ${additionalInfo || 'None'}`,
-      incoming_inventory_url: fileUrl || null,
-      source: 'Website Booking Form',
-      timestamp: new Date().toISOString(),
+    const categoryUuidMap: Record<string, string> = {
+      'inventory': 'a4823241-6b9a-4aa5-9769-1bf6d961cccb',
+      'inventory-check-in': '4de63a0e-a19c-4002-a1e5-1c0d6516a5eb',
+      'check-out': '90e6040f-c445-4a9d-84d7-1c00ac445cbb',
+      'mid-term': 'f18a762a-1d51-4996-82a4-1c00a8be978b',
+      'block-management': '9922ec75-1dbe-455d-abc8-1c0d6181cdab',
     };
 
-    const zapierResponse = await fetch(zapierWebhookUrl, {
+    const jobDescriptionLines = [
+      `Client: ${firstName} ${lastName}`,
+      company ? `Company: ${company}` : '',
+      `Phone: ${phone}`,
+      `Email: ${email}`,
+      `Job Type: ${jobTypeLabels[jobType] || jobType}`,
+      `Property: ${propertySizeDescription}`,
+      `Keys: ${keysLocation || 'Not specified'}`,
+      `Notes: ${additionalInfo || 'None'}`,
+      fileUrl ? `Incoming Inventory: ${fileUrl}` : '',
+      `Source: Website Booking Form`,
+    ].filter(Boolean).join('\n');
+
+    const formattedDate = new Date(bookingDate).toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, '');
+
+    const servicem8Payload = {
+      status: 'Quote',
+      date: formattedDate,
+      job_address: `${address}, ${postcode}`,
+      job_description: jobDescriptionLines,
+      category_uuid: categoryUuidMap[jobType] || '',
+      customfield_key_location: keysLocation,
+    };
+
+    const servicem8ApiKey = process.env.SERVICEM8_API_KEY;
+    if (!servicem8ApiKey) {
+      console.error('SERVICEM8_API_KEY is not configured');
+      return NextResponse.json(
+        { message: 'Booking service is not configured. Please try again later.' },
+        { status: 500 }
+      );
+    }
+
+    const servicem8Response = await fetch('https://api.servicem8.com/api_1.0/job.json', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-API-Key': servicem8ApiKey,
       },
-      body: JSON.stringify(zapierPayload),
+      body: JSON.stringify(servicem8Payload),
     });
 
-    if (!zapierResponse.ok) {
-      console.error('Zapier webhook failed:', await zapierResponse.text());
+    if (!servicem8Response.ok) {
+      console.error('ServiceM8 API failed:', await servicem8Response.text());
       return NextResponse.json(
         { message: 'Failed to process booking. Please try again later.' },
         { status: 500 }

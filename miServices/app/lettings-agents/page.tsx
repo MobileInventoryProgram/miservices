@@ -2,10 +2,26 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { FiCheckCircle, FiUsers, FiClock, FiFileText, FiShield } from 'react-icons/fi';
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
+
 export const metadata: Metadata = {
   title: 'Services for Letting Agents | Outsourced Property Reporting',
-  description: 'Inventory, check-in, check-out & inspection solutions for letting agents.',
+  description: 'Professional inventory, check-in, check-out & inspection solutions for letting agents. Nationwide coverage, fast turnaround, consistent reporting standards.',
   keywords: 'letting agents inventory service, property reports for agents, outsourced inspections, lettings compliance',
+  openGraph: {
+    title: 'Services for Letting Agents | Outsourced Property Reporting | miServices',
+    description: 'Professional inventory, check-in, check-out & inspection solutions for letting agents.',
+    url: `${BASE_URL}/lettings-agents`,
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Services for Letting Agents | miServices',
+    description: 'Professional inventory, check-in, check-out & inspection solutions for letting agents.',
+  },
+  alternates: {
+    canonical: `${BASE_URL}/lettings-agents`,
+  },
 };
 
 export default function LettingsAgents() {

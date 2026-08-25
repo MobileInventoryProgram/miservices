@@ -1,9 +1,25 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
+
 export const metadata: Metadata = {
   title: 'Careers | miServices',
-  description: 'Join the miServices team. Explore career opportunities in property inspection services.',
+  description: 'Join the miServices team. Explore career opportunities in property inspection services across the UK.',
+  openGraph: {
+    title: 'Careers | miServices',
+    description: 'Join the miServices team. Explore career opportunities in property inspection services.',
+    url: `${BASE_URL}/careers`,
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Careers | miServices',
+    description: 'Explore career opportunities in property inspection services.',
+  },
+  alternates: {
+    canonical: `${BASE_URL}/careers`,
+  },
 };
 
 export default function Careers() {

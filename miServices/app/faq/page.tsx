@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import FaqSection from '@/components/faq/FaqSection';
 import Button from '@/components/ui/Button';
+import JsonLd from '@/components/JsonLd';
 
 export default function FAQPage() {
   const generalQuestions = [
@@ -140,8 +141,31 @@ export default function FAQPage() {
     },
   ];
 
+  const allFaqs = [
+    ...generalQuestions,
+    ...servicesReports,
+    ...bookingsTurnaround,
+    ...pricingPayments,
+    ...territoriesCoverage,
+    ...franchiseFaqs,
+  ];
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: allFaqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
+  };
+
   return (
     <>
+      <JsonLd data={faqSchema} />
       <section className="relative bg-gradient-to-br from-brand-dark-blue to-brand-light-blue py-20 overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <svg className="absolute bottom-0 left-0 w-full" viewBox="0 0 1440 120" fill="none">

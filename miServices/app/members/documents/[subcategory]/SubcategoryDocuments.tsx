@@ -73,7 +73,7 @@ export default function SubcategoryDocuments({
                 </div>
 
                 <div className="flex items-center gap-3 flex-shrink-0">
-                  {doc.body && doc.body.length > 0 && (
+                  {(doc.file?.asset?.url || (doc.body && doc.body.length > 0)) && (
                     <Link
                       href={`/members/documents/${subcategory}/${doc.slug}`}
                       className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-dark-blue bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"

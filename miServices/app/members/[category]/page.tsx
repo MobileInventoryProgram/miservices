@@ -6,7 +6,6 @@ import { getMemberDocumentsByCategory, type DocumentTargetingParams } from '@/li
 import CategoryDocuments from './CategoryDocuments';
 
 const VALID_CATEGORIES: Record<string, string> = {
-  pricing: 'Pricing',
   assets: 'Assets',
   contacts: 'Contacts',
   quoting: 'Quoting',

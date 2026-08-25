@@ -116,6 +116,34 @@ export default function Footer() {
           </div>
         </div>
 
+        <div className="border-t border-gray-800 pt-8 pb-4">
+          <h3 className="text-white font-bold mb-4 font-helvetica">Property Inventory Services by Location</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 text-sm mb-8">
+            {[
+              { name: 'London Central', slug: 'london-central' },
+              { name: 'London SE', slug: 'london-south-east' },
+              { name: 'South Manchester', slug: 'south-manchester' },
+              { name: 'Birmingham', slug: 'birmingham' },
+              { name: 'Bristol', slug: 'bristol' },
+              { name: 'Sheffield', slug: 'sheffield' },
+              { name: 'West Yorkshire', slug: 'west-yorkshire' },
+              { name: 'Brighton', slug: 'brighton' },
+              { name: 'Glasgow Central', slug: 'glasgow-central' },
+              { name: 'Essex', slug: 'essex' },
+              { name: 'Reading', slug: 'reading' },
+              { name: 'Lancashire', slug: 'lancashire' },
+            ].map((location) => (
+              <Link
+                key={location.slug}
+                href={`/our-network/${location.slug}`}
+                className="text-gray-400 hover:text-brand-light-blue transition-colors"
+              >
+                {location.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+
         <div className="border-t border-gray-800 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-gray-400">

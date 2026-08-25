@@ -2,10 +2,26 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { getServices } from '@/lib/sanity';
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
+
 export const metadata: Metadata = {
-  title: 'Our Services | miServices',
-  description: 'Professional property inspection and inventory services for landlords, letting agents, and property managers across the UK.',
+  title: 'Our Services | Property Inventory & Inspection Services | miServices',
+  description: 'Professional property inspection and inventory services for landlords, letting agents, and property managers across the UK. Inventory reports, check-ins, check-outs, mid-tenancy visits and more.',
   keywords: 'property inspection, inventory services, check-in, check-out, mid-tenancy, pre-tenancy, property visits',
+  openGraph: {
+    title: 'Our Services | Property Inventory & Inspection Services | miServices',
+    description: 'Professional property inspection and inventory services across the UK.',
+    url: `${BASE_URL}/services`,
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Our Services | miServices',
+    description: 'Professional property inspection and inventory services across the UK.',
+  },
+  alternates: {
+    canonical: `${BASE_URL}/services`,
+  },
 };
 
 export const revalidate = 60;

@@ -5,9 +5,14 @@ import { notFound } from 'next/navigation';
 
 export const revalidate = 3600;
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
+
 export const metadata: Metadata = {
   title: 'Privacy Policy | miServices',
   description: 'miServices privacy policy. Learn how we collect, use, and protect your personal information.',
+  alternates: {
+    canonical: `${BASE_URL}/privacy-policy`,
+  },
 };
 
 export default async function PrivacyPolicy() {

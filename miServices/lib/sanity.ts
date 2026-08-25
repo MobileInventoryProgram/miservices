@@ -868,11 +868,11 @@ export async function getFranchiseeForSession(session: {
 
 export interface SanityServiceRow {
   _key: string;
-  serviceType: 'inventory' | 'combined' | 'checkout';
-  bedrooms: 'studio_1' | '2' | '3' | '4' | '5';
+  serviceType: 'inventory' | 'combined' | 'checkout' | 'midterm' | 'checkin' | 'virtualTourBundle' | 'virtualTourFloorplan' | 'floorplan';
+  bedrooms: 'studio_1' | '2' | '3' | '4' | '5' | '6';
   maxRooms: number;
   unfurnishedPrice: number;
-  furnishedPrice: number;
+  furnishedPrice?: number;
 }
 
 export interface SanityFlatRate {
@@ -893,10 +893,10 @@ export interface SanityPriceList {
   isDefault: boolean;
   owner?: { _ref: string } | null;
   availableToFranchisees?: boolean;
-  serviceRows: SanityServiceRow[];
+  serviceRows?: SanityServiceRow[];
   flatRates: SanityFlatRate[];
-  additionalRoomRates: SanityAdditionalRoomRates;
-  cancellationFee: number;
+  additionalRoomRates?: SanityAdditionalRoomRates;
+  cancellationFee?: number;
   terms?: any[];
 }
 
@@ -1056,6 +1056,57 @@ export async function getAdminPriceLists(): Promise<SanityPriceList[]> {
     return docs;
   } catch (error) {
     console.error('Error fetching admin price lists:', error);
+    return [];
+  }
+}
+
+/**
+ * Any price list by ID, no ownership check. Admin-only.
+ */
+export async function getPriceListById(listId: string): Promise<SanityPriceList | null> {
+  try {
+    const doc = await sanityClient.fetch(
+      `*[_type == "priceList" && _id == $listId][0] {
+        ${priceListFields}
+      }`,
+      { listId }
+    );
+    return doc;
+  } catch (error) {
+    console.error('Error fetching price list by id:', error);
+    return null;
+  }
+}
+
+// ─── Admin Overview ─────────────────────────────────────────────
+
+export interface AdminPriceListSummary {
+  _id: string;
+  title: string;
+  isDefault: boolean;
+  ownerName: string | null;
+  ownerTerritory: string | null;
+  isTemplate: boolean;
+}
+
+/**
+ * All price lists across all franchisees and admin templates. Admin-only view.
+ */
+export async function getAllPriceLists(): Promise<AdminPriceListSummary[]> {
+  try {
+    const docs = await sanityClient.fetch(
+      `*[_type == "priceList"] | order(title asc) {
+        _id,
+        title,
+        isDefault,
+        "ownerName": owner->companyName,
+        "ownerTerritory": owner->territory,
+        "isTemplate": !defined(owner)
+      }`
+    );
+    return docs;
+  } catch (error) {
+    console.error('Error fetching all price lists:', error);
     return [];
   }
 }

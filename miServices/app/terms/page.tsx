@@ -5,9 +5,14 @@ import { notFound } from 'next/navigation';
 
 export const revalidate = 3600;
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
+
 export const metadata: Metadata = {
   title: 'Terms & Conditions | miServices',
   description: 'miServices terms and conditions. Read our terms of service for using our property inspection services.',
+  alternates: {
+    canonical: `${BASE_URL}/terms`,
+  },
 };
 
 export default async function Terms() {

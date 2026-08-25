@@ -6,7 +6,6 @@ import { getMemberDocumentBySlug, type DocumentTargetingParams } from '@/lib/san
 import DocumentView from './DocumentView';
 
 const VALID_CATEGORIES: Record<string, string> = {
-  pricing: 'Pricing',
   assets: 'Assets',
   contacts: 'Contacts',
   quoting: 'Quoting',

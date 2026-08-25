@@ -220,8 +220,8 @@ export default function BookingForm() {
   if (submitSuccess) {
     return (
       <SuccessMessage
-        title="Booking Confirmed!"
-        message="Your property report booking has been successfully submitted. Our team will contact you shortly to confirm the details."
+        title="Booking Received!"
+        message="Your booking has been sent to our team. Someone will be in contact as soon as possible to confirm your appointment."
         onClose={() => setSubmitSuccess(false)}
       />
     );

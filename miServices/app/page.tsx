@@ -2,10 +2,70 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { FiCheckCircle, FiMapPin, FiUsers, FiFileText, FiClipboard, FiHome, FiClock, FiAward, FiShield } from 'react-icons/fi';
 import AnimatedStats from '../components/AnimatedStats';
+import JsonLd from '@/components/JsonLd';
+import type { Metadata } from 'next';
+
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
+
+export const metadata: Metadata = {
+  title: 'Property Inventory Services UK | miServices',
+  description: 'Professional property inventory services across the UK. Inventory reports, check-ins, check-outs, mid-tenancy inspections and more. Find your local inventory clerk.',
+  openGraph: {
+    title: 'Property Inventory Services UK | miServices',
+    description: 'Professional property inventory services across the UK. Inventory reports, check-ins, check-outs, mid-tenancy inspections and more. Find your local inventory clerk.',
+    url: BASE_URL,
+    siteName: 'miServices',
+    type: 'website',
+    locale: 'en_GB',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Property Inventory Services UK | miServices',
+    description: 'Professional property inventory services across the UK. Inventory reports, check-ins, check-outs, mid-tenancy inspections and more.',
+  },
+  alternates: {
+    canonical: BASE_URL,
+  },
+};
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'Organization',
+          name: 'miServices',
+          legalName: 'Mobile Inventory Services Ltd',
+          url: BASE_URL,
+          logo: `${BASE_URL}/logo.png`,
+          description: 'Professional property inventory services across the UK. Inventory reports, check-ins, check-outs, mid-tenancy inspections and more.',
+          telephone: '0345 680 7976',
+          email: 'enquiries@miprogram.co.uk',
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: 'Third Floor, Suit A3 (3), Steam Mill, 3 Steam Mill St',
+            addressLocality: 'Chester',
+            postalCode: 'CH3 5AN',
+            addressCountry: 'GB',
+          },
+          areaServed: {
+            '@type': 'Country',
+            name: 'United Kingdom',
+          },
+          sameAs: [
+            'https://www.linkedin.com/company/mobile-inventory-services',
+            'https://www.facebook.com/miservicesuk',
+          ],
+          contactPoint: {
+            '@type': 'ContactPoint',
+            telephone: '0345 680 7976',
+            contactType: 'customer service',
+            areaServed: 'GB',
+            availableLanguage: 'English',
+          },
+        }}
+      />
       <section className="relative overflow-hidden bg-white py-20 lg:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
@@ -243,6 +303,46 @@ export default function Home() {
               description="Protect your investment with detailed property inspections and professional documentation."
               link="/landlords"
             />
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-brand-dark-blue font-helvetica">
+            Find Your Local Inventory Clerk
+          </h2>
+          <p className="text-center text-gray-600 mb-10 max-w-2xl mx-auto">
+            We provide professional property inventory services across the UK. Select your area to learn more.
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {[
+              { name: 'London Central', slug: 'london-central' },
+              { name: 'London South East', slug: 'london-south-east' },
+              { name: 'South Manchester', slug: 'south-manchester' },
+              { name: 'Birmingham', slug: 'birmingham' },
+              { name: 'Bristol', slug: 'bristol' },
+              { name: 'Sheffield', slug: 'sheffield' },
+              { name: 'West Yorkshire', slug: 'west-yorkshire' },
+              { name: 'Brighton', slug: 'brighton' },
+              { name: 'Glasgow Central', slug: 'glasgow-central' },
+              { name: 'Essex', slug: 'essex' },
+              { name: 'Reading', slug: 'reading' },
+              { name: 'Lancashire', slug: 'lancashire' },
+            ].map((location) => (
+              <Link
+                key={location.slug}
+                href={`/our-network/${location.slug}`}
+                className="text-center p-3 rounded-lg border border-gray-200 hover:border-brand-light-blue hover:shadow-md transition-all text-sm font-medium text-brand-dark-blue hover:text-brand-light-blue"
+              >
+                {location.name}
+              </Link>
+            ))}
+          </div>
+          <div className="text-center mt-8">
+            <Link href="/our-network" className="text-brand-light-blue font-medium hover:underline">
+              View all locations →
+            </Link>
           </div>
         </div>
       </section>

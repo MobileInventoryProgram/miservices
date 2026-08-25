@@ -1,4 +1,3 @@
-// Middleware to protect member area routes
 import { withAuth } from 'next-auth/middleware';
 
 export default withAuth({
@@ -9,5 +8,5 @@ export default withAuth({
 });
 
 export const config = {
-  matcher: ['/members/franchise/:path*', '/members/staff/:path*', '/members/admin/:path*'],
+  matcher: ['/members/((?!login).*)'],
 };

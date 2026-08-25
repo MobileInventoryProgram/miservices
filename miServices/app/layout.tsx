@@ -1,14 +1,28 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import LoadingBar from "@/components/LoadingBar";
 import SessionProvider from "@/components/providers/SessionProvider";
+import ConditionalLayout from "@/components/ConditionalLayout";
+
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
 
 export const metadata: Metadata = {
-  title: "miServices - Professional Property Inspection Services",
-  description: "Leading property inspection services including inventory reports, check-ins, check-outs, property visits, and block management for lettings agents, property managers, and landlords.",
-  keywords: "property inspection, inventory reports, check-in, check-out, property management",
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: "miServices - Professional Property Inventory Services UK",
+    template: "%s",
+  },
+  description: "Professional property inventory services across the UK. Inventory reports, check-ins, check-outs, mid-tenancy inspections and more from the UK's trusted inventory clerk network.",
+  keywords: "property inventory, inventory reports, check-in, check-out, property inspection, inventory clerk, letting agent services",
+  openGraph: {
+    siteName: 'miServices',
+    type: 'website',
+    locale: 'en_GB',
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
 };
 
 export default function RootLayout({
@@ -20,12 +34,12 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <SessionProvider>
-          <LoadingBar />
-          <Header />
-          <main>
+          <Suspense fallback={null}>
+            <LoadingBar />
+          </Suspense>
+          <ConditionalLayout>
             {children}
-          </main>
-          <Footer />
+          </ConditionalLayout>
         </SessionProvider>
       </body>
     </html>

@@ -17,7 +17,7 @@ export async function GET(
       );
     }
 
-    if (session.user.role !== 'franchise' && session.user.role !== 'admin' && session.user.role !== 'superadmin') {
+    if (session.user.role !== 'franchisee' && session.user.role !== 'admin') {
       return NextResponse.json(
         { success: false, error: 'Forbidden' },
         { status: 403 }

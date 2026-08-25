@@ -2,6 +2,8 @@ import { Metadata } from 'next';
 import Image from 'next/image';
 import { FiUsers, FiBriefcase, FiUserCheck, FiFileText } from 'react-icons/fi';
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
+
 export const metadata: Metadata = {
   title: 'Our Team | miServices',
   description: 'Meet the dedicated team behind miServices - experienced professionals committed to delivering exceptional property inspection services across the UK.',
@@ -9,7 +11,16 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Our Team | miServices',
     description: 'Meet the dedicated team behind miServices - experienced professionals committed to delivering exceptional property inspection services.',
+    url: `${BASE_URL}/our-team`,
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Our Team | miServices',
+    description: 'Meet the dedicated team behind miServices.',
+  },
+  alternates: {
+    canonical: `${BASE_URL}/our-team`,
   },
 };
 

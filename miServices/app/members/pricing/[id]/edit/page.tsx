@@ -1,0 +1,51 @@
+import { Metadata } from 'next';
+import { getServerSession } from 'next-auth';
+import { redirect, notFound } from 'next/navigation';
+import { authOptions } from '@/lib/auth-options';
+import { getFranchiseeForSession, getOwnedPriceList } from '@/lib/sanity';
+import PriceListEditor from './PriceListEditor';
+
+export const metadata: Metadata = {
+  title: 'Edit Price List | Members Area | miServices',
+};
+
+export default async function EditPriceListPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user) {
+    redirect('/members/login');
+  }
+
+  if (!session.user.franchiseeId && !session.user.territory) {
+    redirect('/members');
+  }
+
+  const franchisee = await getFranchiseeForSession(session);
+
+  if (!franchisee) {
+    redirect('/members/pricing');
+  }
+
+  const { id } = await params;
+  const priceList = await getOwnedPriceList(id, franchisee._id);
+
+  if (!priceList) {
+    notFound();
+  }
+
+  return (
+    <PriceListEditor
+      listId={priceList._id}
+      initialTitle={priceList.title}
+      initialIsDefault={priceList.isDefault}
+      initialServiceRows={priceList.serviceRows || []}
+      initialFlatRates={priceList.flatRates}
+      initialAdditionalRoomRates={priceList.additionalRoomRates || { unfurnishedPerRoom: 0, furnishedPerRoom: 0 }}
+      initialCancellationFee={priceList.cancellationFee ?? 0}
+    />
+  );
+}

@@ -2,10 +2,26 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { FiCheckCircle, FiUsers, FiShield, FiFileText, FiClock } from 'react-icons/fi';
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
+
 export const metadata: Metadata = {
   title: 'Services for Property Managers | Portfolio Reporting',
-  description: 'Reporting, compliance checks & block management services for property managers.',
+  description: 'Professional reporting, compliance checks & block management services for property managers. Nationwide coverage with consistent standards.',
   keywords: 'property management inspections, portfolio reporting, block management, compliance checks',
+  openGraph: {
+    title: 'Services for Property Managers | Portfolio Reporting | miServices',
+    description: 'Professional reporting, compliance checks & block management services for property managers.',
+    url: `${BASE_URL}/property-managers`,
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Services for Property Managers | miServices',
+    description: 'Professional reporting, compliance checks & block management services for property managers.',
+  },
+  alternates: {
+    canonical: `${BASE_URL}/property-managers`,
+  },
 };
 
 export default function PropertyManagers() {

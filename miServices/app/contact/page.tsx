@@ -4,13 +4,24 @@ import ContactForm from '@/components/forms/ContactForm';
 import BookingPromptModal from '@/components/ui/BookingPromptModal';
 import { FiPhone, FiMapPin, FiFileText } from 'react-icons/fi';
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
+
 export const metadata: Metadata = {
   title: 'Contact miServices | Speak With Our Team',
   description: 'Get in touch with miServices for quotes, support, job bookings and general enquiries. Fast response and nationwide coverage.',
   openGraph: {
     title: 'Contact miServices | Speak With Our Team',
     description: 'Get in touch with miServices for quotes, support, job bookings and general enquiries. Fast response and nationwide coverage.',
+    url: `${BASE_URL}/contact`,
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Contact miServices | Speak With Our Team',
+    description: 'Get in touch with miServices for quotes, support, job bookings and general enquiries.',
+  },
+  alternates: {
+    canonical: `${BASE_URL}/contact`,
   },
 };
 
@@ -20,7 +31,7 @@ export default function ContactPage() {
     '@type': 'ContactPage',
     name: 'Contact miServices',
     description: 'Get in touch with miServices for quotes, support, job bookings and general enquiries.',
-    url: 'https://miservices.co.uk/contact',
+    url: `${BASE_URL}/contact`,
     mainEntity: {
       '@type': 'Organization',
       name: 'miServices',
