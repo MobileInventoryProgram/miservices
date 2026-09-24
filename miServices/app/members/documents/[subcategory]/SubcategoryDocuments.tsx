@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FiArrowLeft, FiDownload, FiEye } from 'react-icons/fi';
+import { FiArrowLeft, FiEye } from 'react-icons/fi';
 import type { SanityMemberDocument } from '@/lib/sanity';
 
 interface SubcategoryDocumentsProps {
@@ -73,7 +73,7 @@ export default function SubcategoryDocuments({
                 </div>
 
                 <div className="flex items-center gap-3 flex-shrink-0">
-                  {(doc.file?.asset?.url || (doc.body && doc.body.length > 0)) && (
+                  {doc.body && doc.body.length > 0 && (
                     <Link
                       href={`/members/documents/${subcategory}/${doc.slug}`}
                       className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-dark-blue bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
@@ -81,17 +81,6 @@ export default function SubcategoryDocuments({
                       <FiEye className="w-4 h-4" />
                       View
                     </Link>
-                  )}
-                  {doc.file?.asset?.url && (
-                    <a
-                      href={`${doc.file.asset.url}?dl=`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-brand-light-blue rounded-md hover:bg-brand-dark-blue transition-colors"
-                    >
-                      <FiDownload className="w-4 h-4" />
-                      Download
-                    </a>
                   )}
                 </div>
               </div>

@@ -74,8 +74,19 @@ export default defineType({
       name: 'body',
       title: 'Body',
       type: 'array',
-      of: [{ type: 'block' }],
-      description: 'Optional inline content for viewing in the browser',
+      of: [
+        { type: 'block' },
+        {
+          type: 'image',
+          options: { hotspot: true },
+          fields: [
+            { name: 'alt', title: 'Alternative text', type: 'string', description: 'Describe the image for screen readers' },
+            { name: 'caption', title: 'Caption', type: 'string' },
+          ],
+        },
+      ],
+      description:
+        'The document content, shown to logged-in members only (it cannot be downloaded). Edit and publish here — changes appear in Franchise Login immediately.',
     }),
     defineField({
       name: 'targetFranchisees',

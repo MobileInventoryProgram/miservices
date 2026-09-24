@@ -606,6 +606,19 @@ export async function getAllServiceSlugs(): Promise<string[]> {
 // ─── Members Area ───────────────────────────────────────────────
 
 // Authenticated write client for mutations
+/**
+ * Uncached reader for member-only content (documents), so edits published in
+ * Studio show in Franchise Login straight away rather than after the CDN cache.
+ */
+export const sanityLiveClient = createClient({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'a4q9j3x1',
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
+  apiVersion: '2024-01-01',
+  useCdn: false,
+  token: process.env.SANITY_API_READ_TOKEN || process.env.SANITY_API_TOKEN,
+  perspective: 'published',
+});
+
 export const sanityWriteClient = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'a4q9j3x1',
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
@@ -727,7 +740,7 @@ export async function getMemberDocuments(
 ): Promise<SanityMemberDocument[]> {
   try {
     const { filter, queryParams } = buildTargetingFilter(params);
-    const docs = await sanityClient.fetch(
+    const docs = await sanityLiveClient.fetch(
       `*[_type == "memberDocument" && isPublished == true${filter}] | order(order asc, publishedAt desc) {
         ${memberDocFields}
       }`,
@@ -746,7 +759,7 @@ export async function getMemberDocumentsByCategory(
 ): Promise<SanityMemberDocument[]> {
   try {
     const { filter, queryParams } = buildTargetingFilter(params);
-    const docs = await sanityClient.fetch(
+    const docs = await sanityLiveClient.fetch(
       `*[_type == "memberDocument" && isPublished == true && category == $category${filter}] | order(order asc, publishedAt desc) {
         ${memberDocFields}
       }`,
@@ -765,7 +778,7 @@ export async function getMemberDocumentBySlug(
 ): Promise<SanityMemberDocument | null> {
   try {
     const { filter, queryParams } = buildTargetingFilter(params);
-    const doc = await sanityClient.fetch(
+    const doc = await sanityLiveClient.fetch(
       `*[_type == "memberDocument" && slug.current == $slug && isPublished == true${filter}][0] {
         ${memberDocFields}
       }`,
@@ -785,7 +798,7 @@ export async function getMemberDocumentsByCategoryAndSubcategory(
 ): Promise<SanityMemberDocument[]> {
   try {
     const { filter, queryParams } = buildTargetingFilter(params);
-    const docs = await sanityClient.fetch(
+    const docs = await sanityLiveClient.fetch(
       `*[_type == "memberDocument" && isPublished == true && category == $category && subcategory == $subcategory${filter}] | order(order asc, publishedAt desc) {
         ${memberDocFields}
       }`,
@@ -803,7 +816,7 @@ export async function getDocumentsSubcategoryCounts(
 ): Promise<Record<string, number>> {
   try {
     const { filter, queryParams } = buildTargetingFilter(params);
-    const docs = await sanityClient.fetch(
+    const docs = await sanityLiveClient.fetch(
       `*[_type == "memberDocument" && isPublished == true && category == "documents"${filter}] { subcategory }`,
       queryParams
     );
@@ -824,7 +837,7 @@ export async function getFranchiseeByTerritory(
   territory: string
 ): Promise<SanityFranchisee | null> {
   try {
-    const doc = await sanityClient.fetch(
+    const doc = await sanityLiveClient.fetch(
       `*[_type == "franchisee" && territory == $territory && isActive == true][0] {
         ${franchiseeFields}
       }`,
@@ -846,7 +859,7 @@ export async function getFranchiseeForSession(session: {
 }): Promise<SanityFranchisee | null> {
   if (session.user.franchiseeId) {
     try {
-      const doc: SanityFranchisee | null = await sanityClient.fetch(
+      const doc: SanityFranchisee | null = await sanityLiveClient.fetch(
         `*[_type == "franchisee" && _id == $id && isActive == true][0] {
           ${franchiseeFields}
         }`,

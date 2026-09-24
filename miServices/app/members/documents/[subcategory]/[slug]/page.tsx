@@ -52,6 +52,7 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
       document={doc}
       subcategory={params.subcategory}
       subcategoryTitle={VALID_SUBCATEGORIES[params.subcategory]}
+      viewer={{ name: session.user.name || session.user.email, email: session.user.email }}
     />
   );
 }
