@@ -2,6 +2,8 @@ import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth-options';
+import { getContactsForScope } from '@/lib/crm/contacts';
+import { getMemberScope } from '@/lib/members-access';
 import { getMemberDocuments, getFranchiseeForSession, type DocumentTargetingParams } from '@/lib/sanity';
 import MembersDashboard from './MembersDashboard';
 
@@ -23,15 +25,17 @@ export default async function MembersPage() {
     role: session.user.role,
   };
 
-  const [docs, franchisee] = await Promise.all([
+  const [docs, franchisee, scope] = await Promise.all([
     getMemberDocuments(targeting),
     getFranchiseeForSession(session),
+    getMemberScope(session),
   ]);
 
   const categoryCounts: Record<string, number> = {};
   for (const doc of docs) {
     categoryCounts[doc.category] = (categoryCounts[doc.category] || 0) + 1;
   }
+  categoryCounts.contactRecords = scope ? (await getContactsForScope(scope)).length : 0;
 
   return (
     <MembersDashboard

@@ -35,11 +35,12 @@ const CATEGORIES = [
   {
     slug: 'contacts',
     title: 'Contacts',
-    description: 'Key contacts and directory documents',
+    description: 'Your clients and prospects, ready to quote',
     icon: FiUsers,
     color: 'bg-amber-500',
     href: '/members/contacts',
-    countSlugs: ['contacts'],
+    countSlugs: ['contactRecords'],
+    countNoun: 'contact',
   },
 ];
 
@@ -120,7 +121,7 @@ export default function MembersDashboard({
                     </h3>
                     <p className="text-gray-500 mt-1">{cat.description}</p>
                     <p className="text-sm text-gray-400 mt-2">
-                      {count} {count === 1 ? 'document' : 'documents'}
+                      {count} {'countNoun' in cat ? cat.countNoun : 'document'}{count === 1 ? '' : 's'}
                     </p>
                   </div>
                 </div>

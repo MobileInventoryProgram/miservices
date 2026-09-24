@@ -8,5 +8,6 @@ import member from './member';
 import memberDocument from './memberDocument';
 import priceList from './priceList';
 import flyerSettings from './flyerSettings';
+import contact from './contact';
 
-export const schemaTypes = [post, page, author, tag, service, franchisee, member, memberDocument, priceList, flyerSettings];
+export const schemaTypes = [post, page, author, tag, service, franchisee, member, memberDocument, priceList, flyerSettings, contact];

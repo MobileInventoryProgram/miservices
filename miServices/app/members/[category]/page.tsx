@@ -7,7 +7,6 @@ import CategoryDocuments from './CategoryDocuments';
 
 const VALID_CATEGORIES: Record<string, string> = {
   assets: 'Assets',
-  contacts: 'Contacts',
   quoting: 'Quoting',
 };
 

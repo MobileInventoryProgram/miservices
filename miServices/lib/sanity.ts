@@ -1,6 +1,5 @@
+import 'server-only';
 import { createClient } from '@sanity/client';
-import imageUrlBuilder from '@sanity/image-url';
-import type { SanityImageSource } from '@sanity/image-url';
 import { DEFAULT_FLYER_SETTINGS, type FlyerSettings } from '@/lib/flyer/data';
 
 export const sanityClient = createClient({
@@ -8,13 +7,14 @@ export const sanityClient = createClient({
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
   apiVersion: '2024-01-01',
   useCdn: process.env.NODE_ENV === 'production',
+  // Reads are authenticated so the dataset can be private. Server-side only, never NEXT_PUBLIC_.
+  // Prefer a Viewer token; fall back to the existing API token already set in every environment.
+  token: process.env.SANITY_API_READ_TOKEN || process.env.SANITY_API_TOKEN,
+  // With a token Sanity would also return unpublished drafts — the site only shows published content
+  perspective: 'published',
 });
 
-const builder = imageUrlBuilder(sanityClient);
-
-export function urlFor(source: SanityImageSource) {
-  return builder.image(source);
-}
+export { urlFor } from '@/lib/sanity-image';
 
 // Types
 export interface SanityPost {

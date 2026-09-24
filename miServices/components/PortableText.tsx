@@ -2,7 +2,7 @@
 
 import { PortableText as PortableTextComponent } from '@portabletext/react';
 import Image from 'next/image';
-import { urlFor } from '@/lib/sanity';
+import { urlFor } from '@/lib/sanity-image';
 
 const components = {
   types: {
