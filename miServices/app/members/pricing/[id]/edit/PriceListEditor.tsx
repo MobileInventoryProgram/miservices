@@ -10,6 +10,8 @@ import {
   FiAlertCircle,
   FiTrash2,
   FiStar,
+  FiPercent,
+  FiRotateCcw,
 } from 'react-icons/fi';
 import type { SanityServiceRow, SanityFlatRate, SanityAdditionalRoomRates } from '@/lib/sanity';
 import {
@@ -17,6 +19,8 @@ import {
   SERVICE_TYPE_ORDER,
   BEDROOM_LABELS,
   BEDROOM_ORDER,
+  adjustPrice,
+  formatPrice,
 } from '@/lib/pricing';
 
 interface PriceListEditorProps {
@@ -51,6 +55,54 @@ export default function PriceListEditor({
   const [error, setError] = useState('');
   const [editingCell, setEditingCell] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [adjustPercent, setAdjustPercent] = useState('');
+  const [adjustFee, setAdjustFee] = useState(false);
+  const [adjustNotice, setAdjustNotice] = useState('');
+  // Prices before the last across-the-board change, so it can be undone
+  const [beforeAdjust, setBeforeAdjust] = useState<{
+    serviceRows: SanityServiceRow[];
+    flatRates: SanityFlatRate[];
+    additionalRoomRates: SanityAdditionalRoomRates;
+    cancellationFee: number;
+  } | null>(null);
+
+  const percent = Number(adjustPercent);
+  const percentValid = adjustPercent.trim() !== '' && Number.isFinite(percent) && percent !== 0 && percent > -100 && percent <= 100;
+  const exampleRow = serviceRows[0];
+
+  /** Change every price by a percentage, rounded to the nearest 50p */
+  const applyAdjustment = () => {
+    if (!percentValid) return;
+    setBeforeAdjust({ serviceRows, flatRates, additionalRoomRates, cancellationFee });
+    setServiceRows((rows) =>
+      rows.map((row) => ({
+        ...row,
+        unfurnishedPrice: adjustPrice(row.unfurnishedPrice, percent),
+        furnishedPrice: row.furnishedPrice != null ? adjustPrice(row.furnishedPrice, percent) : row.furnishedPrice,
+      }))
+    );
+    setFlatRates((rates) => rates.map((rate) => ({ ...rate, price: adjustPrice(rate.price, percent) })));
+    setAdditionalRoomRates((rates) => ({
+      unfurnishedPerRoom: adjustPrice(rates.unfurnishedPerRoom, percent),
+      furnishedPerRoom: adjustPrice(rates.furnishedPerRoom, percent),
+    }));
+    if (adjustFee) setCancellationFee((fee) => adjustPrice(fee, percent));
+    setAdjustNotice(
+      `All prices ${percent > 0 ? 'increased' : 'reduced'} by ${Math.abs(percent)}%${adjustFee ? ', including the cancellation fee' : ''}. Check them below, then click Save Changes.`
+    );
+    setAdjustPercent('');
+    setSuccess(false);
+  };
+
+  const undoAdjustment = () => {
+    if (!beforeAdjust) return;
+    setServiceRows(beforeAdjust.serviceRows);
+    setFlatRates(beforeAdjust.flatRates);
+    setAdditionalRoomRates(beforeAdjust.additionalRoomRates);
+    setCancellationFee(beforeAdjust.cancellationFee);
+    setBeforeAdjust(null);
+    setAdjustNotice('Price change undone.');
+  };
 
   const cellKey = (serviceType: string, bedrooms: string, field: string) =>
     `${serviceType}-${bedrooms}-${field}`;
@@ -62,7 +114,8 @@ export default function PriceListEditor({
 
   const commitEdit = useCallback(
     (serviceType: string, bedrooms: string, field: 'unfurnishedPrice' | 'furnishedPrice') => {
-      const parsed = parseInt(editValue, 10);
+      // Keep pence (e.g. 55.50) — round to the penny
+      const parsed = Math.round(parseFloat(editValue) * 100) / 100;
       if (!isNaN(parsed) && parsed >= 0) {
         setServiceRows((prev) =>
           prev.map((row) => {
@@ -178,6 +231,7 @@ export default function PriceListEditor({
           <input
             type="number"
             min="0"
+            step="0.5"
             autoFocus
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
@@ -200,7 +254,7 @@ export default function PriceListEditor({
           className="text-sm tabular-nums cursor-pointer rounded px-2 py-0.5 text-gray-700 hover:bg-gray-100 transition-colors"
           title="Click to edit"
         >
-          &pound;{price}
+          {formatPrice(price)}
         </button>
       </td>
     );
@@ -270,6 +324,72 @@ export default function PriceListEditor({
               )}
             </div>
           </div>
+        </div>
+
+        {/* Adjust all prices */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-900 font-helvetica">
+            <FiPercent className="w-5 h-5 text-brand-light-blue" />
+            Adjust all prices
+          </h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Increase (or reduce, with a minus) every price on this list by a percentage. Each price is rounded to the nearest 50p.
+          </p>
+          <div className="mt-4 flex flex-wrap items-end gap-4">
+            <div>
+              <label htmlFor="adjustPercent" className="block text-sm font-medium text-gray-700 mb-1">
+                Change by
+              </label>
+              <div className="flex items-center gap-1">
+                <input
+                  id="adjustPercent"
+                  type="number"
+                  step="0.5"
+                  min="-99"
+                  max="100"
+                  placeholder="e.g. 5"
+                  value={adjustPercent}
+                  onChange={(e) => setAdjustPercent(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && applyAdjustment()}
+                  className="w-24 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-brand-light-blue focus:border-brand-light-blue"
+                />
+                <span className="text-sm text-gray-500">%</span>
+              </div>
+            </div>
+            <label className="flex items-center gap-2 pb-2 text-sm text-gray-700">
+              <input type="checkbox" checked={adjustFee} onChange={(e) => setAdjustFee(e.target.checked)} />
+              Include cancellation fee
+            </label>
+            <button
+              type="button"
+              onClick={applyAdjustment}
+              disabled={!percentValid}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-brand-light-blue rounded-md hover:bg-brand-dark-blue disabled:opacity-50 transition-colors"
+            >
+              Apply to all prices
+            </button>
+            {beforeAdjust && (
+              <button
+                type="button"
+                onClick={undoAdjustment}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+              >
+                <FiRotateCcw className="w-4 h-4" />
+                Undo
+              </button>
+            )}
+          </div>
+          {percentValid && exampleRow && (
+            <p className="mt-3 text-sm text-gray-600">
+              For example: {BEDROOM_LABELS[exampleRow.bedrooms]} {SERVICE_TYPE_LABELS[exampleRow.serviceType].toLowerCase()}{' '}
+              {formatPrice(exampleRow.unfurnishedPrice)} → <strong>{formatPrice(adjustPrice(exampleRow.unfurnishedPrice, percent))}</strong>
+            </p>
+          )}
+          {adjustNotice && (
+            <p className="mt-3 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800" role="status">
+              {adjustNotice}
+            </p>
+          )}
         </div>
 
         {/* Service Tables */}
@@ -342,6 +462,7 @@ export default function PriceListEditor({
                     <input
                       type="number"
                       min="0"
+                      step="0.5"
                       value={rate.price}
                       onChange={(e) => {
                         const updated = [...flatRates];
@@ -381,6 +502,7 @@ export default function PriceListEditor({
                 <input
                   type="number"
                   min="0"
+                  step="0.5"
                   value={additionalRoomRates.unfurnishedPerRoom}
                   onChange={(e) =>
                     setAdditionalRoomRates({
@@ -399,6 +521,7 @@ export default function PriceListEditor({
                 <input
                   type="number"
                   min="0"
+                  step="0.5"
                   value={additionalRoomRates.furnishedPerRoom}
                   onChange={(e) =>
                     setAdditionalRoomRates({
@@ -417,6 +540,7 @@ export default function PriceListEditor({
                 <input
                   type="number"
                   min="0"
+                  step="0.5"
                   value={cancellationFee}
                   onChange={(e) => setCancellationFee(Number(e.target.value) || 0)}
                   className="w-20 px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-brand-light-blue focus:border-brand-light-blue"

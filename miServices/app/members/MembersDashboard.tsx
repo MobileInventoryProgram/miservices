@@ -27,11 +27,11 @@ const CATEGORIES = [
   {
     slug: 'assets',
     title: 'Assets',
-    description: 'Downloadable logos, LinkedIn banners, and brand assets',
+    description: 'Brand assets and social post templates',
     icon: FiImage,
     color: 'bg-purple-500',
     href: '/members/assets',
-    countSlugs: ['assets'],
+    countSlugs: [] as string[],
   },
   {
     slug: 'contacts',
@@ -121,9 +121,9 @@ export default function MembersDashboard({
                       {cat.title}
                     </h3>
                     <p className="text-gray-500 mt-1">{cat.description}</p>
-                    <p className="text-sm text-gray-400 mt-2">
+                    {cat.countSlugs.length > 0 && <p className="text-sm text-gray-400 mt-2">
                       {count} {'countNoun' in cat ? cat.countNoun : 'document'}{count === 1 ? '' : 's'}
-                    </p>
+                    </p>}
                   </div>
                 </div>
               </Link>

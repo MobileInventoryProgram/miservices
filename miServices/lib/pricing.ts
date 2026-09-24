@@ -74,11 +74,23 @@ export const BEDROOM_ORDER: Array<ServiceRow['bedrooms']> = [
   '6',
 ];
 
+// ─── Price adjustments ──────────────────────────────────────────
+
+/** Round to the nearest 50p, e.g. 72.24 → 72, 72.3 → 72.5 */
+export function roundToHalf(amount: number): number {
+  return Math.round(amount * 2) / 2;
+}
+
+/** Apply a percentage change (e.g. 5 or -2.5), rounded to the nearest 50p */
+export function adjustPrice(amount: number, percent: number): number {
+  return Math.max(0, roundToHalf(amount * (1 + percent / 100)));
+}
+
 // ─── Duplication helper ─────────────────────────────────────────
 
 /**
  * Apply a blanket percentage adjustment to a template's service rows,
- * returning new rows with baked-in (rounded) prices.
+ * returning new rows with baked-in prices rounded to the nearest 50p.
  *
  * Used when duplicating a template to create a franchisee-owned list.
  * After this, prices are stored directly — no runtime resolution needed.
@@ -91,12 +103,11 @@ export function bakeAdjustedPrices(
     return serviceRows.map((row) => ({ ...row }));
   }
 
-  const multiplier = 1 + blanketAdjustment / 100;
   return serviceRows.map((row) => ({
     ...row,
-    unfurnishedPrice: Math.round(row.unfurnishedPrice * multiplier),
+    unfurnishedPrice: adjustPrice(row.unfurnishedPrice, blanketAdjustment),
     furnishedPrice: row.furnishedPrice != null
-      ? Math.round(row.furnishedPrice * multiplier)
+      ? adjustPrice(row.furnishedPrice, blanketAdjustment)
       : undefined,
   }));
 }

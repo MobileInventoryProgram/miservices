@@ -11,6 +11,7 @@ import {
   SERVICE_TYPE_ORDER,
   BEDROOM_LABELS,
   BEDROOM_ORDER,
+  formatPrice,
 } from '@/lib/pricing';
 import type { ServiceRow } from '@/lib/pricing';
 
@@ -196,10 +197,10 @@ export default function DuplicateForm({
                             <tr key={bed}>
                               <td className="px-3 py-2 text-sm text-gray-700">{BEDROOM_LABELS[bed]}</td>
                               <td className="px-3 py-2 text-sm text-gray-500">{row.maxRooms}</td>
-                              <td className="px-3 py-2 text-sm text-gray-700 tabular-nums">&pound;{row.unfurnishedPrice}</td>
+                              <td className="px-3 py-2 text-sm text-gray-700 tabular-nums">{formatPrice(row.unfurnishedPrice)}</td>
                               {hasFurnished && (
                                 <td className="px-3 py-2 text-sm text-gray-700 tabular-nums">
-                                  {row.furnishedPrice != null ? <>&pound;{row.furnishedPrice}</> : '—'}
+                                  {row.furnishedPrice != null ? formatPrice(row.furnishedPrice) : '—'}
                                 </td>
                               )}
                             </tr>
@@ -224,7 +225,7 @@ export default function DuplicateForm({
                       <div key={rate._key} className="flex justify-between text-sm">
                         <span className="text-gray-700">{rate.name}</span>
                         <span className="text-gray-900 font-medium">
-                          &pound;{rate.price}
+                          {formatPrice(rate.price)}
                           {rate.unit && <span className="text-gray-500 ml-1">{rate.unit}</span>}
                         </span>
                       </div>
@@ -242,20 +243,20 @@ export default function DuplicateForm({
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-700">Additional room (unfurnished)</span>
                       <span className="text-gray-900 font-medium">
-                        &pound;{selectedTemplate.additionalRoomRates.unfurnishedPerRoom}
+                        {formatPrice(selectedTemplate.additionalRoomRates.unfurnishedPerRoom)}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-700">Additional room (furnished)</span>
                       <span className="text-gray-900 font-medium">
-                        &pound;{selectedTemplate.additionalRoomRates.furnishedPerRoom}
+                        {formatPrice(selectedTemplate.additionalRoomRates.furnishedPerRoom)}
                       </span>
                     </div>
                     {selectedTemplate.cancellationFee != null && (
                       <div className="flex justify-between text-sm pt-2 border-t border-gray-100">
                         <span className="text-gray-700">Cancellation fee</span>
                         <span className="text-gray-900 font-medium">
-                          &pound;{selectedTemplate.cancellationFee}
+                          {formatPrice(selectedTemplate.cancellationFee)}
                         </span>
                       </div>
                     )}

@@ -10,6 +10,7 @@ import {
   SERVICE_TYPE_ORDER,
   BEDROOM_LABELS,
   BEDROOM_ORDER,
+  formatPrice,
 } from '@/lib/pricing';
 
 export const metadata: Metadata = {
@@ -121,10 +122,10 @@ export default async function ViewPriceListPage({
                         <tr key={bed}>
                           <td className="px-3 py-2 text-sm text-gray-700">{BEDROOM_LABELS[bed]}</td>
                           <td className="px-3 py-2 text-sm text-gray-500">{row.maxRooms}</td>
-                          <td className="px-3 py-2 text-sm text-gray-700 tabular-nums">&pound;{row.unfurnishedPrice}</td>
+                          <td className="px-3 py-2 text-sm text-gray-700 tabular-nums">{formatPrice(row.unfurnishedPrice)}</td>
                           {hasFurnished && (
                             <td className="px-3 py-2 text-sm text-gray-700 tabular-nums">
-                              {row.furnishedPrice != null ? <>&pound;{row.furnishedPrice}</> : '—'}
+                              {row.furnishedPrice != null ? formatPrice(row.furnishedPrice) : '—'}
                             </td>
                           )}
                         </tr>
@@ -149,7 +150,7 @@ export default async function ViewPriceListPage({
                   <div key={rate._key} className="flex justify-between text-sm">
                     <span className="text-gray-700">{rate.name}</span>
                     <span className="text-gray-900 font-medium">
-                      &pound;{rate.price}
+                      {formatPrice(rate.price)}
                       {rate.unit && <span className="text-gray-500 ml-1">{rate.unit}</span>}
                     </span>
                   </div>
@@ -168,7 +169,7 @@ export default async function ViewPriceListPage({
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-700">Additional room (unfurnished)</span>
                     <span className="text-gray-900 font-medium">
-                      &pound;{priceList.additionalRoomRates.unfurnishedPerRoom}
+                      {formatPrice(priceList.additionalRoomRates.unfurnishedPerRoom)}
                     </span>
                   </div>
                 )}
@@ -176,14 +177,14 @@ export default async function ViewPriceListPage({
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-700">Additional room (furnished)</span>
                     <span className="text-gray-900 font-medium">
-                      &pound;{priceList.additionalRoomRates.furnishedPerRoom}
+                      {formatPrice(priceList.additionalRoomRates.furnishedPerRoom)}
                     </span>
                   </div>
                 )}
                 {priceList.cancellationFee != null && (
                   <div className="flex justify-between text-sm pt-2 border-t border-gray-100">
                     <span className="text-gray-700">Cancellation fee</span>
-                    <span className="text-gray-900 font-medium">&pound;{priceList.cancellationFee}</span>
+                    <span className="text-gray-900 font-medium">{formatPrice(priceList.cancellationFee)}</span>
                   </div>
                 )}
               </div>

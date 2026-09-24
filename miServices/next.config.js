@@ -11,6 +11,8 @@ const nextConfig = {
       '/api/members/quotes/[id]/pdf': ['./assets/fonts/**', './public/logo.png', './public/flyer/**'],
       '/api/members/quotes/[id]/send': ['./assets/fonts/**', './public/logo.png', './public/flyer/**'],
       '/quote/[token]/pdf': ['./assets/fonts/**', './public/logo.png', './public/flyer/**'],
+      '/api/members/assets/brand/[key]': ['./assets/fonts/**', './public/logo.png'],
+      '/api/members/social/render': ['./assets/fonts/**', './public/logo.png'],
     },
   },
   images: {
