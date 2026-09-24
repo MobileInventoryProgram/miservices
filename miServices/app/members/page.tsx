@@ -7,7 +7,7 @@ import MembersDashboard from './MembersDashboard';
 
 export const metadata: Metadata = {
   title: 'Members Dashboard | miServices',
-  description: 'miServices franchisee members area dashboard.',
+  description: 'miServices Franchise Login dashboard.',
 };
 
 export default async function MembersPage() {
@@ -36,7 +36,6 @@ export default async function MembersPage() {
   return (
     <MembersDashboard
       userName={session.user.name || session.user.email}
-      userRole={session.user.role}
       userTerritory={franchisee?.territory || session.user.territory || undefined}
       hasFranchisee={!!franchisee}
       categoryCounts={categoryCounts}

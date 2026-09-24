@@ -6,7 +6,7 @@ import { getFranchiseeForSession, urlFor } from '@/lib/sanity';
 import EditProfileForm from './EditProfileForm';
 
 export const metadata: Metadata = {
-  title: 'Edit Profile | Members Area | miServices',
+  title: 'Edit Profile | Franchise Login | miServices',
 };
 
 export default async function EditProfilePage() {

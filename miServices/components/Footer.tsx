@@ -157,7 +157,7 @@ export default function Footer() {
                 Terms & Conditions
               </Link>
               <Link href="/members/login" className="text-gray-400 hover:text-brand-light-blue transition-colors">
-                Members Area
+                Franchise Login
               </Link>
             </div>
           </div>

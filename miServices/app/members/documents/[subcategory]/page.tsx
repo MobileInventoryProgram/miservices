@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: SubcategoryPageProps): Promis
   const title = VALID_SUBCATEGORIES[params.subcategory];
   if (!title) return {};
   return {
-    title: `${title} | Documents | Members Area | miServices`,
+    title: `${title} | Documents | Franchise Login | miServices`,
   };
 }
 

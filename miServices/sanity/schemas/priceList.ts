@@ -204,6 +204,26 @@ export default defineType({
       type: 'array',
       of: [{ type: 'block' }],
     }),
+    defineField({
+      name: 'flyerNote',
+      title: 'Flyer Note',
+      type: 'string',
+      description: 'Optional note printed on A5 flyers, e.g. "Please add £12 for furnished properties."',
+    }),
+    defineField({
+      name: 'shareEnabled',
+      title: 'Public Share Link Enabled',
+      type: 'boolean',
+      description: 'Set from Pricing Documents. When on, anyone with the share link can view this price list.',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'shareToken',
+      title: 'Share Token',
+      type: 'string',
+      description: 'Secret part of the public share link. Generated automatically.',
+      readOnly: true,
+    }),
   ],
   preview: {
     select: {

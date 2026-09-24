@@ -8,10 +8,10 @@ const customStructure = (S: StructureBuilder) =>
     .title('Content')
     .items([
       S.listItem()
-        .title('Members Area')
+        .title('Franchise Login')
         .child(
           S.list()
-            .title('Members Area')
+            .title('Franchise Login')
             .items([
               S.listItem()
                 .title('Members')
@@ -21,11 +21,15 @@ const customStructure = (S: StructureBuilder) =>
                 .title('Documents')
                 .schemaType('memberDocument')
                 .child(S.documentTypeList('memberDocument').title('Documents')),
+              S.listItem()
+                .title('Flyer Settings')
+                .schemaType('flyerSettings')
+                .child(S.document().schemaType('flyerSettings').documentId('flyerSettings')),
             ])
         ),
       S.divider(),
       ...S.documentTypeListItems().filter(
-        (item) => !['member', 'memberDocument'].includes(item.getId() ?? '')
+        (item) => !['member', 'memberDocument', 'flyerSettings'].includes(item.getId() ?? '')
       ),
     ]);
 

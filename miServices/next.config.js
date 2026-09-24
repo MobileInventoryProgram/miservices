@@ -1,6 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  experimental: {
+    // react-pdf renders leaflets server-side; keep it out of the webpack bundle
+    serverComponentsExternalPackages: ['@react-pdf/renderer'],
+    // Flyer PDFs read fonts and logos from disk at runtime
+    outputFileTracingIncludes: {
+      '/api/members/pricing/[id]/pdf': ['./assets/fonts/**', './public/logo.png', './public/flyer/**'],
+      '/price-list/[token]/pdf': ['./assets/fonts/**', './public/logo.png', './public/flyer/**'],
+    },
+  },
   images: {
     remotePatterns: [
       {

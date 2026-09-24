@@ -13,7 +13,7 @@ import {
 } from '@/lib/pricing';
 
 export const metadata: Metadata = {
-  title: 'View Price List | Members Area | miServices',
+  title: 'View Price List | Franchise Login | miServices',
 };
 
 export default async function ViewPriceListPage({

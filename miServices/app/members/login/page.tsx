@@ -94,7 +94,7 @@ export default function LoginPage() {
           />
         </Link>
         <h2 className="text-center text-3xl font-bold text-brand-dark-blue font-helvetica">
-          Members Area
+          Franchise Login
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           Sign in to access your documents

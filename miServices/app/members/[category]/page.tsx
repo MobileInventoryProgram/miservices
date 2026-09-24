@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   const title = VALID_CATEGORIES[params.category];
   if (!title) return {};
   return {
-    title: `${title} | Members Area | miServices`,
+    title: `${title} | Franchise Login | miServices`,
   };
 }
 
@@ -49,6 +49,10 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       category={params.category}
       categoryTitle={categoryTitle}
       documents={docs}
+      {...(params.category === 'quoting' && {
+        backHref: '/members/pricing-quoting',
+        backLabel: 'Pricing & Quoting',
+      })}
     />
   );
 }

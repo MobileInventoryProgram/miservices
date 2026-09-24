@@ -6,7 +6,7 @@ import { getFranchiseeForSession, getOwnedPriceList } from '@/lib/sanity';
 import PriceListEditor from './PriceListEditor';
 
 export const metadata: Metadata = {
-  title: 'Edit Price List | Members Area | miServices',
+  title: 'Edit Price List | Franchise Login | miServices',
 };
 
 export default async function EditPriceListPage({

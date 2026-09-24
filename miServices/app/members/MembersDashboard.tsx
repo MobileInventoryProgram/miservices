@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
-import { FiFileText, FiDollarSign, FiImage, FiUsers, FiClipboard, FiLogOut, FiUser, FiSliders, FiList } from 'react-icons/fi';
+import { FiFileText, FiDollarSign, FiImage, FiUsers, FiLogOut, FiUser } from 'react-icons/fi';
 
 const CATEGORIES = [
   {
@@ -12,14 +12,16 @@ const CATEGORIES = [
     icon: FiFileText,
     color: 'bg-blue-500',
     href: '/members/documents',
+    countSlugs: ['documents'],
   },
   {
-    slug: 'pricing',
-    title: 'Pricing Documents',
-    description: 'Pricing schedules and print-ready leaflets',
+    slug: 'pricing-quoting',
+    title: 'Pricing & Quoting',
+    description: 'Your pricing, pricing documents and quoting guides',
     icon: FiDollarSign,
     color: 'bg-green-500',
-    href: '/members/pricing-documents',
+    href: '/members/pricing-quoting',
+    countSlugs: ['quoting'],
   },
   {
     slug: 'assets',
@@ -28,6 +30,7 @@ const CATEGORIES = [
     icon: FiImage,
     color: 'bg-purple-500',
     href: '/members/assets',
+    countSlugs: ['assets'],
   },
   {
     slug: 'contacts',
@@ -36,20 +39,12 @@ const CATEGORIES = [
     icon: FiUsers,
     color: 'bg-amber-500',
     href: '/members/contacts',
-  },
-  {
-    slug: 'quoting',
-    title: 'Quoting',
-    description: 'Quoting guides and templates',
-    icon: FiClipboard,
-    color: 'bg-red-500',
-    href: '/members/quoting',
+    countSlugs: ['contacts'],
   },
 ];
 
 interface MembersDashboardProps {
   userName: string;
-  userRole: 'franchisee' | 'admin';
   userTerritory?: string;
   hasFranchisee: boolean;
   categoryCounts: Record<string, number>;
@@ -57,7 +52,6 @@ interface MembersDashboardProps {
 
 export default function MembersDashboard({
   userName,
-  userRole,
   userTerritory,
   hasFranchisee,
   categoryCounts,
@@ -68,7 +62,7 @@ export default function MembersDashboard({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold font-helvetica">
-              Members Area
+              Franchise Login
             </h1>
             <p className="mt-1 text-blue-200">
               Welcome back, {userName}
@@ -101,32 +95,30 @@ export default function MembersDashboard({
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Documents Section */}
-        <h2 className="text-xl font-bold text-gray-900 font-helvetica mb-6">
-          Documents
-        </h2>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {CATEGORIES.map((cat) => {
-            const count = categoryCounts[cat.slug] || 0;
+            const count = cat.countSlugs.reduce(
+              (sum, slug) => sum + (categoryCounts[slug] || 0),
+              0
+            );
             const Icon = cat.icon;
             return (
               <Link
                 key={cat.slug}
                 href={cat.href}
-                className="group bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-gray-300 transition-all"
+                className="group bg-white rounded-lg shadow-sm border border-gray-200 p-8 hover:shadow-md hover:border-gray-300 transition-all"
               >
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-5">
                   <div
-                    className={`${cat.color} text-white p-3 rounded-lg flex-shrink-0`}
+                    className={`${cat.color} text-white p-4 rounded-lg flex-shrink-0`}
                   >
-                    <Icon className="w-6 h-6" />
+                    <Icon className="w-8 h-8" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-semibold text-gray-900 group-hover:text-brand-dark-blue transition-colors font-helvetica">
+                    <h3 className="text-xl font-semibold text-gray-900 group-hover:text-brand-dark-blue transition-colors font-helvetica">
                       {cat.title}
                     </h3>
-                    <p className="text-sm text-gray-500 mt-1">{cat.description}</p>
+                    <p className="text-gray-500 mt-1">{cat.description}</p>
                     <p className="text-sm text-gray-400 mt-2">
                       {count} {count === 1 ? 'document' : 'documents'}
                     </p>
@@ -136,57 +128,6 @@ export default function MembersDashboard({
             );
           })}
         </div>
-
-        {/* Tools Section */}
-        {(hasFranchisee || userRole === 'admin') && (
-          <>
-            <h2 className="text-xl font-bold text-gray-900 font-helvetica mb-6">
-              Tools
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {hasFranchisee && (
-                <Link
-                  href="/members/pricing"
-                  className="group bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-gray-300 transition-all"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="bg-green-500 text-white p-3 rounded-lg flex-shrink-0">
-                      <FiSliders className="w-6 h-6" />
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="font-semibold text-gray-900 group-hover:text-brand-dark-blue transition-colors font-helvetica">
-                        My Pricing
-                      </h3>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Adjust your territory pricing and overrides
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              )}
-              {userRole === 'admin' && (
-                <Link
-                  href="/members/pricing/admin"
-                  className="group bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-gray-300 transition-all"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="bg-indigo-500 text-white p-3 rounded-lg flex-shrink-0">
-                      <FiList className="w-6 h-6" />
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="font-semibold text-gray-900 group-hover:text-brand-dark-blue transition-colors font-helvetica">
-                        All Pricing
-                      </h3>
-                      <p className="text-sm text-gray-500 mt-1">
-                        View all franchisee price lists and admin templates
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              )}
-            </div>
-          </>
-        )}
       </div>
     </div>
   );

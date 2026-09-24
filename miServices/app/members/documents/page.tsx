@@ -6,7 +6,7 @@ import { getDocumentsSubcategoryCounts, type DocumentTargetingParams } from '@/l
 import SubcategoryCards from './SubcategoryCards';
 
 export const metadata: Metadata = {
-  title: 'Documents | Members Area | miServices',
+  title: 'Documents | Franchise Login | miServices',
   description: 'Browse documents by subcategory.',
 };
 

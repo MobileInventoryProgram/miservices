@@ -1,6 +1,7 @@
 import { createClient } from '@sanity/client';
 import imageUrlBuilder from '@sanity/image-url';
 import type { SanityImageSource } from '@sanity/image-url';
+import { DEFAULT_FLYER_SETTINGS, type FlyerSettings } from '@/lib/flyer/data';
 
 export const sanityClient = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'a4q9j3x1',
@@ -898,6 +899,10 @@ export interface SanityPriceList {
   additionalRoomRates?: SanityAdditionalRoomRates;
   cancellationFee?: number;
   terms?: any[];
+  ownerRef?: string | null;
+  flyerNote?: string | null;
+  shareEnabled?: boolean;
+  shareToken?: string | null;
 }
 
 export interface SanityPriceListSummary {
@@ -905,6 +910,8 @@ export interface SanityPriceListSummary {
   title: string;
   isDefault: boolean;
   isOwned: boolean;
+  shareEnabled?: boolean;
+  shareToken?: string | null;
 }
 
 const priceListFields = `
@@ -932,7 +939,10 @@ const priceListFields = `
     furnishedPerRoom
   },
   cancellationFee,
-  terms
+  terms,
+  flyerNote,
+  shareEnabled,
+  shareToken
 `;
 
 /**
@@ -950,7 +960,9 @@ export async function getPriceListsForFranchisee(
         _id,
         title,
         isDefault,
-        "isOwned": defined(owner)
+        "isOwned": defined(owner),
+        shareEnabled,
+        shareToken
       }`,
       { franchiseeId }
     );
@@ -1075,6 +1087,51 @@ export async function getPriceListById(listId: string): Promise<SanityPriceList 
   } catch (error) {
     console.error('Error fetching price list by id:', error);
     return null;
+  }
+}
+
+/**
+ * Price list behind a public share link. Uses the uncached client so a link
+ * works as soon as it's switched on and stops as soon as it's switched off.
+ */
+export async function getPriceListByShareToken(token: string): Promise<SanityPriceList | null> {
+  try {
+    const doc = await sanityWriteClient.fetch<SanityPriceList | null>(
+      `*[_type == "priceList" && shareEnabled == true && shareToken == $shareToken][0] {
+        ${priceListFields}
+      }`,
+      { shareToken: token }
+    );
+    return doc;
+  } catch (error) {
+    console.error('Error fetching price list by share token:', error);
+    return null;
+  }
+}
+
+/**
+ * Flyer wording from Studio (Flyer Settings), laid over the leaflet defaults.
+ */
+export async function getFlyerSettings(): Promise<FlyerSettings> {
+  try {
+    const doc = await sanityClient.fetch<Partial<FlyerSettings> | null>(
+      `*[_type == "flyerSettings" && _id == "flyerSettings"][0] {
+        showOffer, offerEyebrow, offerHeadline, offerSmallPrint, introText,
+        sellingPoints[] { prefix, highlight, detail },
+        bookingPhone, bookingEmail, bookingUrl, websiteNote, vatNote
+      }`
+    );
+    const settings = { ...DEFAULT_FLYER_SETTINGS };
+    if (doc) {
+      for (const [key, value] of Object.entries(doc)) {
+        const isEmpty = value == null || value === '' || (Array.isArray(value) && value.length === 0);
+        if (!isEmpty) (settings as Record<string, unknown>)[key] = value;
+      }
+    }
+    return settings;
+  } catch (error) {
+    console.error('Error fetching flyer settings:', error);
+    return DEFAULT_FLYER_SETTINGS;
   }
 }
 

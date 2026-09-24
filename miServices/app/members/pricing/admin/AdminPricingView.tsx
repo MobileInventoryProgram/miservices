@@ -27,11 +27,11 @@ export default function AdminPricingView({
       <div className="bg-brand-dark-blue text-white py-10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link
-            href="/members"
+            href="/members/pricing-quoting"
             className="inline-flex items-center gap-2 text-blue-200 hover:text-white text-sm mb-4 transition-colors"
           >
             <FiArrowLeft className="w-4 h-4" />
-            Back to Dashboard
+            Back to Pricing &amp; Quoting
           </Link>
           <h1 className="text-3xl md:text-4xl font-bold font-helvetica">All Pricing</h1>
           <p className="mt-1 text-blue-200">

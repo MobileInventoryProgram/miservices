@@ -8,23 +8,27 @@ interface CategoryDocumentsProps {
   category: string;
   categoryTitle: string;
   documents: SanityMemberDocument[];
+  backHref?: string;
+  backLabel?: string;
 }
 
 export default function CategoryDocuments({
   category,
   categoryTitle,
   documents,
+  backHref = '/members',
+  backLabel = 'Dashboard',
 }: CategoryDocumentsProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-brand-dark-blue text-white py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link
-            href="/members"
+            href={backHref}
             className="inline-flex items-center gap-2 text-blue-200 hover:text-white text-sm mb-4 transition-colors"
           >
             <FiArrowLeft className="w-4 h-4" />
-            Back to Dashboard
+            Back to {backLabel}
           </Link>
           <h1 className="text-3xl md:text-4xl font-bold font-helvetica">
             {categoryTitle}
@@ -40,11 +44,11 @@ export default function CategoryDocuments({
           <div className="text-center py-16">
             <p className="text-gray-500 text-lg">No documents in this category yet.</p>
             <Link
-              href="/members"
+              href={backHref}
               className="mt-4 inline-flex items-center gap-2 text-brand-light-blue hover:text-brand-dark-blue"
             >
               <FiArrowLeft className="w-4 h-4" />
-              Return to dashboard
+              Return to {backLabel}
             </Link>
           </div>
         ) : (

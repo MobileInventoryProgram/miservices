@@ -100,3 +100,96 @@ export function bakeAdjustedPrices(
       : undefined,
   }));
 }
+
+// ─── Leaflet (Pricing Documents) ────────────────────────────────
+
+export interface LeafletRow {
+  bedrooms: ServiceRow['bedrooms'];
+  bedroomsLabel: string;
+  maxRooms: number | null;
+  unfurnished: number;
+  furnished: number | null;
+}
+
+export interface LeafletSection {
+  serviceType: ServiceRow['serviceType'];
+  label: string;
+  showMaxRooms: boolean;
+  showFurnished: boolean;
+  rows: LeafletRow[];
+}
+
+export interface LeafletData {
+  title: string;
+  sections: LeafletSection[];
+  flatRates: FlatRate[];
+  /** "Other Services" beside the tables; just "Services" on flat-rate-only lists */
+  flatRatesHeading: string;
+  additionalRoomRates: { unfurnishedPerRoom: number | null; furnishedPerRoom: number | null } | null;
+  cancellationFee: number | null;
+}
+
+/**
+ * Shape a price list for display on a leaflet. Shared by the HTML
+ * leaflet and the PDF so both always show the same tables.
+ */
+export function buildLeafletData(priceList: {
+  title: string;
+  serviceRows?: ServiceRow[] | null;
+  flatRates?: FlatRate[] | null;
+  additionalRoomRates?: Partial<AdditionalRoomRates> | null;
+  cancellationFee?: number | null;
+}): LeafletData {
+  const serviceRows = priceList.serviceRows || [];
+  const unfurnishedPerRoom = priceList.additionalRoomRates?.unfurnishedPerRoom ?? null;
+  const furnishedPerRoom = priceList.additionalRoomRates?.furnishedPerRoom ?? null;
+
+  const sections: LeafletSection[] = [];
+  for (const serviceType of SERVICE_TYPE_ORDER) {
+    const rows = serviceRows
+      .filter((row) => row.serviceType === serviceType)
+      .sort((a, b) => BEDROOM_ORDER.indexOf(a.bedrooms) - BEDROOM_ORDER.indexOf(b.bedrooms));
+    if (rows.length === 0) continue;
+
+    sections.push({
+      serviceType,
+      label: SERVICE_TYPE_LABELS[serviceType],
+      showMaxRooms: rows.some((row) => row.maxRooms > 0),
+      showFurnished: rows.some((row) => row.furnishedPrice != null),
+      rows: rows.map((row) => ({
+        bedrooms: row.bedrooms,
+        bedroomsLabel: BEDROOM_LABELS[row.bedrooms],
+        maxRooms: row.maxRooms > 0 ? row.maxRooms : null,
+        unfurnished: row.unfurnishedPrice,
+        furnished: row.furnishedPrice ?? null,
+      })),
+    });
+  }
+
+  return {
+    title: priceList.title,
+    sections,
+    flatRates: priceList.flatRates || [],
+    flatRatesHeading: sections.length > 0 ? 'Other Services' : 'Services',
+    additionalRoomRates:
+      unfurnishedPerRoom != null || furnishedPerRoom != null
+        ? { unfurnishedPerRoom, furnishedPerRoom }
+        : null,
+    cancellationFee: priceList.cancellationFee ?? null,
+  };
+}
+
+/** £69 for whole pounds, £55.50 otherwise. */
+export function formatPrice(amount: number): string {
+  return Number.isInteger(amount) ? `£${amount}` : `£${amount.toFixed(2)}`;
+}
+
+/** File-safe name for a downloaded leaflet, e.g. "standard-pricing.pdf". */
+export function leafletFilename(title: string): string {
+  const slug = title
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return `${slug || 'price-list'}.pdf`;
+}
