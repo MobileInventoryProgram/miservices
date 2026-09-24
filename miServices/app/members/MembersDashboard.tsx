@@ -21,7 +21,8 @@ const CATEGORIES = [
     icon: FiDollarSign,
     color: 'bg-green-500',
     href: '/members/pricing-quoting',
-    countSlugs: ['quoting'],
+    countSlugs: ['quoteRecords'],
+    countNoun: 'quote',
   },
   {
     slug: 'assets',

@@ -9,5 +9,7 @@ import memberDocument from './memberDocument';
 import priceList from './priceList';
 import flyerSettings from './flyerSettings';
 import contact from './contact';
+import quote from './quote';
+import quoteTemplate from './quoteTemplate';
 
-export const schemaTypes = [post, page, author, tag, service, franchisee, member, memberDocument, priceList, flyerSettings, contact];
+export const schemaTypes = [post, page, author, tag, service, franchisee, member, memberDocument, priceList, flyerSettings, contact, quote, quoteTemplate];

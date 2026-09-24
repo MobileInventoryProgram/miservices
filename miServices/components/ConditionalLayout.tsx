@@ -9,8 +9,9 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   const isMembers = pathname.startsWith('/members');
   const isStudio = pathname.startsWith('/studio');
   const isSharedPriceList = pathname.startsWith('/price-list');
+  const isSharedQuote = pathname.startsWith('/quote/');
 
-  if (isMembers || isStudio || isSharedPriceList) {
+  if (isMembers || isStudio || isSharedPriceList || isSharedQuote) {
     return <>{children}</>;
   }
 

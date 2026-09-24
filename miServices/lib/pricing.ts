@@ -181,7 +181,9 @@ export function buildLeafletData(priceList: {
 
 /** £69 for whole pounds, £55.50 otherwise. */
 export function formatPrice(amount: number): string {
-  return Number.isInteger(amount) ? `£${amount}` : `£${amount.toFixed(2)}`;
+  return Number.isInteger(amount)
+    ? `£${amount.toLocaleString('en-GB')}`
+    : `£${amount.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 /** File-safe name for a downloaded leaflet, e.g. "standard-pricing.pdf". */

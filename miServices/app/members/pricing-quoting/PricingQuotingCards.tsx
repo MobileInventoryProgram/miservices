@@ -8,6 +8,7 @@ interface PricingQuotingCardsProps {
   hasFranchisee: boolean;
   categoryCounts: Record<string, number>;
   priceListCount: number;
+  quoteCount: number;
 }
 
 export default function PricingQuotingCards({
@@ -15,6 +16,7 @@ export default function PricingQuotingCards({
   hasFranchisee,
   categoryCounts,
   priceListCount,
+  quoteCount,
 }: PricingQuotingCardsProps) {
   const tiles = [
     {
@@ -40,12 +42,12 @@ export default function PricingQuotingCards({
     {
       key: 'quoting',
       title: 'Quoting',
-      description: 'Quoting guides and templates',
+      description: 'Build and send bespoke quotes to your clients',
       icon: FiClipboard,
       color: 'bg-red-500',
       href: '/members/quoting',
-      count: categoryCounts.quoting || 0,
-      countNoun: 'document',
+      count: quoteCount,
+      countNoun: 'quote',
       visible: true,
     },
     {

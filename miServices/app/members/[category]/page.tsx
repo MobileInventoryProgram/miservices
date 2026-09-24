@@ -7,7 +7,6 @@ import CategoryDocuments from './CategoryDocuments';
 
 const VALID_CATEGORIES: Record<string, string> = {
   assets: 'Assets',
-  quoting: 'Quoting',
 };
 
 interface CategoryPageProps {
@@ -48,10 +47,6 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       category={params.category}
       categoryTitle={categoryTitle}
       documents={docs}
-      {...(params.category === 'quoting' && {
-        backHref: '/members/pricing-quoting',
-        backLabel: 'Pricing & Quoting',
-      })}
     />
   );
 }

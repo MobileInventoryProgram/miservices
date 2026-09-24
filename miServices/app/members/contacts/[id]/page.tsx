@@ -2,12 +2,15 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { notFound, redirect } from 'next/navigation';
-import { FiArrowLeft, FiEdit2, FiFileText, FiMail, FiMapPin, FiPhone } from 'react-icons/fi';
+import { FiArrowLeft, FiEdit2, FiFileText, FiMail, FiMapPin, FiPhone, FiPlus } from 'react-icons/fi';
 import { authOptions } from '@/lib/auth-options';
 import { contactName, getContactForScope } from '@/lib/crm/contacts';
 import { clientTypeLabel } from '@/lib/crm/options';
 import { jobTypeLabel } from '@/lib/job-types';
 import { getMemberScope } from '@/lib/members-access';
+import { getQuotesForScope } from '@/lib/quote/quotes';
+import { effectiveStatus } from '@/lib/quote/types';
+import QuoteStatusBadge from '../../quoting/QuoteStatusBadge';
 import StatusBadge from '../StatusBadge';
 import ArchiveContactButton from './ArchiveContactButton';
 
@@ -35,6 +38,9 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
   if (!contact) {
     notFound();
   }
+
+  const quotes = await getQuotesForScope(scope!, id);
+  const canQuote = scope!.franchiseeId === contact.franchiseId;
 
   const details: { label: string; value: React.ReactNode }[] = [
     { label: 'Company', value: contact.companyName || '—' },
@@ -103,11 +109,36 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
           </section>
 
           <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 font-helvetica mb-2">Quotes</h2>
-            <p className="text-sm text-gray-500 flex items-center gap-2">
-              <FiFileText className="w-4 h-4" />
-              Quotes sent to this contact will appear here once the quoting tool is live.
-            </p>
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <h2 className="text-lg font-semibold text-gray-900 font-helvetica">Quotes</h2>
+              {canQuote && (
+                <Link
+                  href={`/members/quoting/new?contactId=${id}`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-brand-light-blue rounded-md hover:bg-brand-dark-blue transition-colors"
+                >
+                  <FiPlus className="w-3.5 h-3.5" />
+                  New quote
+                </Link>
+              )}
+            </div>
+            {quotes.length === 0 ? (
+              <p className="text-sm text-gray-500 flex items-center gap-2">
+                <FiFileText className="w-4 h-4" />
+                No quotes for this contact yet.
+              </p>
+            ) : (
+              <ul className="divide-y divide-gray-100 text-sm">
+                {quotes.map((quote) => (
+                  <li key={quote._id} className="flex items-center justify-between gap-3 py-2">
+                    <Link href={`/members/quoting/${quote._id}`} className="font-medium text-brand-dark-blue hover:text-brand-light-blue">
+                      {quote.reference}
+                    </Link>
+                    <span className="text-gray-500">{quote.priceListTitle}</span>
+                    <QuoteStatusBadge status={effectiveStatus(quote)} />
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         </div>
 

@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth-options';
 import { getContactsForScope } from '@/lib/crm/contacts';
 import { getMemberScope } from '@/lib/members-access';
+import { getQuotesForScope } from '@/lib/quote/quotes';
 import { getMemberDocuments, getFranchiseeForSession, type DocumentTargetingParams } from '@/lib/sanity';
 import MembersDashboard from './MembersDashboard';
 
@@ -36,6 +37,7 @@ export default async function MembersPage() {
     categoryCounts[doc.category] = (categoryCounts[doc.category] || 0) + 1;
   }
   categoryCounts.contactRecords = scope ? (await getContactsForScope(scope)).length : 0;
+  categoryCounts.quoteRecords = scope ? (await getQuotesForScope(scope)).length : 0;
 
   return (
     <MembersDashboard

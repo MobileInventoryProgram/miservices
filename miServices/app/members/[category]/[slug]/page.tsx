@@ -7,7 +7,6 @@ import DocumentView from './DocumentView';
 
 const VALID_CATEGORIES: Record<string, string> = {
   assets: 'Assets',
-  quoting: 'Quoting',
 };
 
 interface DocumentPageProps {

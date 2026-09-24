@@ -9,6 +9,8 @@ import {
   getPriceListsForFranchisee,
   type DocumentTargetingParams,
 } from '@/lib/sanity';
+import { getMemberScope } from '@/lib/members-access';
+import { getQuotesForScope } from '@/lib/quote/quotes';
 import PricingQuotingCards from './PricingQuotingCards';
 
 export const metadata: Metadata = {
@@ -39,6 +41,9 @@ export default async function PricingQuotingPage() {
     categoryCounts[doc.category] = (categoryCounts[doc.category] || 0) + 1;
   }
 
+  const scope = await getMemberScope(session);
+  const quoteCount = scope ? (await getQuotesForScope(scope)).length : 0;
+
   // Pricing Documents are generated from price lists, so count those
   const priceLists = franchisee
     ? await getPriceListsForFranchisee(franchisee._id)
@@ -52,6 +57,7 @@ export default async function PricingQuotingPage() {
       hasFranchisee={!!franchisee}
       categoryCounts={categoryCounts}
       priceListCount={priceLists.length}
+      quoteCount={quoteCount}
     />
   );
 }

@@ -26,6 +26,14 @@ const customStructure = (S: StructureBuilder) =>
                 .schemaType('contact')
                 .child(S.documentTypeList('contact').title('Contacts')),
               S.listItem()
+                .title('Quotes')
+                .schemaType('quote')
+                .child(S.documentTypeList('quote').title('Quotes')),
+              S.listItem()
+                .title('Quote Template')
+                .schemaType('quoteTemplate')
+                .child(S.document().schemaType('quoteTemplate').documentId('quoteTemplate')),
+              S.listItem()
                 .title('Flyer Settings')
                 .schemaType('flyerSettings')
                 .child(S.document().schemaType('flyerSettings').documentId('flyerSettings')),
@@ -33,7 +41,7 @@ const customStructure = (S: StructureBuilder) =>
         ),
       S.divider(),
       ...S.documentTypeListItems().filter(
-        (item) => !['member', 'memberDocument', 'flyerSettings', 'contact'].includes(item.getId() ?? '')
+        (item) => !['member', 'memberDocument', 'flyerSettings', 'contact', 'quote', 'quoteTemplate'].includes(item.getId() ?? '')
       ),
     ]);
 

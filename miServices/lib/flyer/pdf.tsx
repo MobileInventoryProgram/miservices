@@ -1,8 +1,8 @@
-import path from 'path';
-import { Document, Font, Image, Page, Path, Svg, Text, View, renderToBuffer } from '@react-pdf/renderer';
+import { Document, Image, Page, Path, Svg, Text, View, renderToBuffer } from '@react-pdf/renderer';
 import type { Style } from '@react-pdf/types';
 import { PDFDocument } from 'pdf-lib';
-import { FONT_DIR, getFlyerImages, type FlyerImages } from '@/lib/flyer/assets';
+import { getFlyerImages, type FlyerImages } from '@/lib/flyer/assets';
+import { registerFonts } from '@/lib/pdf/fonts';
 import type { FlyerData, FlyerLayout, FlyerPrice, FlyerTable } from '@/lib/flyer/data';
 import {
   BACK_WAVE,
@@ -24,40 +24,6 @@ import { BACK, CONTENT_W, FONTS, FOOTER, FRONT, HEADER, SINGLE, tableSizes } fro
  */
 
 export type FlyerVariant = 'print' | 'digital';
-
-let fontsRegistered = false;
-function registerFonts() {
-  if (fontsRegistered) return;
-  const font = (file: string) => path.join(FONT_DIR, file);
-  Font.register({
-    family: FONTS.slab,
-    fonts: [
-      { src: font('RobotoSlab-300.ttf'), fontWeight: 300 },
-      { src: font('RobotoSlab-400.ttf'), fontWeight: 400 },
-      { src: font('RobotoSlab-700.ttf'), fontWeight: 700 },
-    ],
-  });
-  Font.register({
-    family: FONTS.sans,
-    fonts: [
-      { src: font('Roboto-300.ttf'), fontWeight: 300 },
-      { src: font('Roboto-500.ttf'), fontWeight: 500 },
-      { src: font('Roboto-700.ttf'), fontWeight: 700 },
-      { src: font('Roboto-900.ttf'), fontWeight: 900 },
-    ],
-  });
-  Font.register({
-    family: FONTS.body,
-    fonts: [
-      { src: font('PTSans-400.ttf'), fontWeight: 400 },
-      { src: font('PTSans-700.ttf'), fontWeight: 700 },
-      { src: font('PTSans-400Italic.ttf'), fontWeight: 400, fontStyle: 'italic' },
-    ],
-  });
-  // Never hyphenate words on a flyer
-  Font.registerHyphenationCallback((word) => [word]);
-  fontsRegistered = true;
-}
 
 /** Absolute position in trim coordinates */
 function at(x: number, y: number, width?: number): Style {

@@ -8,6 +8,9 @@ const nextConfig = {
     outputFileTracingIncludes: {
       '/api/members/pricing/[id]/pdf': ['./assets/fonts/**', './public/logo.png', './public/flyer/**'],
       '/price-list/[token]/pdf': ['./assets/fonts/**', './public/logo.png', './public/flyer/**'],
+      '/api/members/quotes/[id]/pdf': ['./assets/fonts/**', './public/logo.png', './public/flyer/**'],
+      '/api/members/quotes/[id]/send': ['./assets/fonts/**', './public/logo.png', './public/flyer/**'],
+      '/quote/[token]/pdf': ['./assets/fonts/**', './public/logo.png', './public/flyer/**'],
     },
   },
   images: {
