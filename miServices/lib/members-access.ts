@@ -1,16 +1,16 @@
 import type { Session } from 'next-auth';
-import { getFranchiseeForSession } from '@/lib/sanity';
+import { getFranchiseeForSession, sanityWriteClient } from '@/lib/sanity';
 
 /**
  * Who a member is acting as, for franchise-owned records (contacts, quotes).
  * Franchise members share their franchise's records; Head Office admins see
- * every franchise. An admin may also be linked to a franchise (e.g. Head
- * Office) and then creates records for that franchise.
+ * every franchise. Admins are Head Office: records they create belong to the
+ * Head Office franchise.
  */
 export interface MemberScope {
   isAdmin: boolean;
   memberId: string;
-  /** Franchise new records belong to; null for an admin with no franchise */
+  /** Franchise new records belong to (Head Office for admins) */
   franchiseeId: string | null;
 }
 
@@ -20,7 +20,20 @@ export async function getMemberScope(session: Session): Promise<MemberScope | nu
 
   if (!franchisee && !isAdmin) return null;
 
-  return { isAdmin, memberId: session.user.id, franchiseeId: franchisee?._id || null };
+  // Admins are Head Office: their own quotes and clients belong to the Head Office franchise
+  const franchiseeId = franchisee?._id || (isAdmin ? await getHeadOfficeId() : null);
+  return { isAdmin, memberId: session.user.id, franchiseeId };
+}
+
+let headOfficeId: string | null = null;
+
+/** The Head Office franchise record */
+async function getHeadOfficeId(): Promise<string | null> {
+  if (headOfficeId) return headOfficeId;
+  headOfficeId = await sanityWriteClient.fetch<string | null>(
+    `*[_type == "franchisee" && (territory == "Head Office" || companyName == "Head Office")][0]._id`
+  );
+  return headOfficeId;
 }
 
 /** GROQ filter limiting a query to what the scope can see (uses $franchiseeId) */

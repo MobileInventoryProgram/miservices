@@ -143,13 +143,20 @@ export function renderBrandAsset(spec: BrandAssetSpec, theme: BrandTheme, person
           <path d="M0 0 L22 0 C20 50 12 80 0 100 Z" fill={t.blobBack} />
           <path d="M0 0 L19 0 C17 46 10 76 0 92 Z" fill={t.blob} />
         </svg>
-        <div style={{ display: 'flex', marginLeft: W * 0.26, alignItems: 'center', gap: W * 0.03 }}>
+        <div style={{ display: 'flex', marginLeft: W * 0.24, marginRight: W * 0.04, alignItems: 'center', gap: W * 0.03, flex: 1 }}>
           <Logo theme={theme} height={H * 0.62} />
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontFamily: 'Roboto', fontWeight: 700, fontSize: H * 0.17, color: t.text }}>
-              {localLine ? `miServices ${personal!.territory}` : 'The trusted nationwide inventory clerk network'}
-            </div>
-            <div style={{ fontSize: H * 0.12, color: t.muted, marginTop: H * 0.03 }}>
+          {/* Text takes the space beside the logo; the headline is set on two lines so it never runs off the edge */}
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+            {localLine ? (
+              <div style={{ fontFamily: 'Roboto', fontWeight: 700, fontSize: H * 0.17, lineHeight: 1.1, color: t.text }}>{`miServices ${personal!.territory}`}</div>
+            ) : (
+              ['The trusted nationwide', 'inventory clerk network'].map((line) => (
+                <div key={line} style={{ fontFamily: 'Roboto', fontWeight: 700, fontSize: H * 0.145, lineHeight: 1.15, color: t.text }}>
+                  {line}
+                </div>
+              ))
+            )}
+            <div style={{ fontSize: H * 0.11, color: t.muted, marginTop: H * 0.05 }}>
               {personal?.phone ? `${personal.phone}  ·  ${BRAND.website}` : BRAND.website}
             </div>
           </div>
