@@ -2,9 +2,8 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { sanityWriteClient } from '@/lib/sanity';
+import { parsePriceListInput } from '@/lib/pricing-validate';
 
-const VALID_SERVICE_TYPES = ['inventory', 'combined', 'checkout', 'midterm', 'checkin', 'virtualTourBundle', 'virtualTourFloorplan', 'floorplan'];
-const VALID_BEDROOMS = ['studio_1', '2', '3', '4', '5', '6'];
 
 /**
  * Resolve the franchisee ID from the authenticated session.
@@ -78,119 +77,18 @@ export async function PUT(
       );
     }
 
-    const body = await request.json();
-    const { title, serviceRows, flatRates, additionalRoomRates, cancellationFee } = body;
-
-    // Validate title
-    if (!title || typeof title !== 'string' || title.trim().length === 0) {
-      return NextResponse.json({ error: 'title is required' }, { status: 400 });
-    }
-
-    // Validate serviceRows
-    if (!Array.isArray(serviceRows)) {
-      return NextResponse.json({ error: 'serviceRows must be an array' }, { status: 400 });
-    }
-
-    const sanitizedRows = [];
-    for (let i = 0; i < serviceRows.length; i++) {
-      const row = serviceRows[i];
-
-      if (!VALID_SERVICE_TYPES.includes(row.serviceType)) {
-        return NextResponse.json(
-          { error: `Row ${i}: invalid serviceType "${row.serviceType}"` },
-          { status: 400 }
-        );
-      }
-
-      if (!VALID_BEDROOMS.includes(row.bedrooms)) {
-        return NextResponse.json(
-          { error: `Row ${i}: invalid bedrooms "${row.bedrooms}"` },
-          { status: 400 }
-        );
-      }
-
-      if (typeof row.unfurnishedPrice !== 'number' || !isFinite(row.unfurnishedPrice) || row.unfurnishedPrice < 0) {
-        return NextResponse.json(
-          { error: `Row ${i}: unfurnishedPrice must be a non-negative number` },
-          { status: 400 }
-        );
-      }
-
-      if (row.furnishedPrice != null && (typeof row.furnishedPrice !== 'number' || !isFinite(row.furnishedPrice) || row.furnishedPrice < 0)) {
-        return NextResponse.json(
-          { error: `Row ${i}: furnishedPrice must be a non-negative number` },
-          { status: 400 }
-        );
-      }
-
-      sanitizedRows.push({
-        _type: 'object',
-        _key: `${row.serviceType}-${row.bedrooms}`,
-        serviceType: row.serviceType,
-        bedrooms: row.bedrooms,
-        maxRooms: typeof row.maxRooms === 'number' ? row.maxRooms : 0,
-        unfurnishedPrice: row.unfurnishedPrice,
-        ...(row.furnishedPrice != null ? { furnishedPrice: row.furnishedPrice } : {}),
-      });
-    }
-
-    // Validate flatRates
-    if (!Array.isArray(flatRates)) {
-      return NextResponse.json({ error: 'flatRates must be an array' }, { status: 400 });
-    }
-
-    const sanitizedFlatRates = flatRates.map((rate: any, i: number) => {
-      if (!rate.name || typeof rate.name !== 'string') {
-        throw new Error(`flatRate ${i}: name is required`);
-      }
-      if (typeof rate.price !== 'number' || !isFinite(rate.price) || rate.price < 0) {
-        throw new Error(`flatRate ${i}: price must be a non-negative number`);
-      }
-      return {
-        _type: 'object',
-        _key: rate._key || `flat-${i}`,
-        name: rate.name,
-        price: rate.price,
-        unit: rate.unit || undefined,
-      };
-    });
-
-    // Validate additionalRoomRates
-    if (
-      !additionalRoomRates ||
-      typeof additionalRoomRates.unfurnishedPerRoom !== 'number' ||
-      typeof additionalRoomRates.furnishedPerRoom !== 'number'
-    ) {
-      return NextResponse.json(
-        { error: 'additionalRoomRates must include unfurnishedPerRoom and furnishedPerRoom' },
-        { status: 400 }
-      );
-    }
-
-    // Validate cancellationFee
-    if (typeof cancellationFee !== 'number' || !isFinite(cancellationFee)) {
-      return NextResponse.json(
-        { error: 'cancellationFee must be a valid number' },
-        { status: 400 }
-      );
+    const { data, error } = parsePriceListInput(await request.json());
+    if (!data) {
+      return NextResponse.json({ error }, { status: 400 });
     }
 
     await sanityWriteClient
       .patch(listId)
-      .set({
-        title: title.trim(),
-        serviceRows: sanitizedRows,
-        flatRates: sanitizedFlatRates,
-        additionalRoomRates,
-        cancellationFee,
-      })
+      .set(data)
       .commit();
 
     return NextResponse.json({ message: 'Price list updated successfully' });
   } catch (error) {
-    if (error instanceof Error && error.message.startsWith('flatRate')) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
     console.error('Update price list error:', error);
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
   }

@@ -2,9 +2,9 @@ import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
-import { FiArrowLeft, FiCopy } from 'react-icons/fi';
+import { FiArrowLeft, FiCopy, FiEdit2 } from 'react-icons/fi';
 import { authOptions } from '@/lib/auth-options';
-import { getFranchiseeForSession, getVisiblePriceList, getPriceListById } from '@/lib/sanity';
+import { getFranchiseeForSession, getVisiblePriceList, getPriceListById, getStandardPriceList } from '@/lib/sanity';
 import {
   SERVICE_TYPE_LABELS,
   SERVICE_TYPE_ORDER,
@@ -37,10 +37,10 @@ export default async function ViewPriceListPage({
   let showDuplicateButton = false;
 
   if (isAdmin) {
-    // Admin can view any price list
-    priceList = await getPriceListById(id);
+    // Admin can view any price list (standard lists read live, as admins edit them)
+    priceList = (await getStandardPriceList(id)) || (await getPriceListById(id));
     backHref = '/members/pricing/admin';
-    backLabel = 'Back to All Pricing';
+    backLabel = 'Back to Standard Price Lists';
   } else {
     // Franchisee must have a franchisee association
     if (!session.user.franchiseeId && !session.user.territory) {
@@ -81,6 +81,15 @@ export default async function ViewPriceListPage({
             <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-blue-800 text-blue-200 rounded-full">
               Read-only
             </span>
+            {isAdmin && !priceList.ownerRef && (
+              <Link
+                href={`/members/pricing/admin/${priceList._id}/edit`}
+                className="ml-auto inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-white text-brand-dark-blue hover:bg-blue-50 transition-colors font-helvetica"
+              >
+                <FiEdit2 className="w-4 h-4" />
+                Edit
+              </Link>
+            )}
           </div>
         </div>
       </div>

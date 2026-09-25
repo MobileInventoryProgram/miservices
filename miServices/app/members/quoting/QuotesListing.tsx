@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FiArrowLeft, FiBookOpen, FiFileText, FiPlus, FiSearch, FiX } from 'react-icons/fi';
+import { FiArrowLeft, FiBookOpen, FiEdit3, FiFileText, FiPlus, FiSearch, FiX } from 'react-icons/fi';
 import Pagination from '@/components/members/Pagination';
 import { effectiveStatus, QUOTE_STATUSES, quoteClientName, type Quote } from '@/lib/quote/types';
 import QuoteStatusBadge from './QuoteStatusBadge';
@@ -207,12 +207,20 @@ export default function QuotesListing({
 
         <Pagination {...paging} noun={paging.total === 1 ? 'quote' : 'quotes'} hrefFor={(page) => href({ page })} />
 
-        {guideCount > 0 && (
-          <div className="flex justify-end text-xs">
-            <Link href="/members/quoting/guides" className="inline-flex items-center gap-1.5 text-brand-light-blue hover:text-brand-dark-blue">
-              <FiBookOpen className="w-3.5 h-3.5" />
-              Quoting guides &amp; templates ({guideCount})
-            </Link>
+        {(guideCount > 0 || isAdmin) && (
+          <div className="flex flex-wrap justify-end gap-4 text-xs">
+            {isAdmin && (
+              <Link href="/members/quoting/template" className="inline-flex items-center gap-1.5 text-brand-light-blue hover:text-brand-dark-blue">
+                <FiEdit3 className="w-3.5 h-3.5" />
+                Edit quote template
+              </Link>
+            )}
+            {guideCount > 0 && (
+              <Link href="/members/quoting/guides" className="inline-flex items-center gap-1.5 text-brand-light-blue hover:text-brand-dark-blue">
+                <FiBookOpen className="w-3.5 h-3.5" />
+                Quoting guides &amp; templates ({guideCount})
+              </Link>
+            )}
           </div>
         )}
       </div>

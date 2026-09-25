@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FiArrowLeft, FiSliders, FiDollarSign, FiClipboard, FiList } from 'react-icons/fi';
+import { FiArrowLeft, FiSliders, FiDollarSign, FiClipboard, FiList, FiEdit3 } from 'react-icons/fi';
 
 interface PricingQuotingCardsProps {
   userRole: 'franchisee' | 'admin';
@@ -52,11 +52,20 @@ export default function PricingQuotingCards({
     },
     {
       key: 'all-pricing',
-      title: 'All Pricing',
-      description: 'View all franchisee price lists and admin templates',
+      title: 'Standard Price Lists',
+      description: 'Create and edit Head Office price lists, and view every franchise’s pricing',
       icon: FiList,
       color: 'bg-indigo-500',
       href: '/members/pricing/admin',
+      visible: userRole === 'admin',
+    },
+    {
+      key: 'quote-template',
+      title: 'Quote Template',
+      description: 'Edit the standard wording, booking details and miProgram pricing in every quote',
+      icon: FiEdit3,
+      color: 'bg-amber-500',
+      href: '/members/quoting/template',
       visible: userRole === 'admin',
     },
   ];

@@ -1148,6 +1148,39 @@ export async function getFlyerSettings(): Promise<FlyerSettings> {
   }
 }
 
+/**
+ * A Head Office standard list (no owner), read live for the admin editor.
+ */
+export async function getStandardPriceList(listId: string): Promise<SanityPriceList | null> {
+  try {
+    return await sanityLiveClient.fetch(
+      `*[_type == "priceList" && _id == $listId && !defined(owner)][0] {
+        ${priceListFields}
+      }`,
+      { listId }
+    );
+  } catch (error) {
+    console.error('Error fetching standard price list:', error);
+    return null;
+  }
+}
+
+/**
+ * Head Office's default standard list (or the first one), e.g. for previews.
+ */
+export async function getDefaultStandardPriceList(): Promise<SanityPriceList | null> {
+  try {
+    return await sanityLiveClient.fetch(
+      `*[_type == "priceList" && !defined(owner)] | order(isDefault desc, title asc)[0] {
+        ${priceListFields}
+      }`
+    );
+  } catch (error) {
+    console.error('Error fetching default standard price list:', error);
+    return null;
+  }
+}
+
 // ─── Admin Overview ─────────────────────────────────────────────
 
 export interface AdminPriceListSummary {
@@ -1157,6 +1190,7 @@ export interface AdminPriceListSummary {
   ownerName: string | null;
   ownerTerritory: string | null;
   isTemplate: boolean;
+  availableToFranchisees?: boolean;
 }
 
 /**
@@ -1164,11 +1198,13 @@ export interface AdminPriceListSummary {
  */
 export async function getAllPriceLists(): Promise<AdminPriceListSummary[]> {
   try {
-    const docs = await sanityClient.fetch(
+    // Live (not CDN) so Head Office sees their edits straight away
+    const docs = await sanityLiveClient.fetch(
       `*[_type == "priceList"] | order(title asc) {
         _id,
         title,
         isDefault,
+        availableToFranchisees,
         "ownerName": owner->companyName,
         "ownerTerritory": owner->territory,
         "isTemplate": !defined(owner)
