@@ -10,7 +10,7 @@ import {
   type DocumentTargetingParams,
 } from '@/lib/sanity';
 import { getMemberScope } from '@/lib/members-access';
-import { getQuotesForScope } from '@/lib/quote/quotes';
+import { countQuotesForScope } from '@/lib/quote/quotes';
 import PricingQuotingCards from './PricingQuotingCards';
 
 export const metadata: Metadata = {
@@ -42,7 +42,7 @@ export default async function PricingQuotingPage() {
   }
 
   const scope = await getMemberScope(session);
-  const quoteCount = scope ? (await getQuotesForScope(scope)).length : 0;
+  const quoteCount = scope ? await countQuotesForScope(scope) : 0;
 
   // Pricing Documents are generated from price lists, so count those
   const priceLists = franchisee

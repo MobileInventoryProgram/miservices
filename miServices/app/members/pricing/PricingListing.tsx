@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Pagination from '@/components/members/Pagination';
+import { usePagedList } from '@/components/members/usePagedList';
+import { CARD_PAGE_SIZE } from '@/lib/pagination';
 import { useRouter } from 'next/navigation';
 import {
   FiArrowLeft,
@@ -31,6 +34,8 @@ export default function PricingListing({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [settingDefaultId, setSettingDefaultId] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const ownedPage = usePagedList(ownedLists, CARD_PAGE_SIZE);
+  const sharedPage = usePagedList(sharedTemplates, CARD_PAGE_SIZE);
 
   const handleDelete = async (listId: string) => {
     if (!confirm('Are you sure you want to delete this price list?')) return;
@@ -128,8 +133,10 @@ export default function PricingListing({
               </Link>
             </div>
           ) : (
+            <>
+            <div ref={ownedPage.topRef} className="scroll-mt-24" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {ownedLists.map((list) => (
+              {ownedPage.items.map((list) => (
                 <div
                   key={list._id}
                   className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 flex flex-col"
@@ -177,6 +184,10 @@ export default function PricingListing({
                 </div>
               ))}
             </div>
+            <div className="mt-4">
+              <Pagination {...ownedPage} noun="price lists" onPageChange={ownedPage.setPage} hideSinglePage />
+            </div>
+            </>
           )}
         </section>
 
@@ -189,8 +200,10 @@ export default function PricingListing({
               <p className="text-gray-500">No shared templates available.</p>
             </div>
           ) : (
+            <>
+            <div ref={sharedPage.topRef} className="scroll-mt-24" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sharedTemplates.map((template) => (
+              {sharedPage.items.map((template) => (
                 <div
                   key={template._id}
                   className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 flex flex-col"
@@ -222,6 +235,10 @@ export default function PricingListing({
                 </div>
               ))}
             </div>
+            <div className="mt-4">
+              <Pagination {...sharedPage} noun="templates" onPageChange={sharedPage.setPage} hideSinglePage />
+            </div>
+            </>
           )}
         </section>
 

@@ -1,7 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import Pagination from '@/components/members/Pagination';
 import { FiArrowLeft, FiBookOpen, FiPlus, FiSearch, FiUsers } from 'react-icons/fi';
 import { contactName, type Contact } from '@/lib/crm/types';
 import { CONTACT_STATUSES, clientTypeLabel } from '@/lib/crm/options';
@@ -11,36 +13,52 @@ import StatusBadge from './StatusBadge';
 const selectClass =
   'px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-brand-light-blue focus:border-brand-light-blue';
 
+type Filters = { q: string; status: string; job: string; franchise: string };
+
 export default function ContactsListing({
   contacts,
+  paging,
+  filters,
   isAdmin,
   canCreate,
   franchises,
   directoryCount,
 }: {
   contacts: Contact[];
+  paging: { page: number; totalPages: number; total: number; start: number; end: number };
+  filters: Filters;
   isAdmin: boolean;
   canCreate: boolean;
   franchises: { id: string; name: string }[];
   directoryCount: number;
 }) {
-  const [query, setQuery] = useState('');
-  const [status, setStatus] = useState('');
-  const [jobType, setJobType] = useState('');
-  const [franchise, setFranchise] = useState('');
+  const router = useRouter();
+  const pathname = usePathname();
+  const [pending, startTransition] = useTransition();
+  const [query, setQuery] = useState(filters.q);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return contacts.filter((contact) => {
-      if (status && contact.status !== status) return false;
-      if (jobType && !contact.jobTypes?.includes(jobType)) return false;
-      if (franchise && contact.franchiseId !== franchise) return false;
-      if (!q) return true;
-      return [contact.firstName, contact.lastName, contact.companyName, contact.email, contact.phone, contact.postcode]
-        .filter(Boolean)
-        .some((field) => field!.toLowerCase().includes(q));
-    });
-  }, [contacts, query, status, jobType, franchise]);
+  // Filters live in the URL, so the server searches and pages the full list
+  const href = (next: Partial<Filters> & { page?: number }) => {
+    const merged = { ...filters, ...next };
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(merged)) {
+      if (key !== 'page' && value) params.set(key, String(value));
+    }
+    if (next.page && next.page > 1) params.set('page', String(next.page));
+    const qs = params.toString();
+    return qs ? `${pathname}?${qs}` : pathname;
+  };
+  const apply = (next: Partial<Filters>) => startTransition(() => router.replace(href(next), { scroll: false }));
+
+  // Search as you type, after a short pause
+  useEffect(() => {
+    if (query === filters.q) return;
+    const timer = setTimeout(() => apply({ q: query }), 350);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
+  const hasFilters = !!(filters.q || filters.status || filters.job || filters.franchise);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -93,7 +111,7 @@ export default function ContactsListing({
           <label className="sr-only" htmlFor="filter-status">
             Status
           </label>
-          <select id="filter-status" value={status} onChange={(e) => setStatus(e.target.value)} className={selectClass}>
+          <select id="filter-status" value={filters.status} onChange={(e) => apply({ status: e.target.value })} className={selectClass}>
             <option value="">All statuses</option>
             {CONTACT_STATUSES.map((s) => (
               <option key={s.value} value={s.value}>
@@ -104,7 +122,7 @@ export default function ContactsListing({
           <label className="sr-only" htmlFor="filter-job">
             Job type
           </label>
-          <select id="filter-job" value={jobType} onChange={(e) => setJobType(e.target.value)} className={selectClass}>
+          <select id="filter-job" value={filters.job} onChange={(e) => apply({ job: e.target.value })} className={selectClass}>
             <option value="">All job types</option>
             {JOB_TYPES.map((job) => (
               <option key={job.value} value={job.value}>
@@ -119,8 +137,8 @@ export default function ContactsListing({
               </label>
               <select
                 id="filter-franchise"
-                value={franchise}
-                onChange={(e) => setFranchise(e.target.value)}
+                value={filters.franchise}
+                onChange={(e) => apply({ franchise: e.target.value })}
                 className={selectClass}
               >
                 <option value="">All franchises</option>
@@ -135,7 +153,7 @@ export default function ContactsListing({
         </div>
 
         {/* Table */}
-        {contacts.length === 0 ? (
+        {paging.total === 0 && !hasFilters ? (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-10 text-center">
             <FiUsers className="w-8 h-8 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500 mb-4">No contacts yet.</p>
@@ -150,7 +168,7 @@ export default function ContactsListing({
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
+          <div className={`bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto transition-opacity ${pending ? 'opacity-60' : ''}`}>
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 text-left text-xs uppercase tracking-wider text-gray-500">
@@ -164,7 +182,7 @@ export default function ContactsListing({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filtered.map((contact) => (
+                {contacts.map((contact) => (
                   <tr key={contact._id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
                       <Link
@@ -192,7 +210,7 @@ export default function ContactsListing({
                     <td className="px-4 py-3 text-gray-700">{contact.ownerName || '—'}</td>
                   </tr>
                 ))}
-                {filtered.length === 0 && (
+                {contacts.length === 0 && (
                   <tr>
                     <td colSpan={isAdmin ? 7 : 6} className="px-4 py-8 text-center text-gray-500">
                       No contacts match these filters.
@@ -204,10 +222,9 @@ export default function ContactsListing({
           </div>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500">
-          <span>
-            {filtered.length} of {contacts.length} {contacts.length === 1 ? 'contact' : 'contacts'}
-          </span>
+        <Pagination {...paging} noun={paging.total === 1 ? 'contact' : 'contacts'} hrefFor={(page) => href({ page })} />
+
+        <div className="flex flex-wrap items-center justify-end gap-3 text-xs text-gray-500">
           {directoryCount > 0 && (
             <Link
               href="/members/contacts/directory"

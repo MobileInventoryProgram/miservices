@@ -1,6 +1,14 @@
+'use client';
+
 import Link from 'next/link';
+import Pagination from '@/components/members/Pagination';
+import { usePagedList } from '@/components/members/usePagedList';
+import { CARD_PAGE_SIZE } from '@/lib/pagination';
 import { FiArrowLeft, FiFileText, FiStar } from 'react-icons/fi';
 import LeafletActions from './LeafletActions';
+
+/** Stable empty list so paging doesn't reset on every render */
+const NO_LISTS: LeafletListItem[] = [];
 
 export interface LeafletListItem {
   _id: string;
@@ -44,6 +52,8 @@ export default function PricingDocumentsListing({
   sharedLists,
   sharedHeading,
 }: PricingDocumentsListingProps) {
+  const ownedPage = usePagedList(ownedLists || NO_LISTS, CARD_PAGE_SIZE);
+  const sharedPage = usePagedList(sharedLists, CARD_PAGE_SIZE);
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-brand-dark-blue text-white py-10">
@@ -79,8 +89,8 @@ export default function PricingDocumentsListing({
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {ownedLists.map((list) => (
+              <div ref={ownedPage.topRef} className="grid scroll-mt-24 grid-cols-1 md:grid-cols-2 gap-4">
+                {ownedPage.items.map((list) => (
                   <LeafletCard
                     key={list._id}
                     list={list}
@@ -96,6 +106,9 @@ export default function PricingDocumentsListing({
                 ))}
               </div>
             )}
+            <div className="mt-4">
+              <Pagination {...ownedPage} noun="price lists" onPageChange={ownedPage.setPage} hideSinglePage />
+            </div>
           </section>
         )}
 
@@ -106,8 +119,8 @@ export default function PricingDocumentsListing({
               <p className="text-gray-500">No shared price lists available.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {sharedLists.map((list) => (
+            <div ref={sharedPage.topRef} className="grid scroll-mt-24 grid-cols-1 md:grid-cols-2 gap-4">
+              {sharedPage.items.map((list) => (
                 <LeafletCard
                   key={list._id}
                   list={list}
@@ -120,6 +133,9 @@ export default function PricingDocumentsListing({
               ))}
             </div>
           )}
+          <div className="mt-4">
+            <Pagination {...sharedPage} noun="price lists" onPageChange={sharedPage.setPage} hideSinglePage />
+          </div>
         </section>
 
         <p className="text-xs text-gray-400">All prices exclude VAT at the prevailing rate.</p>

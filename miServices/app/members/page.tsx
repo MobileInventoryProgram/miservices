@@ -2,9 +2,9 @@ import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth-options';
-import { getContactsForScope } from '@/lib/crm/contacts';
+import { countContactsForScope } from '@/lib/crm/contacts';
 import { getMemberScope } from '@/lib/members-access';
-import { getQuotesForScope } from '@/lib/quote/quotes';
+import { countQuotesForScope } from '@/lib/quote/quotes';
 import { getMemberDocuments, getFranchiseeForSession, type DocumentTargetingParams } from '@/lib/sanity';
 import MembersDashboard from './MembersDashboard';
 
@@ -36,8 +36,11 @@ export default async function MembersPage() {
   for (const doc of docs) {
     categoryCounts[doc.category] = (categoryCounts[doc.category] || 0) + 1;
   }
-  categoryCounts.contactRecords = scope ? (await getContactsForScope(scope)).length : 0;
-  categoryCounts.quoteRecords = scope ? (await getQuotesForScope(scope)).length : 0;
+  const [contactCount, quoteCount] = scope
+    ? await Promise.all([countContactsForScope(scope), countQuotesForScope(scope)])
+    : [0, 0];
+  categoryCounts.contactRecords = contactCount;
+  categoryCounts.quoteRecords = quoteCount;
 
   return (
     <MembersDashboard

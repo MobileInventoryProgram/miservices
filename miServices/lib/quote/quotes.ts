@@ -214,3 +214,77 @@ export function quotePlaceholderValues(
     miProgramDiscount: `${template.miProgram.discountPercent}%`,
   };
 }
+
+// ─── Paged list ─────────────────────────────────────────────────
+
+export interface QuoteFilters {
+  q?: string;
+  status?: string;
+  franchise?: string;
+  contact?: string;
+  page: number;
+  pageSize: number;
+}
+
+/** Search/filter quotes in the database and return one page plus the total */
+export async function getQuotesPage(scope: MemberScope, filters: QuoteFilters): Promise<{ items: Quote[]; total: number }> {
+  let filter = `_type == "quote"${scopeFilter(scope)}`;
+  const today = new Date().toISOString().slice(0, 10);
+  const params: Record<string, unknown> = { franchiseeId: scope.franchiseeId, today };
+
+  // "Expired" isn't stored: it's a sent/viewed quote past its valid-until date
+  const expired = '(status in ["sent", "viewed"] && defined(validUntil) && validUntil < $today)';
+  if (filters.status === 'expired') filter += ` && ${expired}`;
+  else if (filters.status === 'sent' || filters.status === 'viewed') filter += ` && status == $status && !${expired}`;
+  else if (filters.status) filter += ' && status == $status';
+  if (filters.status) params.status = filters.status;
+
+  if (filters.franchise && scope.isAdmin) {
+    filter += ' && franchise._ref == $franchise';
+    params.franchise = filters.franchise;
+  }
+  if (filters.contact) {
+    filter += ' && contact._ref == $contact';
+    params.contact = filters.contact;
+  }
+  const q = filters.q?.trim().replace(/[*"\\]/g, '');
+  if (q) {
+    filter += ' && [reference, contact->firstName, contact->lastName, contact->companyName, contact->email] match $q';
+    params.q = q.split(/\s+/).map((word) => `${word}*`);
+  }
+  const start = (filters.page - 1) * filters.pageSize;
+  params.start = start;
+  params.end = start + filters.pageSize;
+
+  try {
+    return await sanityWriteClient.fetch<{ items: Quote[]; total: number }>(
+      `{
+        "items": *[${filter}] | order(coalesce(createdAt, _createdAt) desc) [$start...$end] { ${quoteFields} },
+        "total": count(*[${filter}])
+      }`,
+      params
+    );
+  } catch (error) {
+    console.error('Error fetching quotes page:', error);
+    return { items: [], total: 0 };
+  }
+}
+
+export async function countQuotesForScope(scope: MemberScope): Promise<number> {
+  try {
+    return await sanityWriteClient.fetch<number>(`count(*[_type == "quote"${scopeFilter(scope)}])`, { franchiseeId: scope.franchiseeId });
+  } catch {
+    return 0;
+  }
+}
+
+/** Franchises that have quotes, for Head Office's franchise filter */
+export async function getQuoteFranchiseOptions(): Promise<{ id: string; name: string }[]> {
+  try {
+    return await sanityWriteClient.fetch<{ id: string; name: string }[]>(
+      `*[_type == "franchisee" && _id in *[_type == "quote"].franchise._ref] | order(companyName asc) { "id": _id, "name": companyName }`
+    );
+  } catch {
+    return [];
+  }
+}

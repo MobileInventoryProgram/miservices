@@ -8,7 +8,7 @@ import { contactName, getContactForScope } from '@/lib/crm/contacts';
 import { clientTypeLabel } from '@/lib/crm/options';
 import { jobTypeLabel } from '@/lib/job-types';
 import { getMemberScope } from '@/lib/members-access';
-import { getQuotesForScope } from '@/lib/quote/quotes';
+import { getQuotesPage } from '@/lib/quote/quotes';
 import { effectiveStatus } from '@/lib/quote/types';
 import QuoteStatusBadge from '../../quoting/QuoteStatusBadge';
 import StatusBadge from '../StatusBadge';
@@ -39,7 +39,8 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
     notFound();
   }
 
-  const quotes = await getQuotesForScope(scope!, id);
+  // Latest few here; the full, paged list is in Quotes filtered to this client
+  const { items: quotes, total: quoteTotal } = await getQuotesPage(scope!, { contact: id, page: 1, pageSize: 10 });
   const canQuote = scope!.franchiseeId === contact.franchiseId;
 
   const details: { label: string; value: React.ReactNode }[] = [
@@ -138,6 +139,11 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
                   </li>
                 ))}
               </ul>
+            )}
+            {quoteTotal > quotes.length && (
+              <Link href={`/members/quoting?contact=${id}`} className="mt-3 inline-block text-sm font-medium text-brand-light-blue hover:text-brand-dark-blue">
+                View all {quoteTotal} quotes →
+              </Link>
             )}
           </section>
         </div>

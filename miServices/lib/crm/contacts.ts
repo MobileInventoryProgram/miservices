@@ -47,3 +47,74 @@ export async function getContactForScope(scope: MemberScope, contactId: string):
     return null;
   }
 }
+
+// ─── Paged list ─────────────────────────────────────────────────
+
+export interface ContactFilters {
+  q?: string;
+  status?: string;
+  job?: string;
+  franchise?: string;
+  page: number;
+  pageSize: number;
+}
+
+/** Search/filter in the database and return one page plus the total */
+export async function getContactsPage(scope: MemberScope, filters: ContactFilters): Promise<{ items: Contact[]; total: number }> {
+  let filter = `_type == "contact" && archived != true${scopeFilter(scope)}`;
+  const params: Record<string, unknown> = { franchiseeId: scope.franchiseeId };
+  if (filters.status) {
+    filter += ' && status == $status';
+    params.status = filters.status;
+  }
+  if (filters.job) {
+    filter += ' && $job in jobTypes';
+    params.job = filters.job;
+  }
+  if (filters.franchise && scope.isAdmin) {
+    filter += ' && franchise._ref == $franchise';
+    params.franchise = filters.franchise;
+  }
+  const q = filters.q?.trim().replace(/[*"\\]/g, '');
+  if (q) {
+    filter += ' && [firstName, lastName, companyName, email, phone, postcode] match $q';
+    params.q = q.split(/\s+/).map((word) => `${word}*`);
+  }
+  const start = (filters.page - 1) * filters.pageSize;
+  params.start = start;
+  params.end = start + filters.pageSize;
+
+  try {
+    return await sanityWriteClient.fetch<{ items: Contact[]; total: number }>(
+      `{
+        "items": *[${filter}] | order(coalesce(updatedAt, _updatedAt) desc) [$start...$end] { ${contactFields} },
+        "total": count(*[${filter}])
+      }`,
+      params
+    );
+  } catch (error) {
+    console.error('Error fetching contacts page:', error);
+    return { items: [], total: 0 };
+  }
+}
+
+export async function countContactsForScope(scope: MemberScope): Promise<number> {
+  try {
+    return await sanityWriteClient.fetch<number>(`count(*[_type == "contact" && archived != true${scopeFilter(scope)}])`, {
+      franchiseeId: scope.franchiseeId,
+    });
+  } catch {
+    return 0;
+  }
+}
+
+/** Franchises that have contacts, for Head Office's franchise filter */
+export async function getContactFranchiseOptions(): Promise<{ id: string; name: string }[]> {
+  try {
+    return await sanityWriteClient.fetch<{ id: string; name: string }[]>(
+      `*[_type == "franchisee" && _id in *[_type == "contact" && archived != true].franchise._ref] | order(companyName asc) { "id": _id, "name": companyName }`
+    );
+  } catch {
+    return [];
+  }
+}

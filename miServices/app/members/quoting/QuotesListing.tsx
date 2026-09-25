@@ -1,8 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
-import { FiArrowLeft, FiBookOpen, FiFileText, FiPlus, FiSearch } from 'react-icons/fi';
+import { usePathname, useRouter } from 'next/navigation';
+import { FiArrowLeft, FiBookOpen, FiFileText, FiPlus, FiSearch, FiX } from 'react-icons/fi';
+import Pagination from '@/components/members/Pagination';
 import { effectiveStatus, QUOTE_STATUSES, quoteClientName, type Quote } from '@/lib/quote/types';
 import QuoteStatusBadge from './QuoteStatusBadge';
 
@@ -13,40 +15,53 @@ function shortDate(value?: string) {
   return value ? new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 }
 
+type Filters = { q: string; status: string; franchise: string; contact: string };
+
 export default function QuotesListing({
   quotes,
+  paging,
+  filters,
+  contactLabel,
   isAdmin,
   canCreate,
+  franchises,
   guideCount,
 }: {
   quotes: Quote[];
+  paging: { page: number; totalPages: number; total: number; start: number; end: number };
+  filters: Filters;
+  contactLabel: string | null;
   isAdmin: boolean;
   canCreate: boolean;
+  franchises: { id: string; name: string }[];
   guideCount: number;
 }) {
-  const [query, setQuery] = useState('');
-  const [status, setStatus] = useState('');
-  const [franchise, setFranchise] = useState('');
+  const router = useRouter();
+  const pathname = usePathname();
+  const [pending, startTransition] = useTransition();
+  const [query, setQuery] = useState(filters.q);
 
-  const franchises = useMemo(() => {
-    const seen = new Map<string, string>();
-    quotes.forEach((q) => seen.set(q.franchise._id, q.franchise.companyName || 'Unknown'));
-    return Array.from(seen, ([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
-  }, [quotes]);
+  // Filters live in the URL, so the server searches and pages the full list
+  const href = (next: Partial<Filters> & { page?: number }) => {
+    const merged = { ...filters, ...next };
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(merged)) {
+      if (key !== 'page' && value) params.set(key, String(value));
+    }
+    if (next.page && next.page > 1) params.set('page', String(next.page));
+    const qs = params.toString();
+    return qs ? `${pathname}?${qs}` : pathname;
+  };
+  const apply = (next: Partial<Filters>) => startTransition(() => router.replace(href(next), { scroll: false }));
 
-  const rows = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return quotes
-      .map((quote) => ({ quote, status: effectiveStatus(quote) }))
-      .filter(({ quote, status: s }) => {
-        if (status && s !== status) return false;
-        if (franchise && quote.franchise._id !== franchise) return false;
-        if (!q) return true;
-        return [quote.reference, quoteClientName(quote), quote.contact?.companyName, quote.contact?.email]
-          .filter(Boolean)
-          .some((f) => f!.toLowerCase().includes(q));
-      });
-  }, [quotes, query, status, franchise]);
+  useEffect(() => {
+    if (query === filters.q) return;
+    const timer = setTimeout(() => apply({ q: query }), 350);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
+  const hasFilters = !!(filters.q || filters.status || filters.franchise || filters.contact);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -63,7 +78,7 @@ export default function QuotesListing({
             </div>
             {canCreate && (
               <Link
-                href="/members/quoting/new"
+                href={filters.contact ? `/members/quoting/new?contactId=${filters.contact}` : '/members/quoting/new'}
                 className="inline-flex items-center gap-2 self-start px-4 py-2 text-sm font-medium rounded-md bg-white text-brand-dark-blue hover:bg-blue-50 transition-colors font-helvetica"
               >
                 <FiPlus className="w-4 h-4" />
@@ -75,6 +90,15 @@ export default function QuotesListing({
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-4">
+        {filters.contact && (
+          <p className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1.5 text-sm text-brand-dark-blue">
+            Quotes for <strong>{contactLabel || 'this client'}</strong>
+            <Link href={href({ contact: '', page: 1 })} className="inline-flex items-center gap-1 text-gray-600 hover:text-gray-900">
+              <FiX className="h-3.5 w-3.5" /> Show all
+            </Link>
+          </p>
+        )}
+
         <div className="flex flex-col lg:flex-row gap-3">
           <div className="relative flex-1">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
@@ -93,7 +117,7 @@ export default function QuotesListing({
           <label htmlFor="quote-status" className="sr-only">
             Status
           </label>
-          <select id="quote-status" value={status} onChange={(e) => setStatus(e.target.value)} className={selectClass}>
+          <select id="quote-status" value={filters.status} onChange={(e) => apply({ status: e.target.value })} className={selectClass}>
             <option value="">All statuses</option>
             {QUOTE_STATUSES.map((s) => (
               <option key={s.value} value={s.value}>
@@ -106,7 +130,7 @@ export default function QuotesListing({
               <label htmlFor="quote-franchise" className="sr-only">
                 Franchise
               </label>
-              <select id="quote-franchise" value={franchise} onChange={(e) => setFranchise(e.target.value)} className={selectClass}>
+              <select id="quote-franchise" value={filters.franchise} onChange={(e) => apply({ franchise: e.target.value })} className={selectClass}>
                 <option value="">All franchises</option>
                 {franchises.map((f) => (
                   <option key={f.id} value={f.id}>
@@ -118,7 +142,7 @@ export default function QuotesListing({
           )}
         </div>
 
-        {quotes.length === 0 ? (
+        {paging.total === 0 && !hasFilters ? (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-10 text-center">
             <FiFileText className="w-8 h-8 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500 mb-4">No quotes yet.</p>
@@ -133,7 +157,7 @@ export default function QuotesListing({
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
+          <div className={`bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto transition-opacity ${pending ? 'opacity-60' : ''}`}>
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 text-left text-xs uppercase tracking-wider text-gray-500">
@@ -147,7 +171,7 @@ export default function QuotesListing({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {rows.map(({ quote, status: s }) => (
+                {quotes.map((quote) => (
                   <tr key={quote._id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
                       <Link href={`/members/quoting/${quote._id}`} className="font-medium text-brand-dark-blue hover:text-brand-light-blue">
@@ -162,14 +186,14 @@ export default function QuotesListing({
                     </td>
                     <td className="px-4 py-3 text-gray-700">{quote.priceListTitle || '—'}</td>
                     <td className="px-4 py-3">
-                      <QuoteStatusBadge status={s} />
+                      <QuoteStatusBadge status={effectiveStatus(quote)} />
                     </td>
                     <td className="px-4 py-3 text-gray-700">{shortDate(quote.sentAt)}</td>
                     {isAdmin && <td className="px-4 py-3 text-gray-700">{quote.franchise.companyName || '—'}</td>}
                     <td className="px-4 py-3 text-gray-700">{quote.ownerName || '—'}</td>
                   </tr>
                 ))}
-                {rows.length === 0 && (
+                {quotes.length === 0 && (
                   <tr>
                     <td colSpan={isAdmin ? 7 : 6} className="px-4 py-8 text-center text-gray-500">
                       No quotes match these filters.
@@ -181,17 +205,16 @@ export default function QuotesListing({
           </div>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500">
-          <span>
-            {rows.length} of {quotes.length} {quotes.length === 1 ? 'quote' : 'quotes'}
-          </span>
-          {guideCount > 0 && (
+        <Pagination {...paging} noun={paging.total === 1 ? 'quote' : 'quotes'} hrefFor={(page) => href({ page })} />
+
+        {guideCount > 0 && (
+          <div className="flex justify-end text-xs">
             <Link href="/members/quoting/guides" className="inline-flex items-center gap-1.5 text-brand-light-blue hover:text-brand-dark-blue">
               <FiBookOpen className="w-3.5 h-3.5" />
               Quoting guides &amp; templates ({guideCount})
             </Link>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

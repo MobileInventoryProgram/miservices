@@ -2,11 +2,12 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import { FiArrowLeft, FiDownload, FiFileText } from 'react-icons/fi';
+import { FiArrowLeft } from 'react-icons/fi';
 import { authOptions } from '@/lib/auth-options';
 import { getFranchiseeForSession, getMemberDocumentsByCategory } from '@/lib/sanity';
 import { BRAND_ASSETS } from '@/lib/social/brand-assets';
 import BrandAssetGallery from './BrandAssetGallery';
+import MoreDownloads from './MoreDownloads';
 
 export const metadata: Metadata = {
   title: 'Brand Assets | Franchise Login | miServices',
@@ -47,30 +48,7 @@ export default async function BrandAssetsPage() {
           territory={territory}
         />
 
-        {files.length > 0 && (
-          <section>
-            <h2 className="text-xl font-bold text-gray-900 font-helvetica mb-4">More downloads</h2>
-            <ul className="divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white shadow-sm">
-              {files.map((doc) => (
-                <li key={doc._id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
-                  <Link href={`/members/assets/files/${doc.slug}`} className="flex items-center gap-2 font-medium text-gray-900 hover:text-brand-dark-blue">
-                    <FiFileText className="w-4 h-4 text-gray-400" />
-                    {doc.title}
-                  </Link>
-                  {doc.file?.asset?.url && (
-                    <a
-                      href={`${doc.file.asset.url}?dl=`}
-                      className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                      <FiDownload className="w-3.5 h-3.5" />
-                      Download
-                    </a>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+        <MoreDownloads files={files.map((doc) => ({ _id: doc._id, title: doc.title, slug: doc.slug, url: doc.file?.asset?.url }))} />
       </div>
     </div>
   );

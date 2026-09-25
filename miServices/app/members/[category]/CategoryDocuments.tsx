@@ -1,6 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import Pagination from '@/components/members/Pagination';
+import { usePagedList } from '@/components/members/usePagedList';
+import { CARD_PAGE_SIZE } from '@/lib/pagination';
 import { FiArrowLeft, FiDownload, FiEye } from 'react-icons/fi';
 import type { SanityMemberDocument } from '@/lib/sanity';
 
@@ -19,6 +22,7 @@ export default function CategoryDocuments({
   backHref = '/members',
   backLabel = 'Dashboard',
 }: CategoryDocumentsProps) {
+  const docPage = usePagedList(documents, CARD_PAGE_SIZE);
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-brand-dark-blue text-white py-10">
@@ -52,8 +56,8 @@ export default function CategoryDocuments({
             </Link>
           </div>
         ) : (
-          <div className="space-y-4">
-            {documents.map((doc) => (
+          <div ref={docPage.topRef} className="space-y-4 scroll-mt-24">
+            {docPage.items.map((doc) => (
               <div
                 key={doc._id}
                 className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
@@ -100,6 +104,7 @@ export default function CategoryDocuments({
                 </div>
               </div>
             ))}
+            <Pagination {...docPage} noun="documents" onPageChange={docPage.setPage} hideSinglePage />
           </div>
         )}
       </div>

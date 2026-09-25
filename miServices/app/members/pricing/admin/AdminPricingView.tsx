@@ -1,7 +1,14 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { FiArrowLeft, FiEye, FiStar } from 'react-icons/fi';
+import Pagination from '@/components/members/Pagination';
+import { usePagedList } from '@/components/members/usePagedList';
+import { CARD_PAGE_SIZE } from '@/lib/pagination';
+
+/** Franchises shown per page in the franchisee price lists section */
+const FRANCHISES_PER_PAGE = 8;
 import type { AdminPriceListSummary } from '@/lib/sanity';
 
 interface AdminPricingViewProps {
@@ -20,7 +27,15 @@ export default function AdminPricingView({
     if (!byTerritory[key]) byTerritory[key] = [];
     byTerritory[key].push(list);
   }
-  const territories = Object.keys(byTerritory).sort();
+  const allTerritories = Object.keys(byTerritory).sort();
+  const [territoryFilter, setTerritoryFilter] = useState('');
+  const territories = useMemo(
+    () => (territoryFilter ? allTerritories.filter((t) => t === territoryFilter) : allTerritories),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [territoryFilter, franchiseeLists]
+  );
+  const templatePage = usePagedList(templates, CARD_PAGE_SIZE);
+  const territoryPage = usePagedList(territories, FRANCHISES_PER_PAGE);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -49,8 +64,10 @@ export default function AdminPricingView({
               <p className="text-gray-500">No admin templates yet. Create them in Sanity Studio.</p>
             </div>
           ) : (
+            <>
+            <div ref={templatePage.topRef} className="scroll-mt-24" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {templates.map((template) => (
+              {templatePage.items.map((template) => (
                 <div
                   key={template._id}
                   className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 flex flex-col"
@@ -70,19 +87,45 @@ export default function AdminPricingView({
                 </div>
               ))}
             </div>
+            <div className="mt-4">
+              <Pagination {...templatePage} noun="templates" onPageChange={templatePage.setPage} hideSinglePage />
+            </div>
+            </>
           )}
         </section>
 
         {/* Franchisee Price Lists */}
         <section>
-          <h2 className="text-xl font-bold text-gray-900 font-helvetica mb-4">Franchisee Price Lists</h2>
+          <div ref={territoryPage.topRef} className="mb-4 flex scroll-mt-24 flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xl font-bold text-gray-900 font-helvetica">Franchisee Price Lists</h2>
+            {allTerritories.length > 1 && (
+              <>
+                <label htmlFor="territory-filter" className="sr-only">
+                  Franchise
+                </label>
+                <select
+                  id="territory-filter"
+                  value={territoryFilter}
+                  onChange={(e) => setTerritoryFilter(e.target.value)}
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-brand-light-blue focus:border-brand-light-blue"
+                >
+                  <option value="">All franchises ({allTerritories.length})</option>
+                  {allTerritories.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+          </div>
           {territories.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
               <p className="text-gray-500">No franchisee price lists yet.</p>
             </div>
           ) : (
             <div className="space-y-6">
-              {territories.map((territory) => (
+              {territoryPage.items.map((territory) => (
                 <div key={territory}>
                   <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-3">
                     {territory}
@@ -121,6 +164,7 @@ export default function AdminPricingView({
                   </div>
                 </div>
               ))}
+              <Pagination {...territoryPage} noun="franchises" onPageChange={territoryPage.setPage} hideSinglePage />
             </div>
           )}
         </section>
