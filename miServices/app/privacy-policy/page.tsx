@@ -2,18 +2,14 @@ import { Metadata } from 'next';
 import { getSinglePage } from '@/lib/sanity';
 import PortableText from '@/components/PortableText';
 import { notFound } from 'next/navigation';
+import { buildMetadata } from '@/lib/cms/site';
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
-
-export const metadata: Metadata = {
-  title: 'Privacy Policy | miServices',
-  description: 'miServices privacy policy. Learn how we collect, use, and protect your personal information.',
-  alternates: {
-    canonical: `${BASE_URL}/privacy-policy`,
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getSinglePage('privacy-policy');
+  return buildMetadata(page?.seo, { title: page?.title, path: '/privacy-policy' });
+}
 
 export default async function PrivacyPolicy() {
   const page = await getSinglePage('privacy-policy');

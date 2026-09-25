@@ -23,7 +23,7 @@ export default function DocumentCard({ title, description, onViewSample }: Docum
       </div>
       <button
         onClick={onViewSample}
-        className="w-full bg-brand-light-blue text-white px-6 py-3 rounded-lg font-helvetica font-semibold hover:bg-opacity-90 transition-all shadow-md hover:shadow-lg"
+        className="w-full bg-brand-light-blue text-white border-2 border-transparent px-6 py-3 rounded-lg font-helvetica font-semibold hover:bg-opacity-90 transition-all shadow-md hover:shadow-lg"
       >
         View Sample
       </button>

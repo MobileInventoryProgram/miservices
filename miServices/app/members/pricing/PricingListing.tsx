@@ -29,7 +29,8 @@ export default function PricingListing({
   territory,
   ownedLists,
   sharedTemplates,
-}: PricingListingProps) {
+  text = {},
+}: PricingListingProps & { text?: { heading?: string; intro?: string; introAdmin?: string; empty?: string } }) {
   const router = useRouter();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [settingDefaultId, setSettingDefaultId] = useState<string | null>(null);
@@ -94,7 +95,7 @@ export default function PricingListing({
             <FiArrowLeft className="w-4 h-4" />
             Back to Pricing &amp; Quoting
           </Link>
-          <h1 className="text-3xl md:text-4xl font-bold font-helvetica">My Pricing</h1>
+          <h1 className="text-3xl md:text-4xl font-bold font-helvetica">{text.heading}</h1>
           <p className="mt-1 text-blue-200">{territory} territory</p>
         </div>
       </div>
@@ -122,7 +123,7 @@ export default function PricingListing({
           {ownedLists.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
               <p className="text-gray-500 mb-4">
-                You don&apos;t have any price lists yet. Duplicate a shared template to get started.
+                {text.empty}
               </p>
               <Link
                 href="/members/pricing/new"

@@ -16,8 +16,8 @@ export default function Button({
   const baseClasses = 'px-6 py-3 rounded-lg font-helvetica font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
   
   const variantClasses = {
-    primary: 'bg-brand-light-blue text-white hover:bg-opacity-90 focus:ring-brand-light-blue',
-    secondary: 'bg-brand-dark-blue text-white hover:bg-opacity-90 focus:ring-brand-dark-blue',
+    primary: 'border-2 border-transparent bg-brand-light-blue text-white hover:bg-opacity-90 focus:ring-brand-light-blue',
+    secondary: 'border-2 border-transparent bg-brand-dark-blue text-white hover:bg-opacity-90 focus:ring-brand-dark-blue',
     outline: 'border-2 border-brand-light-blue text-brand-light-blue hover:bg-brand-light-blue hover:text-white focus:ring-brand-light-blue',
   };
 

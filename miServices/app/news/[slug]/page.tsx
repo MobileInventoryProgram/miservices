@@ -7,6 +7,8 @@ import { notFound } from 'next/navigation';
 import { FiCalendar, FiClock, FiArrowLeft, FiUser } from 'react-icons/fi';
 import type { Metadata } from 'next';
 import JsonLd from '@/components/JsonLd';
+import { getPageDoc } from '@/lib/cms/site';
+import type { NewsPageDoc } from '../page';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
 
@@ -36,12 +38,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? urlFor(post.featuredImage).width(1200).height(630).url()
     : undefined;
 
+  const title = post.seo?.metaTitle || `${post.title} | miServices News`;
+  const description = post.seo?.metaDescription || post.excerpt;
   return {
-    title: `${post.title} | miServices News`,
-    description: post.excerpt,
+    title,
+    description,
+    keywords: post.seo?.keywords,
+    robots: post.seo?.noIndex ? { index: false, follow: false } : undefined,
     openGraph: {
       title: post.title,
-      description: post.excerpt,
+      description,
       images: imageUrl ? [imageUrl] : [],
       type: 'article',
       publishedTime: post.publishedAt,
@@ -52,7 +58,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     twitter: {
       card: 'summary_large_image',
       title: post.title,
-      description: post.excerpt,
+      description,
       images: imageUrl ? [imageUrl] : [],
     },
     alternates: {
@@ -62,7 +68,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function PostPage({ params }: Props) {
-  const post = await getSinglePost(params.slug);
+  const [post, newsPage] = await Promise.all([getSinglePost(params.slug), getPageDoc<NewsPageDoc>('newsPage')]);
 
   if (!post) {
     notFound();
@@ -203,18 +209,16 @@ export default async function PostPage({ params }: Props) {
 
         <div className="bg-gray-50 py-12">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-2xl font-bold text-brand-dark-blue mb-4 font-helvetica">
-              Stay Informed
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Read more news and updates from miServices
-            </p>
-            <Link
-              href="/news"
-              className="inline-block bg-brand-light-blue text-white px-8 py-3 rounded-lg font-semibold hover:bg-brand-dark-blue transition-colors"
-            >
-              View All News
-            </Link>
+            <h2 className="text-2xl font-bold text-brand-dark-blue mb-4 font-helvetica">{newsPage?.postCta?.heading}</h2>
+            <p className="text-gray-600 mb-6">{newsPage?.postCta?.text}</p>
+            {newsPage?.postCta?.button && (
+              <Link
+                href={newsPage.postCta.button.href}
+                className="inline-block bg-brand-light-blue text-white border-2 border-transparent px-8 py-3 rounded-lg font-semibold hover:bg-brand-dark-blue transition-colors"
+              >
+                {newsPage.postCta.button.label}
+              </Link>
+            )}
           </div>
         </div>
       </article>

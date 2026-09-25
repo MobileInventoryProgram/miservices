@@ -3,7 +3,11 @@
 import Link from 'next/link';
 import { FiArrowLeft, FiSliders, FiDollarSign, FiClipboard, FiList, FiEdit3 } from 'react-icons/fi';
 
+type Tile = { title?: string; description?: string };
+
 interface PricingQuotingCardsProps {
+  /** Wording from the CMS (Franchise Login text) */
+  text: { heading?: string; intro?: string; myPricing?: Tile; pricingDocuments?: Tile; quoting?: Tile; standardPriceLists?: Tile; quoteTemplate?: Tile };
   userRole: 'franchisee' | 'admin';
   hasFranchisee: boolean;
   categoryCounts: Record<string, number>;
@@ -17,12 +21,13 @@ export default function PricingQuotingCards({
   categoryCounts,
   priceListCount,
   quoteCount,
+  text,
 }: PricingQuotingCardsProps) {
   const tiles = [
     {
       key: 'my-pricing',
-      title: 'My Pricing',
-      description: 'Adjust your territory pricing and overrides',
+      title: text.myPricing?.title,
+      description: text.myPricing?.description,
       icon: FiSliders,
       color: 'bg-green-500',
       href: '/members/pricing',
@@ -30,8 +35,8 @@ export default function PricingQuotingCards({
     },
     {
       key: 'pricing-documents',
-      title: 'Pricing Documents',
-      description: 'Print-ready PDF leaflets and shareable links for your price lists',
+      title: text.pricingDocuments?.title,
+      description: text.pricingDocuments?.description,
       icon: FiDollarSign,
       color: 'bg-teal-500',
       href: '/members/pricing-documents',
@@ -41,8 +46,8 @@ export default function PricingQuotingCards({
     },
     {
       key: 'quoting',
-      title: 'Quoting',
-      description: 'Build and send bespoke quotes to your clients',
+      title: text.quoting?.title,
+      description: text.quoting?.description,
       icon: FiClipboard,
       color: 'bg-red-500',
       href: '/members/quoting',
@@ -52,8 +57,8 @@ export default function PricingQuotingCards({
     },
     {
       key: 'all-pricing',
-      title: 'Standard Price Lists',
-      description: 'Create and edit Head Office price lists, and view every franchise’s pricing',
+      title: text.standardPriceLists?.title,
+      description: text.standardPriceLists?.description,
       icon: FiList,
       color: 'bg-indigo-500',
       href: '/members/pricing/admin',
@@ -61,8 +66,8 @@ export default function PricingQuotingCards({
     },
     {
       key: 'quote-template',
-      title: 'Quote Template',
-      description: 'Edit the standard wording, booking details and miProgram pricing in every quote',
+      title: text.quoteTemplate?.title,
+      description: text.quoteTemplate?.description,
       icon: FiEdit3,
       color: 'bg-amber-500',
       href: '/members/quoting/template',
@@ -82,10 +87,10 @@ export default function PricingQuotingCards({
             Back to Dashboard
           </Link>
           <h1 className="text-3xl md:text-4xl font-bold font-helvetica">
-            Pricing &amp; Quoting
+            {text.heading}
           </h1>
           <p className="mt-1 text-blue-200">
-            Your pricing, pricing documents and quoting guides
+            {text.intro}
           </p>
         </div>
       </div>

@@ -120,13 +120,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // Service pages from Sanity + static fallbacks
-  const serviceSlugs = await getAllServiceSlugs();
-  const staticServiceSlugs = [
-    'pre-tenancy', 'check-ins', 'mid-tenancy', 'check-outs',
-    'inventory-reports', 'property-visits', 'block-management', 'end-tenancy',
-  ];
-  const allServiceSlugs = Array.from(new Set([...serviceSlugs, ...staticServiceSlugs]));
+  // Service pages: every service in the CMS
+  const allServiceSlugs = await getAllServiceSlugs();
   const servicePages: MetadataRoute.Sitemap = allServiceSlugs.map((slug) => ({
     url: `${BASE_URL}/services/${slug}`,
     lastModified: new Date(),

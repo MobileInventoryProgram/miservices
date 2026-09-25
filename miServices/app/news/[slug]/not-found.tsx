@@ -14,7 +14,7 @@ export default function NotFound() {
         </p>
         <Link
           href="/news"
-          className="inline-block bg-brand-light-blue text-white px-8 py-3 rounded-lg font-semibold hover:bg-brand-dark-blue transition-colors"
+          className="inline-block bg-brand-light-blue text-white border-2 border-transparent px-8 py-3 rounded-lg font-semibold hover:bg-brand-dark-blue transition-colors"
         >
           Back to News
         </Link>

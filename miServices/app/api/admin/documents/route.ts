@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { newKey } from '@/lib/documents/standard';
-import { DOC_SUBCATEGORIES, slugify } from '@/lib/documents/validate';
-import { sanityWriteClient } from '@/lib/sanity';
+import { slugify } from '@/lib/documents/validate';
+import { getDocumentSection, sanityWriteClient } from '@/lib/sanity';
 
 /**
  * POST — Start a new document as a draft (members can't see it until it's
@@ -17,7 +17,8 @@ export async function POST(request: Request) {
     const title = typeof body.title === 'string' ? body.title.trim().slice(0, 160) : '';
     const subcategory = String(body.subcategory || '');
     if (!title) return NextResponse.json({ error: 'Please give the document a title.' }, { status: 400 });
-    if (!DOC_SUBCATEGORIES[subcategory]) return NextResponse.json({ error: 'Unknown section.' }, { status: 400 });
+    const section = await getDocumentSection(subcategory);
+    if (!section) return NextResponse.json({ error: 'Unknown section.' }, { status: 400 });
 
     // A slug no other document (or draft) uses
     const base = slugify(title);
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
     for (let n = 2; taken.has(slug); n++) slug = `${base}-${n}`;
 
     const nextOrder = await sanityWriteClient.fetch<number | null>(
-      `math::max(*[_type == "memberDocument" && category == "documents" && subcategory == $subcategory].order)`,
+      `math::max(*[_type == "memberDocument" && category == "documents" && coalesce(section->slug.current, subcategory) == $subcategory].order)`,
       { subcategory }
     );
 
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
       slug: { _type: 'slug', current: slug },
       category: 'documents',
       subcategory,
+      section: { _type: 'reference', _ref: section._id },
       description: '',
       numberHeadings: false,
       isPublished: true,

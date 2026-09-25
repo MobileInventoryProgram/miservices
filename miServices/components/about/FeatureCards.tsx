@@ -1,14 +1,14 @@
 import React from 'react';
-import { IconType } from 'react-icons';
+import { CmsIcon } from '@/lib/cms/icons';
 
 interface FeatureCard {
-  icon: IconType;
-  title: string;
-  description: string;
+  icon?: string;
+  title?: string;
+  description?: string;
 }
 
 interface FeatureCardsProps {
-  title: string;
+  title?: string;
   subtitle?: string;
   features: FeatureCard[];
   background?: 'white' | 'gray';
@@ -33,14 +33,13 @@ export default function FeatureCards({ title, subtitle, features, background = '
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => {
-            const Icon = feature.icon;
             return (
               <div
                 key={index}
                 className="bg-white rounded-lg shadow-md p-8 text-center hover:shadow-xl transition-shadow border border-gray-100"
               >
                 <div className="w-16 h-16 bg-gradient-to-br from-brand-dark-blue to-brand-light-blue rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Icon className="w-8 h-8 text-white" />
+                  <CmsIcon name={feature.icon} className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-xl font-helvetica font-semibold text-brand-dark-blue mb-4">
                   {feature.title}

@@ -1,8 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
-import Button from '@/components/ui/Button';
 
-export default function NetworkCTA() {
+export default function NetworkCTA({ heading, text, button }: { heading?: string; text?: string; button?: { label: string; href: string } }) {
   return (
     <section className="py-20 bg-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -17,17 +16,19 @@ export default function NetworkCTA() {
               </div>
 
               <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ fontFamily: 'Helvetica, sans-serif' }}>
-                Find Your Local miServices Office
+                {heading}
               </h2>
               
               <p className="text-xl mb-8 text-white/90" style={{ fontFamily: 'Maitree, serif' }}>
-                Not sure which territory you fall into? Use our network tool to locate the correct miServices office for your area.
+                {text}
               </p>
 
               <div>
-                <Link href="/our-network" className="inline-block bg-white text-[#3f59a9] px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all">
-                  Explore Our Network
-                </Link>
+                {button && (
+                  <Link href={button.href} className="inline-block bg-white text-[#3f59a9] border-2 border-transparent px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all">
+                    {button.label}
+                  </Link>
+                )}
               </div>
             </div>
 

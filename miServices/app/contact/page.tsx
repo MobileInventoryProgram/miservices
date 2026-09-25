@@ -1,46 +1,43 @@
 import React from 'react';
 import { Metadata } from 'next';
 import ContactForm from '@/components/forms/ContactForm';
-import BookingPromptModal from '@/components/ui/BookingPromptModal';
+import BookingPromptModal, { type BookingPrompt } from '@/components/ui/BookingPromptModal';
 import { FiPhone, FiMapPin, FiFileText } from 'react-icons/fi';
+import { BASE_URL, buildMetadata, getPageDoc, getSiteSettings, telHref } from '@/lib/cms/site';
+import type { CmsHero, CmsLink, CmsSeo } from '@/lib/cms/types';
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
+interface ContactPageDoc {
+  hero?: CmsHero;
+  detailsHeading?: string;
+  formNote?: string;
+  bookingCard?: { heading?: string; text?: string; button?: CmsLink };
+  bookingPrompt?: BookingPrompt;
+  seo?: CmsSeo;
+}
 
-export const metadata: Metadata = {
-  title: 'Contact miServices | Speak With Our Team',
-  description: 'Get in touch with miServices for quotes, support, job bookings and general enquiries. Fast response and nationwide coverage.',
-  openGraph: {
-    title: 'Contact miServices | Speak With Our Team',
-    description: 'Get in touch with miServices for quotes, support, job bookings and general enquiries. Fast response and nationwide coverage.',
-    url: `${BASE_URL}/contact`,
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Contact miServices | Speak With Our Team',
-    description: 'Get in touch with miServices for quotes, support, job bookings and general enquiries.',
-  },
-  alternates: {
-    canonical: `${BASE_URL}/contact`,
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const doc = await getPageDoc<ContactPageDoc>('contactPage');
+  return buildMetadata(doc?.seo, { title: doc?.hero?.heading, description: doc?.hero?.subheading, path: '/contact' });
+}
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const [doc, site] = await Promise.all([getPageDoc<ContactPageDoc>('contactPage'), getSiteSettings()]);
+  const [town, postcode] = (site.address || []).slice(-2);
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ContactPage',
-    name: 'Contact miServices',
-    description: 'Get in touch with miServices for quotes, support, job bookings and general enquiries.',
+    name: doc?.seo?.metaTitle,
+    description: doc?.seo?.metaDescription,
     url: `${BASE_URL}/contact`,
     mainEntity: {
       '@type': 'Organization',
-      name: 'miServices',
-      telephone: '0345 680 7976',
+      name: site.siteName,
+      telephone: site.phone,
       address: {
         '@type': 'PostalAddress',
-        streetAddress: 'Third Floor, Suit A3 (3), Steam Mill, 3 Steam Mill St',
-        addressLocality: 'Chester',
-        postalCode: 'CH3 5AN',
+        streetAddress: (site.address || []).slice(0, -2).join(', '),
+        addressLocality: town,
+        postalCode: postcode,
         addressCountry: 'GB',
       },
     },
@@ -48,7 +45,7 @@ export default function ContactPage() {
 
   return (
     <>
-      <BookingPromptModal />
+      <BookingPromptModal prompt={doc?.bookingPrompt} />
       
       <script
         type="application/ld+json"
@@ -67,10 +64,10 @@ export default function ContactPage() {
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 font-helvetica">
-            Contact miServices
+            {doc?.hero?.heading}
           </h1>
           <p className="text-xl text-white opacity-90 max-w-2xl mx-auto">
-            We're here to help with any enquiry — get in touch with our team.
+            {doc?.hero?.subheading}
           </p>
         </div>
       </section>
@@ -81,7 +78,7 @@ export default function ContactPage() {
             <div className="space-y-8">
               <div className="bg-white rounded-lg shadow-lg p-8">
                 <h2 className="text-2xl font-helvetica font-bold text-brand-dark-blue mb-6">
-                  Get In Touch
+                  {doc?.detailsHeading}
                 </h2>
 
                 <div className="space-y-6">
@@ -95,11 +92,8 @@ export default function ContactPage() {
                       <h3 className="text-lg font-helvetica font-semibold text-gray-900 mb-1">
                         Phone
                       </h3>
-                      <a
-                        href="tel:03456807976"
-                        className="text-brand-light-blue hover:underline text-lg"
-                      >
-                        0345 680 7976
+                      <a href={telHref(site.phone)} className="text-brand-light-blue hover:underline text-lg">
+                        {site.phone}
                       </a>
                     </div>
                   </div>
@@ -115,12 +109,12 @@ export default function ContactPage() {
                         Address
                       </h3>
                       <address className="text-gray-700 not-italic leading-relaxed">
-                        Third Floor<br />
-                        Suit A3 (3)<br />
-                        Steam Mill<br />
-                        3 Steam Mill St<br />
-                        Chester<br />
-                        CH3 5AN
+                        {(site.address || []).map((line, i) => (
+                          <span key={i}>
+                            {line}
+                            <br />
+                          </span>
+                        ))}
                       </address>
                     </div>
                   </div>
@@ -135,31 +129,33 @@ export default function ContactPage() {
                       <h3 className="text-lg font-helvetica font-semibold text-gray-900 mb-1">
                         Company Number
                       </h3>
-                      <p className="text-gray-700">07884266</p>
+                      <p className="text-gray-700">{site.companyNumber}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-gray-200">
                   <p className="text-sm text-gray-600 italic">
-                    Fill out the form and our team will get back to you as soon as possible.
+                    {doc?.formNote}
                   </p>
                 </div>
               </div>
 
               <div className="bg-brand-dark-blue rounded-lg shadow-lg p-8 text-white">
                 <h3 className="text-xl font-helvetica font-bold mb-3">
-                  Need to Book a Job?
+                  {doc?.bookingCard?.heading}
                 </h3>
                 <p className="text-white opacity-90 mb-4">
-                  If you're ready to schedule a property inspection, use our dedicated booking form for faster service.
+                  {doc?.bookingCard?.text}
                 </p>
-                <a
-                  href="/booking"
-                  className="inline-block bg-white text-brand-dark-blue px-6 py-3 rounded-lg font-helvetica font-semibold hover:bg-opacity-90 transition-all"
-                >
-                  Go to Booking Form
-                </a>
+                {doc?.bookingCard?.button && (
+                  <a
+                    href={doc.bookingCard.button.href}
+                    className="inline-block bg-white text-brand-dark-blue border-2 border-transparent px-6 py-3 rounded-lg font-helvetica font-semibold hover:bg-opacity-90 transition-all"
+                  >
+                    {doc.bookingCard.button.label}
+                  </a>
+                )}
               </div>
             </div>
 

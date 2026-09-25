@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Hero() {
+export default function Hero({ heading, text }: { heading?: string; text?: string }) {
   return (
     <section className="relative bg-gradient-to-br from-brand-dark-blue to-brand-light-blue py-32 overflow-hidden">
       <div className="absolute inset-0 opacity-10">
@@ -14,10 +14,10 @@ export default function Hero() {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 font-helvetica">
-          About miServices
+          {heading}
         </h1>
         <p className="text-xl md:text-2xl text-white opacity-95 max-w-4xl mx-auto leading-relaxed">
-          Empowering efficiency. Elevating professionalism. Redefining property reporting.
+          {text}
         </p>
       </div>
     </section>

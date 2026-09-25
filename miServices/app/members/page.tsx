@@ -7,6 +7,7 @@ import { getMemberScope } from '@/lib/members-access';
 import { countQuotesForScope } from '@/lib/quote/quotes';
 import { getMemberDocuments, getFranchiseeForSession, type DocumentTargetingParams } from '@/lib/sanity';
 import MembersDashboard from './MembersDashboard';
+import { getMembersText } from '@/lib/cms/members';
 
 export const metadata: Metadata = {
   title: 'Members Dashboard | miServices',
@@ -42,12 +43,21 @@ export default async function MembersPage() {
   categoryCounts.contactRecords = contactCount;
   categoryCounts.quoteRecords = quoteCount;
 
+  const text = await getMembersText();
+
   return (
     <MembersDashboard
       userName={session.user.name || session.user.email}
       userTerritory={franchisee?.territory || session.user.territory || undefined}
       hasFranchisee={!!franchisee}
       categoryCounts={categoryCounts}
+      heading={text.login?.heading}
+      tiles={{
+        documents: text.dashboard?.documents,
+        'pricing-quoting': text.dashboard?.pricingQuoting,
+        assets: text.dashboard?.assets,
+        contacts: text.dashboard?.contacts,
+      }}
     />
   );
 }

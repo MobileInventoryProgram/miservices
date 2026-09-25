@@ -23,7 +23,7 @@ export interface EditableDocument {
   body?: DocBlock[];
 }
 
-const fields = `_id, _rev, _updatedAt, title, "slug": slug.current, category, subcategory, description, order, numberHeadings, isPublished, publishedAt, body`;
+const fields = `_id, _rev, _updatedAt, title, "slug": slug.current, category, "subcategory": coalesce(section->slug.current, subcategory), description, order, numberHeadings, isPublished, publishedAt, body`;
 
 export const publishedId = (id: string) => id.replace(/^drafts\./, '');
 export const draftId = (id: string) => `drafts.${publishedId(id)}`;
@@ -53,14 +53,14 @@ export async function getDraftSummary(subcategory: string): Promise<{
   hidden: { _id: string; title: string; slug: string; description?: string; _updatedAt: string }[];
 }> {
   const drafts = await sanityWriteClient.fetch<{ _id: string; title: string; slug: string; description?: string; _updatedAt: string; hasPublished: boolean }[]>(
-    `*[_type == "memberDocument" && _id in path("drafts.**") && category == "documents" && subcategory == $subcategory] {
+    `*[_type == "memberDocument" && _id in path("drafts.**") && category == "documents" && coalesce(section->slug.current, subcategory) == $subcategory] {
       _id, title, "slug": slug.current, description, _updatedAt,
       "hasPublished": count(*[_id == string::split(^._id, "drafts.")[1]]) > 0
     }`,
     { subcategory }
   );
   const hidden = await sanityWriteClient.fetch<{ _id: string; title: string; slug: string; description?: string; _updatedAt: string }[]>(
-    `*[_type == "memberDocument" && !(_id in path("drafts.**")) && category == "documents" && subcategory == $subcategory && isPublished == false] | order(order asc) { _id, title, "slug": slug.current, description, _updatedAt }`,
+    `*[_type == "memberDocument" && !(_id in path("drafts.**")) && category == "documents" && coalesce(section->slug.current, subcategory) == $subcategory && isPublished == false] | order(order asc) { _id, title, "slug": slug.current, description, _updatedAt }`,
     { subcategory }
   );
   return {

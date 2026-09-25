@@ -51,7 +51,8 @@ export default function PricingDocumentsListing({
   ownedLists,
   sharedLists,
   sharedHeading,
-}: PricingDocumentsListingProps) {
+  text = {},
+}: PricingDocumentsListingProps & { text?: { heading?: string; intro?: string; introAdmin?: string; empty?: string } }) {
   const ownedPage = usePagedList(ownedLists || NO_LISTS, CARD_PAGE_SIZE);
   const sharedPage = usePagedList(sharedLists, CARD_PAGE_SIZE);
   return (
@@ -65,9 +66,9 @@ export default function PricingDocumentsListing({
             <FiArrowLeft className="w-4 h-4" />
             Back to Pricing &amp; Quoting
           </Link>
-          <h1 className="text-3xl md:text-4xl font-bold font-helvetica">Pricing Documents</h1>
+          <h1 className="text-3xl md:text-4xl font-bold font-helvetica">{text.heading}</h1>
           <p className="mt-1 text-blue-200">
-            Print-ready PDF leaflets and shareable links for your price lists
+            {text.intro}
           </p>
         </div>
       </div>
@@ -79,7 +80,7 @@ export default function PricingDocumentsListing({
             {ownedLists.length === 0 ? (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
                 <p className="text-gray-500 mb-4">
-                  You don&apos;t have any price lists yet. Create one in My Pricing.
+                  {text.empty}
                 </p>
                 <Link
                   href="/members/pricing"

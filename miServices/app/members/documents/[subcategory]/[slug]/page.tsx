@@ -2,16 +2,11 @@ import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { notFound, redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth-options';
-import { getMemberDocumentBySlug, type DocumentTargetingParams } from '@/lib/sanity';
+import { getDocumentSection, getMemberDocumentBySlug, type DocumentTargetingParams } from '@/lib/sanity';
 import { getEditableById } from '@/lib/documents/admin';
+import { getMembersText } from '@/lib/cms/members';
 import DocumentView from './DocumentView';
 
-const VALID_SUBCATEGORIES: Record<string, string> = {
-  general: 'General',
-  'operating-procedures': 'Operating Procedures',
-  personnel: 'Personnel',
-  training: 'Training',
-};
 
 interface DocumentPageProps {
   params: { subcategory: string; slug: string };
@@ -32,7 +27,8 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
     redirect('/members/login');
   }
 
-  if (!VALID_SUBCATEGORIES[params.subcategory]) {
+  const section = await getDocumentSection(params.subcategory);
+  if (!section) {
     notFound();
   }
 
@@ -58,10 +54,11 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
     <DocumentView
       document={doc}
       subcategory={params.subcategory}
-      subcategoryTitle={VALID_SUBCATEGORIES[params.subcategory]}
+      subcategoryTitle={section.title}
       viewer={{ name: session.user.name || session.user.email, email: session.user.email }}
       editHref={isAdmin ? `/members/documents/${params.subcategory}/${params.slug}/edit` : undefined}
       hasDraft={hasDraft}
+      notice={(await getMembersText()).documentNotice}
     />
   );
 }

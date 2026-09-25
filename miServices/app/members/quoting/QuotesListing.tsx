@@ -26,7 +26,9 @@ export default function QuotesListing({
   canCreate,
   franchises,
   guideCount,
+  text = {},
 }: {
+  text?: { heading?: string; intro?: string; introAdmin?: string; empty?: string };
   quotes: Quote[];
   paging: { page: number; totalPages: number; total: number; start: number; end: number };
   filters: Filters;
@@ -73,8 +75,8 @@ export default function QuotesListing({
           </Link>
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold font-helvetica">Quotes</h1>
-              <p className="mt-1 text-blue-200">{isAdmin ? 'Quotes across all franchises' : 'Bespoke quotes for your clients'}</p>
+              <h1 className="text-3xl md:text-4xl font-bold font-helvetica">{text.heading}</h1>
+              <p className="mt-1 text-blue-200">{isAdmin ? text.introAdmin : text.intro}</p>
             </div>
             {canCreate && (
               <Link
@@ -145,7 +147,7 @@ export default function QuotesListing({
         {paging.total === 0 && !hasFilters ? (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-10 text-center">
             <FiFileText className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 mb-4">No quotes yet.</p>
+            <p className="text-gray-500 mb-4">{text.empty}</p>
             {canCreate && (
               <Link
                 href="/members/quoting/new"

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { draftId, getEditableById, isValidDocId } from '@/lib/documents/admin';
 import { parseDocumentInput } from '@/lib/documents/validate';
-import { sanityWriteClient } from '@/lib/sanity';
+import { getDocumentSections, sanityWriteClient } from '@/lib/sanity';
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -20,7 +20,8 @@ export async function PUT(request: Request, { params }: Params) {
 
   try {
     const body = await request.json();
-    const { data, error } = parseDocumentInput(body);
+    const sections = await getDocumentSections();
+    const { data, error } = parseDocumentInput(body, sections.map((s) => s.slug));
     if (!data) return NextResponse.json({ error }, { status: 400 });
 
     const { published, draft } = await getEditableById(id);
@@ -34,7 +35,14 @@ export async function PUT(request: Request, { params }: Params) {
     const current = await sanityWriteClient.getDocument(base._id);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { _id, _rev, _createdAt, _updatedAt, ...rest } = current || {};
-    const saved = await sanityWriteClient.createOrReplace({ ...rest, ...data, _id: draftId(id), _type: 'memberDocument' });
+    const section = sections.find((s) => s.slug === data.subcategory)!;
+    const saved = await sanityWriteClient.createOrReplace({
+      ...rest,
+      ...data,
+      section: { _type: 'reference', _ref: section._id },
+      _id: draftId(id),
+      _type: 'memberDocument',
+    });
 
     return NextResponse.json({ success: true, draftRev: saved._rev, updatedAt: saved._updatedAt });
   } catch (error) {

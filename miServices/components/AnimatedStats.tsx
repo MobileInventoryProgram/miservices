@@ -4,19 +4,20 @@ import { useEffect, useRef, useState } from 'react';
 
 interface StatItem {
   value: number;
+  prefix: string;
   suffix: string;
   label: string;
 }
 
-const stats: StatItem[] = [
-  { value: 15, suffix: '+', label: 'Years of experience' },
-  { value: 700, suffix: '+', label: 'Letting agents served' },
-  { value: 150, suffix: 'k+', label: 'Reports created' },
-  { value: 150, suffix: 'k+', label: 'Properties surveyed' },
-  { value: 60, suffix: '+', label: 'Franchise locations' },
-];
+/** "150k+" → counts up to 150 and keeps "k+"; text without a number is shown as it is */
+function parseStat(value: string, label: string): StatItem {
+  const m = value.match(/^(\D*)(\d+(?:\.\d+)?)(.*)$/);
+  return m ? { prefix: m[1], value: Number(m[2]), suffix: m[3], label } : { prefix: value, value: 0, suffix: '', label };
+}
 
-export default function AnimatedStats() {
+/** The "our numbers" band; statistics come from the CMS */
+export default function AnimatedStats({ heading, items }: { heading?: string; items: { value: string; label: string }[] }) {
+  const stats = items.map((s) => parseStat(s.value, s.label));
   const [isVisible, setIsVisible] = useState(false);
   const [counts, setCounts] = useState(stats.map(() => 0));
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -76,6 +77,7 @@ export default function AnimatedStats() {
     return () => {
       timers.forEach(timer => clearInterval(timer));
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isVisible]);
 
   return (
@@ -103,9 +105,9 @@ export default function AnimatedStats() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 font-helvetica">
-          We take pride in our numbers
+          {heading}
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 md:gap-4">
+        <div className={`grid grid-cols-2 gap-8 md:gap-4 ${stats.length === 5 ? 'md:grid-cols-5' : stats.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-4'}`}>
           {stats.map((stat, index) => (
             <div 
               key={index} 
@@ -117,7 +119,8 @@ export default function AnimatedStats() {
               }}
             >
               <div className="text-5xl md:text-6xl font-bold mb-2 font-helvetica">
-                {counts[index]}
+                {stat.prefix}
+                {stat.value ? counts[index] : ''}
                 {stat.suffix}
               </div>
               <div className="text-sm md:text-base opacity-90">{stat.label}</div>

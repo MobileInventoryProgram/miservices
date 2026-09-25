@@ -5,7 +5,7 @@ import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
 import Button from '@/components/ui/Button';
 
-export default function PricingRequestForm() {
+export default function PricingRequestForm({ heading, text, note }: { heading?: string; text?: string; note?: string }) {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -129,11 +129,16 @@ export default function PricingRequestForm() {
   return (
     <div className="bg-white rounded-lg shadow-md p-8 md:p-12">
       <h2 className="text-3xl font-bold text-[#3f59a9] mb-4" style={{ fontFamily: 'Helvetica, sans-serif' }}>
-        Request Your Local Price List
+        {heading}
       </h2>
       <p className="text-lg text-gray-700 mb-8" style={{ fontFamily: 'Maitree, serif' }}>
-        Fill out the form and our team will send you the correct price list for your territory.<br />
-        <span className="text-sm text-gray-600">(We respond quickly — usually within the hour.)</span>
+        {text}
+        {note && (
+          <>
+            <br />
+            <span className="text-sm text-gray-600">{note}</span>
+          </>
+        )}
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-6">

@@ -4,11 +4,11 @@ import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { FiFileText, FiDollarSign, FiImage, FiUsers, FiLogOut, FiUser } from 'react-icons/fi';
 
+type Tile = { title?: string; description?: string };
+
 const CATEGORIES = [
   {
     slug: 'documents',
-    title: 'Documents',
-    description: 'General documents, operating procedures, personnel & training',
     icon: FiFileText,
     color: 'bg-blue-500',
     href: '/members/documents',
@@ -16,8 +16,6 @@ const CATEGORIES = [
   },
   {
     slug: 'pricing-quoting',
-    title: 'Pricing & Quoting',
-    description: 'Your pricing, pricing documents and quoting guides',
     icon: FiDollarSign,
     color: 'bg-green-500',
     href: '/members/pricing-quoting',
@@ -26,8 +24,6 @@ const CATEGORIES = [
   },
   {
     slug: 'assets',
-    title: 'Assets',
-    description: 'Brand assets and social post templates',
     icon: FiImage,
     color: 'bg-purple-500',
     href: '/members/assets',
@@ -35,8 +31,6 @@ const CATEGORIES = [
   },
   {
     slug: 'contacts',
-    title: 'Contacts',
-    description: 'Your clients and prospects, ready to quote',
     icon: FiUsers,
     color: 'bg-amber-500',
     href: '/members/contacts',
@@ -50,6 +44,9 @@ interface MembersDashboardProps {
   userTerritory?: string;
   hasFranchisee: boolean;
   categoryCounts: Record<string, number>;
+  /** Tile wording from the CMS (Franchise Login text) */
+  tiles?: Partial<Record<'documents' | 'pricing-quoting' | 'assets' | 'contacts', Tile>>;
+  heading?: string;
 }
 
 export default function MembersDashboard({
@@ -57,6 +54,8 @@ export default function MembersDashboard({
   userTerritory,
   hasFranchisee,
   categoryCounts,
+  tiles = {},
+  heading,
 }: MembersDashboardProps) {
   return (
     <div className="min-h-screen bg-gray-50">
@@ -64,7 +63,7 @@ export default function MembersDashboard({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold font-helvetica">
-              Franchise Login
+              {heading}
             </h1>
             <p className="mt-1 text-blue-200">
               Welcome back, {userName}
@@ -118,9 +117,9 @@ export default function MembersDashboard({
                   </div>
                   <div className="min-w-0">
                     <h3 className="text-xl font-semibold text-gray-900 group-hover:text-brand-dark-blue transition-colors font-helvetica">
-                      {cat.title}
+                      {tiles[cat.slug as keyof typeof tiles]?.title}
                     </h3>
-                    <p className="text-gray-500 mt-1">{cat.description}</p>
+                    <p className="text-gray-500 mt-1">{tiles[cat.slug as keyof typeof tiles]?.description}</p>
                     {cat.countSlugs.length > 0 && <p className="text-sm text-gray-400 mt-2">
                       {count} {'countNoun' in cat ? cat.countNoun : 'document'}{count === 1 ? '' : 's'}
                     </p>}

@@ -37,26 +37,23 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: 'subcategory',
-      title: 'Subcategory',
-      type: 'string',
-      options: {
-        list: [
-          { title: 'General', value: 'general' },
-          { title: 'Operating Procedures', value: 'operating-procedures' },
-          { title: 'Personnel', value: 'personnel' },
-          { title: 'Training', value: 'training' },
-        ],
-      },
+      name: 'section',
+      title: 'Section',
+      type: 'reference',
+      to: [{ type: 'documentSection' }],
       hidden: ({ parent }) => parent?.category !== 'documents',
       validation: (Rule) =>
         Rule.custom((value, context) => {
           const parent = context.parent as { category?: string };
-          if (parent?.category === 'documents' && !value) {
-            return 'Subcategory is required when category is Documents';
-          }
-          return true;
+          return parent?.category === 'documents' && !value ? 'Choose the section this document belongs in' : true;
         }),
+    }),
+    defineField({
+      // Previous way of storing the section; kept in step by Franchise Login and used if Section is empty
+      name: 'subcategory',
+      title: 'Section (legacy)',
+      type: 'string',
+      hidden: true,
     }),
     defineField({
       name: 'description',
@@ -230,7 +227,7 @@ export default defineType({
     select: {
       title: 'title',
       category: 'category',
-      subcategory: 'subcategory',
+      subcategory: 'section.title',
       isPublished: 'isPublished',
       targetFranchisees: 'targetFranchisees',
       targetMembers: 'targetMembers',
@@ -243,14 +240,8 @@ export default defineType({
         contacts: 'Contacts',
         quoting: 'Quoting',
       };
-      const subcategoryLabels: Record<string, string> = {
-        general: 'General',
-        'operating-procedures': 'Operating Procedures',
-        personnel: 'Personnel',
-        training: 'Training',
-      };
       const catLabel = categoryLabels[category] || category;
-      const subLabel = subcategory ? ` → ${subcategoryLabels[subcategory] || subcategory}` : '';
+      const subLabel = subcategory ? ` → ${subcategory}` : '';
       const isTargeted =
         (targetFranchisees && targetFranchisees.length > 0) ||
         (targetMembers && targetMembers.length > 0);

@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth-options';
+import { getMembersText } from '@/lib/cms/members';
 import { getAdminPriceLists, getFranchiseeForSession, getPriceListsForFranchisee } from '@/lib/sanity';
 import PricingDocumentsListing, { type LeafletListItem } from './PricingDocumentsListing';
 
@@ -31,6 +32,7 @@ export default async function PricingDocumentsPage() {
 
     return (
       <PricingDocumentsListing
+        text={(await getMembersText()).pricingDocuments}
         ownedLists={lists.filter((l) => l.isOwned).map(toItem)}
         sharedLists={lists.filter((l) => !l.isOwned).map(toItem)}
         sharedHeading="Shared Price Lists"
@@ -43,6 +45,7 @@ export default async function PricingDocumentsPage() {
     const templates = await getAdminPriceLists();
     return (
       <PricingDocumentsListing
+        text={(await getMembersText()).pricingDocuments}
         sharedLists={templates.map((list) => ({
           _id: list._id,
           title: list.title,

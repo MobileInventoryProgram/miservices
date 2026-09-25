@@ -8,7 +8,8 @@ import { FiCheckCircle, FiDownload, FiX } from 'react-icons/fi';
 interface GatedFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  documentType: 'Inventory' | 'Check-Out' | 'Property Visit';
+  /** Report type, e.g. "Inventory" (matches a sample report on the Sample Documents page in the CMS) */
+  documentType: string;
 }
 
 export default function GatedFormModal({ isOpen, onClose, documentType }: GatedFormModalProps) {
@@ -77,7 +78,7 @@ export default function GatedFormModal({ isOpen, onClose, documentType }: GatedF
 
       if (response.ok) {
         setIsSuccess(true);
-        setDocumentUrl(data.documentUrl || '#');
+        setDocumentUrl(data.documentUrl || '');
       } else {
         setErrors({ submit: data.error || 'Failed to submit form. Please try again.' });
       }
@@ -105,18 +106,7 @@ export default function GatedFormModal({ isOpen, onClose, documentType }: GatedF
     onClose();
   };
 
-  const getDocumentFileName = () => {
-    switch (documentType) {
-      case 'Inventory':
-        return 'miServices_Inventory_Report_Sample.pdf';
-      case 'Check-Out':
-        return 'miServices_CheckOut_Report_Sample.pdf';
-      case 'Property Visit':
-        return 'miServices_Property_Visit_Sample.pdf';
-      default:
-        return 'miServices_Sample_Document.pdf';
-    }
-  };
+  const getDocumentFileName = () => `miServices_${documentType.replace(/[^A-Za-z0-9]+/g, '_')}_Sample.pdf`;
 
   if (!isOpen) return null;
 
@@ -140,23 +130,27 @@ export default function GatedFormModal({ isOpen, onClose, documentType }: GatedF
               </div>
             </div>
             <h3 className="text-3xl font-bold text-brand-dark-blue mb-4 font-helvetica">
-              Your Sample Document is Now Available
+              {documentUrl ? 'Your Sample Document is Now Available' : 'Thank You!'}
             </h3>
             <p className="text-gray-700 mb-8 text-lg">
-              Thank you for your interest! Click the button below to view your {documentType} report sample.
+              {documentUrl
+                ? `Thank you for your interest! Click the button below to view your ${documentType} report sample.`
+                : `Thank you for your interest! Our team will send you the ${documentType} report sample shortly.`}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              {documentUrl && (
               <a
                 href={documentUrl}
                 download={getDocumentFileName()}
-                className="inline-flex items-center justify-center gap-2 bg-brand-light-blue text-white px-8 py-4 rounded-lg font-helvetica font-semibold hover:bg-opacity-90 transition-all shadow-lg"
+                className="inline-flex items-center justify-center gap-2 bg-brand-light-blue text-white border-2 border-transparent px-8 py-4 rounded-lg font-helvetica font-semibold hover:bg-opacity-90 transition-all shadow-lg"
               >
                 <FiDownload className="w-5 h-5" />
                 Download Sample Document
               </a>
+              )}
               <button
                 onClick={handleClose}
-                className="inline-block bg-gray-200 text-gray-800 px-8 py-4 rounded-lg font-helvetica font-semibold hover:bg-gray-300 transition-all"
+                className="inline-block bg-gray-200 text-gray-800 border-2 border-transparent px-8 py-4 rounded-lg font-helvetica font-semibold hover:bg-gray-300 transition-all"
               >
                 Close
               </button>

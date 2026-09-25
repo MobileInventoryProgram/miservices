@@ -1,6 +1,7 @@
 import 'server-only';
 import { createClient } from '@sanity/client';
 import { DEFAULT_FLYER_SETTINGS, type FlyerSettings } from '@/lib/flyer/data';
+import type { CmsCta, CmsFaq, CmsFeature, CmsSeo, CmsStep } from '@/lib/cms/types';
 
 export const sanityClient = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'a4q9j3x1',
@@ -19,6 +20,7 @@ export { urlFor } from '@/lib/sanity-image';
 // Types
 export interface SanityPost {
   _id: string;
+  seo?: CmsSeo;
   title: string;
   slug: string;
   body: any[]; // Portable Text
@@ -51,6 +53,7 @@ export interface SanityPost {
 
 export interface SanityPage {
   _id: string;
+  seo?: CmsSeo;
   title: string;
   slug: string;
   body: any[]; // Portable Text
@@ -75,27 +78,32 @@ export interface SanityService {
   title: string;
   slug: string;
   heroDescription: string;
+  order?: number;
   bodyHeading?: string;
   bodyIntro?: string;
   bodySubheading?: string;
   bodyText?: any[]; // Portable Text
-  bodyImage?: {
-    asset: {
-      _ref: string;
-      url?: string;
-    };
-    alt?: string;
-  };
-  seo?: {
-    metaTitle?: string;
-    metaDescription?: string;
-    keywords?: string;
-  };
+  bodyImage?: { asset: { _ref: string; url?: string }; alt?: string };
+  featuresHeading?: string;
+  features?: CmsFeature[];
+  processHeading?: string;
+  processSteps?: CmsStep[];
+  benefitsHeading?: string;
+  benefits?: CmsFeature[];
+  faqHeading?: string;
+  faqs?: CmsFaq[];
+  whoUsesHeading?: string;
+  whoUsesThis?: CmsFeature[];
+  relatedHeading?: string;
+  relatedServices?: CmsFeature[];
+  cta?: CmsCta;
+  seo?: CmsSeo;
 }
 
 // Queries
 const postFields = `
   _id,
+  seo,
   title,
   "slug": slug.current,
   body,
@@ -128,6 +136,7 @@ const postFields = `
 
 const pageFields = `
   _id,
+  seo,
   title,
   "slug": slug.current,
   body,
@@ -547,25 +556,22 @@ const serviceFields = `
   title,
   "slug": slug.current,
   heroDescription,
+  order,
   bodyHeading,
   bodyIntro,
   bodySubheading,
   bodyText,
-  bodyImage {
-    asset->{
-      _ref,
-      url
-    },
-    alt
-  },
-  seo
+  bodyImage { asset, alt, hotspot, crop },
+  featuresHeading, features, processHeading, processSteps, benefitsHeading, benefits,
+  faqHeading, faqs, whoUsesHeading, whoUsesThis, relatedHeading, relatedServices,
+  cta, seo
 `;
 
 // Service functions
 export async function getServices(): Promise<SanityService[]> {
   try {
     const services = await sanityClient.fetch(
-      `*[_type == "service"] | order(title asc) {
+      `*[_type == "service"] | order(coalesce(order, 9999) asc, title asc) {
         ${serviceFields}
       }`
     );
@@ -644,7 +650,7 @@ export interface SanityMemberDocument {
   title: string;
   slug: string;
   category: 'documents' | 'pricing' | 'assets' | 'contacts' | 'quoting';
-  subcategory?: 'general' | 'operating-procedures' | 'personnel' | 'training';
+  subcategory?: string;
   description?: string;
   file?: {
     asset: {
@@ -697,7 +703,7 @@ const memberDocFields = `
   title,
   "slug": slug.current,
   category,
-  subcategory,
+  "subcategory": coalesce(section->slug.current, subcategory),
   description,
   file {
     asset->{
@@ -802,7 +808,7 @@ export async function getMemberDocumentsByCategoryAndSubcategory(
   try {
     const { filter, queryParams } = buildTargetingFilter(params);
     const docs = await sanityLiveClient.fetch(
-      `*[_type == "memberDocument" && isPublished == true && category == $category && subcategory == $subcategory${filter}] | order(order asc, publishedAt desc) {
+      `*[_type == "memberDocument" && isPublished == true && category == $category && coalesce(section->slug.current, subcategory) == $subcategory${filter}] | order(order asc, publishedAt desc) {
         ${memberDocFields}
       }`,
       { category, subcategory, ...queryParams }
@@ -820,7 +826,7 @@ export async function getDocumentsSubcategoryCounts(
   try {
     const { filter, queryParams } = buildTargetingFilter(params);
     const docs = await sanityLiveClient.fetch(
-      `*[_type == "memberDocument" && isPublished == true && category == "documents"${filter}] { subcategory }`,
+      `*[_type == "memberDocument" && isPublished == true && category == "documents"${filter}] { "subcategory": coalesce(section->slug.current, subcategory) }`,
       queryParams
     );
     const counts: Record<string, number> = {};
@@ -1182,6 +1188,31 @@ export async function getDefaultStandardPriceList(): Promise<SanityPriceList | n
     console.error('Error fetching default standard price list:', error);
     return null;
   }
+}
+
+/** Documents sections (General, Operating Procedures…), from the CMS */
+export interface DocumentSection {
+  _id: string;
+  slug: string;
+  title: string;
+  description?: string;
+  icon?: string;
+  colour?: string;
+}
+
+export async function getDocumentSections(): Promise<DocumentSection[]> {
+  try {
+    return await sanityLiveClient.fetch(
+      `*[_type == "documentSection" && defined(slug.current)] | order(coalesce(order, 999) asc, title asc) { _id, "slug": slug.current, title, description, icon, colour }`
+    );
+  } catch (error) {
+    console.error('Error fetching document sections:', error);
+    return [];
+  }
+}
+
+export async function getDocumentSection(slug: string): Promise<DocumentSection | null> {
+  return (await getDocumentSections()).find((section) => section.slug === slug) || null;
 }
 
 // ─── Admin Overview ─────────────────────────────────────────────

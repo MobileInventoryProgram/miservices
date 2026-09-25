@@ -1,102 +1,29 @@
 import { Metadata } from 'next';
 import Image from 'next/image';
-import { FiUsers, FiBriefcase, FiUserCheck, FiFileText } from 'react-icons/fi';
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
-
-export const metadata: Metadata = {
-  title: 'Our Team | miServices',
-  description: 'Meet the dedicated team behind miServices - experienced professionals committed to delivering exceptional property inspection services across the UK.',
-  keywords: 'miServices team, property inspection experts, inventory specialists, UK property services team',
-  openGraph: {
-    title: 'Our Team | miServices',
-    description: 'Meet the dedicated team behind miServices - experienced professionals committed to delivering exceptional property inspection services.',
-    url: `${BASE_URL}/our-team`,
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Our Team | miServices',
-    description: 'Meet the dedicated team behind miServices.',
-  },
-  alternates: {
-    canonical: `${BASE_URL}/our-team`,
-  },
-};
+import { CmsIcon } from '@/lib/cms/icons';
+import { buildMetadata, getPageDoc, imageUrl } from '@/lib/cms/site';
+import type { CmsHero, CmsImage, CmsLink, CmsSeo } from '@/lib/cms/types';
 
 interface TeamMember {
+  _key?: string;
   name: string;
   role: string;
   image?: string;
   initials?: string;
 }
 
-const leadershipTeam: TeamMember[] = [
-  {
-    name: 'Stuart McCormick',
-    role: 'CEO',
-    initials: 'SM',
-  },
-  {
-    name: 'Marta',
-    role: 'Franchise Director',
-    image: '/team_photos/marta_1763171110167.avif',
-  },
-  {
-    name: 'Alex McCormick',
-    role: 'Operations Director',
-    initials: 'AM',
-  },
-];
+interface OurTeamPageDoc {
+  hero?: CmsHero;
+  intro?: { heading?: string; text?: string };
+  groups?: { _key?: string; title?: string; icon?: string; members?: (Omit<TeamMember, 'image'> & { photo?: CmsImage })[] }[];
+  join?: { heading?: string; text?: string; button?: CmsLink };
+  seo?: CmsSeo;
+}
 
-const officeManagers: TeamMember[] = [
-  {
-    name: 'Lorrie',
-    role: 'Office Manager - North Office',
-    image: '/team_photos/lorrie_1763171117499.avif',
-  },
-  {
-    name: 'Fred Davies',
-    role: 'Office Manager - South Office',
-    image: '/team_photos/Fred Davies_1763171081608.jpg',
-  },
-];
-
-const paymentsAndCollections: TeamMember[] = [
-  {
-    name: 'Nuala',
-    role: 'Payments and Collections',
-    image: '/team_photos/nuala_1763171099341.avif',
-  },
-  {
-    name: 'Victoria Pasquino',
-    role: 'Payments and Collections',
-    image: '/team_photos/Victoria Pasquino_1763171081607.jpg',
-  },
-];
-
-const adminAndBookings: TeamMember[] = [
-  {
-    name: 'Nic Davies',
-    role: 'Senior Administrator',
-    image: '/team_photos/Nic Davies_1763171081608.jpg',
-  },
-  {
-    name: 'Kim Cowman',
-    role: 'Senior Administrator',
-    image: '/team_photos/Kim Cowman_1763171081607.jpg',
-  },
-  {
-    name: 'Darren Mackenney',
-    role: 'Administrator',
-    image: '/team_photos/Darren Mackenney_1763171081607.jpg',
-  },
-  {
-    name: 'Kerry Taylor',
-    role: 'Administrator',
-    image: '/team_photos/Kerry Taylor_1763171081607.jpg',
-  },
-];
+export async function generateMetadata(): Promise<Metadata> {
+  const doc = await getPageDoc<OurTeamPageDoc>('ourTeamPage');
+  return buildMetadata(doc?.seo, { title: doc?.hero?.heading, description: doc?.hero?.subheading, path: '/our-team' });
+}
 
 function TeamMemberCard({ member }: { member: TeamMember }) {
   return (
@@ -105,6 +32,7 @@ function TeamMemberCard({ member }: { member: TeamMember }) {
         {member.image ? (
           <Image
             src={member.image}
+            sizes="(max-width: 768px) 100vw, 33vw"
             alt={member.name}
             fill
             className="object-cover opacity-95 group-hover:opacity-100 transition-opacity"
@@ -130,31 +58,24 @@ function TeamMemberCard({ member }: { member: TeamMember }) {
   );
 }
 
-function TeamSection({ 
-  title, 
-  icon: Icon, 
-  members 
-}: { 
-  title: string; 
-  icon: React.ElementType; 
-  members: TeamMember[] 
-}) {
+function TeamSection({ title, icon, members }: { title?: string; icon?: string; members: TeamMember[] }) {
   return (
     <section className="mb-16">
       <div className="flex items-center mb-8">
-        <Icon className="text-brand-light-blue mr-3" size={32} />
+        <CmsIcon name={icon} className="text-brand-light-blue mr-3" size={32} />
         <h2 className="text-3xl font-bold text-brand-dark-blue font-helvetica">{title}</h2>
       </div>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {members.map((member) => (
-          <TeamMemberCard key={member.name} member={member} />
+          <TeamMemberCard key={member._key || member.name} member={member} />
         ))}
       </div>
     </section>
   );
 }
 
-export default function OurTeamPage() {
+export default async function OurTeamPage() {
+  const doc = await getPageDoc<OurTeamPageDoc>('ourTeamPage');
   return (
     <div className="min-h-screen bg-gray-50">
       <section className="relative bg-gradient-to-br from-brand-dark-blue to-brand-light-blue text-white py-20">
@@ -165,9 +86,9 @@ export default function OurTeamPage() {
           </svg>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 font-helvetica">Meet Our Team</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 font-helvetica">{doc?.hero?.heading}</h1>
           <p className="text-xl md:text-2xl opacity-95 max-w-3xl">
-            Dedicated professionals committed to delivering exceptional property inspection services across the UK
+            {doc?.hero?.subheading}
           </p>
         </div>
       </section>
@@ -175,50 +96,33 @@ export default function OurTeamPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-16">
           <p className="text-xl font-semibold text-brand-dark-blue mb-4 font-helvetica">
-            We operate from two office locations, but we are one united team
+            {doc?.intro?.heading}
           </p>
-          <p className="text-lg text-gray-700 max-w-3xl mx-auto">
-            Our experienced team combines industry expertise with a commitment to excellence, ensuring every property inspection meets the highest standards of quality and professionalism. With offices in both the North and South, we provide comprehensive coverage while maintaining seamless collaboration across all departments.
-          </p>
+          <p className="text-lg text-gray-700 max-w-3xl mx-auto">{doc?.intro?.text}</p>
         </div>
 
-        <TeamSection 
-          title="Leadership Team" 
-          icon={FiBriefcase} 
-          members={leadershipTeam} 
-        />
-
-        <TeamSection 
-          title="Office Management" 
-          icon={FiUsers} 
-          members={officeManagers} 
-        />
-
-        <TeamSection 
-          title="Payments and Collections" 
-          icon={FiUserCheck} 
-          members={paymentsAndCollections} 
-        />
-
-        <TeamSection 
-          title="Admin and Bookings" 
-          icon={FiFileText} 
-          members={adminAndBookings} 
-        />
+        {(doc?.groups || []).map((group, i) => (
+          <TeamSection
+            key={group._key || i}
+            title={group.title}
+            icon={group.icon}
+            members={(group.members || []).map((m) => ({ ...m, image: imageUrl(m.photo, 800) }))}
+          />
+        ))}
 
         <div className="mt-16 bg-white rounded-lg shadow-md p-8 text-center">
           <h2 className="text-2xl font-bold text-brand-dark-blue mb-4 font-helvetica">
-            Join Our Team
+            {doc?.join?.heading}
           </h2>
-          <p className="text-gray-700 mb-6 max-w-2xl mx-auto">
-            We're always looking for talented individuals to join our growing team. If you're passionate about property services and customer excellence, we'd love to hear from you.
-          </p>
-          <a
-            href="/careers"
-            className="inline-block bg-brand-light-blue text-white px-8 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all"
-          >
-            View Career Opportunities
-          </a>
+          <p className="text-gray-700 mb-6 max-w-2xl mx-auto">{doc?.join?.text}</p>
+          {doc?.join?.button && (
+            <a
+              href={doc.join.button.href}
+              className="inline-block bg-brand-light-blue text-white border-2 border-transparent px-8 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all"
+            >
+              {doc.join.button.label}
+            </a>
+          )}
         </div>
       </div>
     </div>

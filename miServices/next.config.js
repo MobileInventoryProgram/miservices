@@ -91,6 +91,11 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: '/blog',
+        destination: '/news',
+        permanent: true,
+      },
+      {
         source: '/members/operations',
         destination: '/members/documents',
         permanent: true,

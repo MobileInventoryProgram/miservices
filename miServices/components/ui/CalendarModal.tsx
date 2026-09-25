@@ -2,14 +2,17 @@
 
 import React, { useState } from 'react';
 import { FiX } from 'react-icons/fi';
+import { useSiteSettings } from '@/components/providers/SiteSettingsProvider';
 
 interface CalendarModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+/** Discovery call booking; the calendar link and heading are in Site Settings */
 export default function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
   const [isLoading, setIsLoading] = useState(true);
+  const { discoveryCall } = useSiteSettings();
 
   if (!isOpen) return null;
 
@@ -27,7 +30,7 @@ export default function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
       <div className="relative bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b">
           <h3 className="text-2xl font-bold text-brand-dark-blue font-helvetica">
-            Book Your Discovery Call
+            {discoveryCall?.title}
           </h3>
           <button
             onClick={handleClose}
@@ -54,7 +57,7 @@ export default function CalendarModal({ isOpen, onClose }: CalendarModalProps) {
           )}
           
           <iframe
-            src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ2HuLzA6AfyePjTnxsKE8YsTBoSal6b24iA3HCqTOQ6aeq1hAXvhCseREj64u6Q6w_9KFNf8wzz?gv=true"
+            src={discoveryCall?.calendarUrl}
             style={{ border: 0 }}
             width="100%"
             height="600"

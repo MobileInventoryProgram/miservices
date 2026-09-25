@@ -6,10 +6,32 @@ import service from './service';
 import franchisee from './franchisee';
 import member from './member';
 import memberDocument from './memberDocument';
+import documentSection from './documentSection';
+import membersArea from './membersArea';
 import priceList from './priceList';
 import flyerSettings from './flyerSettings';
 import contact from './contact';
 import quote from './quote';
 import quoteTemplate from './quoteTemplate';
+import { objectTypes } from './objects';
+import { siteTypes } from './site';
 
-export const schemaTypes = [post, page, author, tag, service, franchisee, member, memberDocument, priceList, flyerSettings, contact, quote, quoteTemplate];
+export const schemaTypes = [
+  ...objectTypes,
+  ...siteTypes,
+  post,
+  page,
+  author,
+  tag,
+  service,
+  franchisee,
+  member,
+  memberDocument,
+  documentSection,
+  membersArea,
+  priceList,
+  flyerSettings,
+  contact,
+  quote,
+  quoteTemplate,
+];

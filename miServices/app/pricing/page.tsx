@@ -1,29 +1,15 @@
-'use client';
+import { Metadata } from 'next';
+import PricingContent, { type PricingPageDoc } from './PricingContent';
+import { buildMetadata, getPageDoc } from '@/lib/cms/site';
+import type { CmsSeo } from '@/lib/cms/types';
 
-import React, { useState } from 'react';
-import PricingIntro from '@/components/pricing/PricingIntro';
-import PricingRequestForm from '@/components/forms/PricingRequestForm';
-import CalendarModal from '@/components/ui/CalendarModal';
-import NetworkCTA from '@/components/pricing/NetworkCTA';
+type Doc = PricingPageDoc & { seo?: CmsSeo };
 
-export default function PricingPage() {
-  const [showCalendar, setShowCalendar] = useState(false);
+export async function generateMetadata(): Promise<Metadata> {
+  const doc = await getPageDoc<Doc>('pricingPage');
+  return buildMetadata(doc?.seo, { title: doc?.hero?.heading, description: doc?.hero?.subheading, path: '/pricing' });
+}
 
-  return (
-    <main>
-      <PricingIntro onBookCallClick={() => setShowCalendar(true)} />
-
-      <section id="pricing-form" className="py-16 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <PricingRequestForm />
-        </div>
-      </section>
-
-      <NetworkCTA />
-
-      {showCalendar && (
-        <CalendarModal isOpen={true} onClose={() => setShowCalendar(false)} />
-      )}
-    </main>
-  );
+export default async function PricingPage() {
+  return <PricingContent doc={await getPageDoc<Doc>('pricingPage')} />;
 }

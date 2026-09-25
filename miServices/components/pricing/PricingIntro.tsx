@@ -1,12 +1,23 @@
 'use client';
 
 import React from 'react';
+import { RichText } from '@/components/cms/Sections';
+
+import type { CmsHero } from '@/lib/cms/types';
+
+export interface PricingIntroContent {
+  hero?: CmsHero;
+  callButtonLabel?: string;
+  why?: { heading?: string; text?: string; factorsHeading?: string; factors?: string[]; closing?: unknown[] };
+}
 
 interface PricingIntroProps {
   onBookCallClick: () => void;
+  content: PricingIntroContent;
 }
 
-export default function PricingIntro({ onBookCallClick }: PricingIntroProps) {
+export default function PricingIntro({ onBookCallClick, content }: PricingIntroProps) {
+  const { hero, why } = content;
   const scrollToForm = () => {
     const formSection = document.getElementById('pricing-form');
     if (formSection) {
@@ -26,26 +37,26 @@ export default function PricingIntro({ onBookCallClick }: PricingIntroProps) {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-6" style={{ fontFamily: 'Helvetica, sans-serif' }}>
-              Request Our Pricing
+              {hero?.heading}
             </h1>
             <p className="text-xl md:text-2xl max-w-3xl mx-auto mb-8" style={{ fontFamily: 'Maitree, serif' }}>
-              Pricing varies by region, but our service quality doesn't. Request the correct price list for your area.
+              {hero?.subheading}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <button
                 onClick={scrollToForm}
-                className="bg-white text-[#3f59a9] px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all shadow-lg"
+                className="bg-white text-[#3f59a9] border-2 border-transparent px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-all shadow-lg"
                 style={{ fontFamily: 'Helvetica, sans-serif' }}
               >
-                Request Pricing
+                {hero?.primaryButton?.label}
               </button>
               <button
                 onClick={onBookCallClick}
                 className="bg-transparent border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-[#3f59a9] transition-all"
                 style={{ fontFamily: 'Helvetica, sans-serif' }}
               >
-                Book A Call
+                {content.callButtonLabel}
               </button>
             </div>
           </div>
@@ -56,48 +67,30 @@ export default function PricingIntro({ onBookCallClick }: PricingIntroProps) {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-lg shadow-md p-8 md:p-12">
             <h2 className="text-3xl font-bold text-[#3f59a9] mb-6" style={{ fontFamily: 'Helvetica, sans-serif' }}>
-              Why We Don't Display Fixed Prices Online
+              {why?.heading}
             </h2>
             
             <p className="text-lg text-gray-700 mb-6" style={{ fontFamily: 'Maitree, serif' }}>
-              miServices operates in over 65 territories, each serving different towns, cities and postcode groups.
+              {why?.text}
             </p>
 
             <div className="mb-6">
               <p className="text-lg font-semibold text-gray-800 mb-3" style={{ fontFamily: 'Helvetica, sans-serif' }}>
-                Pricing varies due to:
+                {why?.factorsHeading}
               </p>
               <ul className="grid grid-cols-1 md:grid-cols-2 gap-3" style={{ fontFamily: 'Maitree, serif' }}>
-                <li className="flex items-center text-gray-700">
-                  <span className="w-2 h-2 bg-[#157ec3] rounded-full mr-3"></span>
-                  Regional operating costs
-                </li>
-                <li className="flex items-center text-gray-700">
-                  <span className="w-2 h-2 bg-[#157ec3] rounded-full mr-3"></span>
-                  Travel distances
-                </li>
-                <li className="flex items-center text-gray-700">
-                  <span className="w-2 h-2 bg-[#157ec3] rounded-full mr-3"></span>
-                  Local demand
-                </li>
-                <li className="flex items-center text-gray-700">
-                  <span className="w-2 h-2 bg-[#157ec3] rounded-full mr-3"></span>
-                  Staffing levels
-                </li>
-                <li className="flex items-center text-gray-700">
-                  <span className="w-2 h-2 bg-[#157ec3] rounded-full mr-3"></span>
-                  Territory size
-                </li>
+                {(why?.factors || []).map((factor, i) => (
+                  <li key={i} className="flex items-center text-gray-700">
+                    <span className="w-2 h-2 bg-[#157ec3] rounded-full mr-3"></span>
+                    {factor}
+                  </li>
+                ))}
               </ul>
             </div>
 
-            <p className="text-lg text-gray-700 mb-4" style={{ fontFamily: 'Maitree, serif' }}>
-              Every franchise follows the same high standard of reporting — but local pricing ensures fairness, accuracy and competitiveness.
-            </p>
-
-            <p className="text-lg text-gray-700" style={{ fontFamily: 'Maitree, serif' }}>
-              When you request pricing, we will match you with your nearest office and send the price list directly to your inbox.
-            </p>
+            <div style={{ fontFamily: 'Maitree, serif' }} className="[&>p:last-child]:mb-0">
+              <RichText value={why?.closing} paragraphClass="text-lg text-gray-700 mb-4" />
+            </div>
           </div>
         </div>
       </section>

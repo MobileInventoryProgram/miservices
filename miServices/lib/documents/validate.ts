@@ -1,11 +1,5 @@
 import { DOC_DECORATORS, MAX_LIST_LEVEL, newKey, type DocBlock } from '@/lib/documents/standard';
 
-export const DOC_SUBCATEGORIES: Record<string, string> = {
-  general: 'General',
-  'operating-procedures': 'Operating Procedures',
-  personnel: 'Personnel',
-  training: 'Training',
-};
 
 export interface DocumentInput {
   title: string;
@@ -110,13 +104,14 @@ export function sanitiseBody(input: unknown): DocBlock[] {
   return out;
 }
 
-export function parseDocumentInput(body: unknown): { data?: DocumentInput; error?: string } {
+/** `sections`: the section web addresses that exist (from the CMS) */
+export function parseDocumentInput(body: unknown, sections: string[]): { data?: DocumentInput; error?: string } {
   if (!body || typeof body !== 'object') return { error: 'Invalid request' };
   const input = body as Record<string, unknown>;
   const title = str(input.title, 160);
   if (!title) return { error: 'Please give the document a title.' };
   const subcategory = String(input.subcategory || '');
-  if (!DOC_SUBCATEGORIES[subcategory]) return { error: 'Choose which section the document belongs in.' };
+  if (!sections.includes(subcategory)) return { error: 'Choose which section the document belongs in.' };
   const order = Number(input.order);
   return {
     data: {

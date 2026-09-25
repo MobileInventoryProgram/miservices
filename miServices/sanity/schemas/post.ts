@@ -124,6 +124,10 @@ export default {
       title: 'Reading Time (minutes)',
       type: 'number',
       description: 'Estimated reading time in minutes',
+    },    {
+      name: 'seo',
+      title: 'SEO',
+      type: 'seo',
     },
   ],
   preview: {

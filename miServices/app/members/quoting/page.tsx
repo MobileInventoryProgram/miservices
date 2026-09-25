@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth-options';
+import { getMembersText } from '@/lib/cms/members';
 import { getContactForScope } from '@/lib/crm/contacts';
 import { contactName } from '@/lib/crm/types';
 import { getMemberScope } from '@/lib/members-access';
@@ -58,6 +59,7 @@ export default async function QuotesPage({ searchParams }: { searchParams: Promi
 
   return (
     <QuotesListing
+      text={(await getMembersText()).quotes}
       quotes={items}
       paging={pageInfo(total, page, TABLE_PAGE_SIZE)}
       filters={filters}

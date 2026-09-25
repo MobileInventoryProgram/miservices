@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { FiArrowLeft } from 'react-icons/fi';
 import { authOptions } from '@/lib/auth-options';
+import { getMembersText } from '@/lib/cms/members';
 import SocialPostCreator from './SocialPostCreator';
 
 export const metadata: Metadata = {
@@ -25,7 +26,7 @@ export default async function SocialPostsPage() {
             Back to Assets
           </Link>
           <h1 className="text-3xl md:text-4xl font-bold font-helvetica">Social Post Creator</h1>
-          <p className="mt-1 text-blue-200">Pick a template, add your words and a photo, and download an on-brand post.</p>
+          <p className="mt-1 text-blue-200">{(await getMembersText()).assets?.socialIntro}</p>
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

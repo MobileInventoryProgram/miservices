@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth-options';
+import { getMembersText } from '@/lib/cms/members';
 import { getContactFranchiseOptions, getContactsPage } from '@/lib/crm/contacts';
 import { getMemberScope } from '@/lib/members-access';
 import { TABLE_PAGE_SIZE, pageInfo, parsePage } from '@/lib/pagination';
@@ -55,6 +56,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Pro
 
   return (
     <ContactsListing
+      text={(await getMembersText()).contacts}
       contacts={items}
       paging={pageInfo(total, page, TABLE_PAGE_SIZE)}
       filters={filters}

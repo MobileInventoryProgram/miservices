@@ -2,12 +2,27 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getPosts, urlFor, estimateReadingTime } from '@/lib/sanity';
+import { buildMetadata, getPageDoc } from '@/lib/cms/site';
+import type { CmsCta, CmsHero, CmsSeo } from '@/lib/cms/types';
+import type { Metadata } from 'next';
+
+export interface NewsPageDoc {
+  hero?: CmsHero;
+  emptyText?: string;
+  postCta?: { heading?: string; text?: string; button?: { label: string; href: string } };
+  seo?: CmsSeo;
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const doc = await getPageDoc<NewsPageDoc>('newsPage');
+  return buildMetadata(doc?.seo, { title: doc?.hero?.heading, description: doc?.hero?.subheading, path: '/news' });
+}
 import { FiCalendar, FiClock, FiArrowRight } from 'react-icons/fi';
 
 export const revalidate = 60;
 
 export default async function NewsPage() {
-  const posts = await getPosts();
+  const [posts, doc] = await Promise.all([getPosts(), getPageDoc<NewsPageDoc>('newsPage')]);
 
   return (
     <>
@@ -23,10 +38,10 @@ export default async function NewsPage() {
 
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 font-helvetica">
-            News & Updates
+            {doc?.hero?.heading}
           </h1>
           <p className="text-xl text-white opacity-90 max-w-3xl mx-auto">
-            Stay up to date with the latest insights, franchise success stories, and industry developments from miServices.
+            {doc?.hero?.subheading}
           </p>
         </div>
       </section>
@@ -35,7 +50,7 @@ export default async function NewsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {posts.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-xl text-gray-600">No posts available yet. Check back soon!</p>
+              <p className="text-xl text-gray-600">{doc?.emptyText}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

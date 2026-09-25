@@ -1,29 +1,16 @@
 import React from 'react';
 import { Metadata } from 'next';
+import { buildMetadata, getPageDoc } from '@/lib/cms/site';
+import type { CmsHero, CmsSeo } from '@/lib/cms/types';
 import BookingForm from '@/components/forms/BookingForm';
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
+export async function generateMetadata(): Promise<Metadata> {
+  const doc = await getPageDoc<{ hero?: CmsHero; seo?: CmsSeo }>('bookingPage');
+  return buildMetadata(doc?.seo, { title: doc?.hero?.heading, description: doc?.hero?.subheading, path: '/booking' });
+}
 
-export const metadata: Metadata = {
-  title: 'Book a Property Report | miServices',
-  description: 'Book an inventory, check-in, check-out, mid-term inspection or block management visit with miServices. Fast scheduling and nationwide coverage.',
-  openGraph: {
-    title: 'Book a Property Report | miServices',
-    description: 'Book an inventory, check-in, check-out, mid-term inspection or block management visit with miServices.',
-    url: `${BASE_URL}/booking`,
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Book a Property Report | miServices',
-    description: 'Book a property inspection with miServices. Fast scheduling and nationwide coverage.',
-  },
-  alternates: {
-    canonical: `${BASE_URL}/booking`,
-  },
-};
-
-export default function BookingPage() {
+export default async function BookingPage() {
+  const doc = await getPageDoc<{ hero?: CmsHero }>('bookingPage');
   return (
     <>
       <section className="relative bg-gradient-to-br from-brand-dark-blue to-brand-light-blue py-20 overflow-hidden">
@@ -38,10 +25,10 @@ export default function BookingPage() {
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 font-helvetica">
-            Book a Property Report
+            {doc?.hero?.heading}
           </h1>
           <p className="text-xl text-white opacity-90 max-w-3xl mx-auto">
-            Complete the form below to book your inventory, inspection or block management visit.
+            {doc?.hero?.subheading}
           </p>
         </div>
       </section>

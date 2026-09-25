@@ -4,18 +4,19 @@ import { useEffect, useRef, useState } from 'react';
 
 interface StatItem {
   value: number;
+  prefix: string;
   suffix: string;
   label: string;
 }
 
-const stats: StatItem[] = [
-  { value: 100, suffix: '+', label: 'Professional Inventory Clerks' },
-  { value: 30, suffix: '+', label: 'Head Office Staff' },
-  { value: 2, suffix: '', label: 'Central Hubs' },
-  { value: 65, suffix: '+', label: 'Territories' },
-];
+/** "30+" → counts up to 30 and keeps "+"; text without a number is shown as it is */
+function parseStat(value: string, label: string): StatItem {
+  const m = value.match(/^(\D*)(\d+(?:\.\d+)?)(.*)$/);
+  return m ? { prefix: m[1], value: Number(m[2]), suffix: m[3], label } : { prefix: value, value: 0, suffix: '', label };
+}
 
-export default function AboutStats() {
+export default function AboutStats({ heading, text, footnote, items }: { heading?: string; text?: string; footnote?: string; items: { value: string; label: string }[] }) {
+  const stats = items.map((s) => parseStat(s.value, s.label));
   const [isVisible, setIsVisible] = useState(false);
   const [counts, setCounts] = useState(stats.map(() => 0));
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -75,6 +76,7 @@ export default function AboutStats() {
     return () => {
       timers.forEach(timer => clearInterval(timer));
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isVisible]);
 
   return (
@@ -82,10 +84,10 @@ export default function AboutStats() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-brand-dark-blue mb-4 font-helvetica">
-            A National Team With Local Expertise
+            {heading}
           </h2>
           <p className="text-xl text-gray-700 max-w-3xl mx-auto mb-8">
-            What makes miServices different is the people behind it.
+            {text}
           </p>
         </div>
 
@@ -101,7 +103,8 @@ export default function AboutStats() {
               }}
             >
               <div className="text-4xl font-bold text-brand-light-blue mb-2 font-helvetica">
-                {counts[index]}
+                {stat.prefix}
+                {stat.value ? counts[index] : ''}
                 {stat.suffix}
               </div>
               <div className="text-gray-700">{stat.label}</div>
@@ -110,7 +113,7 @@ export default function AboutStats() {
         </div>
 
         <p className="text-center text-gray-700 mt-8 text-lg max-w-3xl mx-auto">
-          This hybrid structure gives us the strength of a national brand with the reliability and local proximity customers expect.
+          {footnote}
         </p>
       </div>
     </section>

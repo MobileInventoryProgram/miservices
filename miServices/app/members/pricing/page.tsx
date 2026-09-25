@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth-options';
+import { getMembersText } from '@/lib/cms/members';
 import {
   getFranchiseeForSession,
   getPriceListsForFranchisee,
@@ -51,6 +52,7 @@ export default async function PricingPage() {
 
   return (
     <PricingListing
+      text={(await getMembersText()).myPricing}
       franchiseeId={franchisee._id}
       territory={franchisee.territory || session.user.territory || ''}
       ownedLists={ownedLists}

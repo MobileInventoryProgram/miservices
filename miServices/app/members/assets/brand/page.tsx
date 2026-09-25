@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { FiArrowLeft } from 'react-icons/fi';
 import { authOptions } from '@/lib/auth-options';
+import { getMembersText } from '@/lib/cms/members';
 import { getFranchiseeForSession, getMemberDocumentsByCategory } from '@/lib/sanity';
 import { BRAND_ASSETS } from '@/lib/social/brand-assets';
 import BrandAssetGallery from './BrandAssetGallery';
@@ -38,7 +39,7 @@ export default async function BrandAssetsPage() {
             Back to Assets
           </Link>
           <h1 className="text-3xl md:text-4xl font-bold font-helvetica">Brand Assets</h1>
-          <p className="mt-1 text-blue-200">Banners, covers and profile pictures, sized for each channel</p>
+          <p className="mt-1 text-blue-200">{(await getMembersText()).assets?.brandIntro}</p>
         </div>
       </div>
 

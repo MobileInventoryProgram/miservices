@@ -16,6 +16,7 @@ interface DocumentViewProps {
   /** Admins get an Edit button and see when unpublished changes are waiting */
   editHref?: string;
   hasDraft?: boolean;
+  notice?: string;
 }
 
 /** Diagonal repeating watermark with the viewer's details */
@@ -29,7 +30,7 @@ function watermark(text: string): string {
  * Internal document viewer: readable when logged in, with no download and
  * deterrents against copying and printing.
  */
-export default function DocumentView({ document: doc, subcategory, subcategoryTitle, viewer, editHref, hasDraft }: DocumentViewProps) {
+export default function DocumentView({ document: doc, subcategory, subcategoryTitle, viewer, editHref, hasDraft, notice }: DocumentViewProps) {
   const body = (doc.body || []) as DocBlock[];
   // Contents come from the headings, so they always match the document
   const { sections } = useMemo(() => buildOutline(body, !!doc.numberHeadings), [body, doc.numberHeadings]);
@@ -123,7 +124,7 @@ export default function DocumentView({ document: doc, subcategory, subcategoryTi
             )}
             <p className="mt-4 flex items-center gap-1.5 text-xs text-gray-400">
               <FiLock className="h-3.5 w-3.5" />
-              Internal miServices document — for viewing in Franchise Login only. Please do not share or copy.
+              {notice}
             </p>
           </div>
         </div>

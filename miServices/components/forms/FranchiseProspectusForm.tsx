@@ -198,7 +198,7 @@ export default function FranchiseProspectusForm() {
           />
           <span className="text-sm text-gray-700">
             I agree to the{' '}
-            <a href="/privacy" className="text-brand-light-blue hover:underline">
+            <a href="/privacy-policy" className="text-brand-light-blue hover:underline">
               Privacy Policy
             </a>{' '}
             and consent to being contacted about franchise opportunities. *

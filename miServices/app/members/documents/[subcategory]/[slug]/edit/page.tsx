@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { notFound, redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth-options';
 import { getDocumentForEditing } from '@/lib/documents/admin';
-import { DOC_SUBCATEGORIES } from '@/lib/documents/validate';
+import { getDocumentSections } from '@/lib/sanity';
 import DocumentEditor from '@/components/documents/DocumentEditor';
 
 export const metadata: Metadata = {
@@ -17,14 +17,15 @@ export default async function EditDocumentPage({ params }: { params: { subcatego
   if (!session?.user) redirect('/members/login');
   if (session.user.role !== 'admin') redirect(`/members/documents/${params.subcategory}/${params.slug}`);
 
-  const found = await getDocumentForEditing(params.slug);
+  const [found, sections] = await Promise.all([getDocumentForEditing(params.slug), getDocumentSections()]);
+  const sectionTitles = Object.fromEntries(sections.map((s) => [s.slug, s.title]));
   if (!found) notFound();
   const { id, published, draft } = found;
   const working = draft || published!;
   if (working.category !== 'documents') notFound();
 
   // Moved to another section: keep the address right
-  if (working.subcategory && working.subcategory !== params.subcategory && DOC_SUBCATEGORIES[working.subcategory]) {
+  if (working.subcategory && working.subcategory !== params.subcategory && sectionTitles[working.subcategory]) {
     redirect(`/members/documents/${working.subcategory}/${params.slug}/edit`);
   }
   const subcategory = working.subcategory || params.subcategory;
@@ -36,7 +37,7 @@ export default async function EditDocumentPage({ params }: { params: { subcatego
       slug={params.slug}
       viewHref={published ? `/members/documents/${published.subcategory || subcategory}/${params.slug}` : null}
       listHref={`/members/documents/${subcategory}`}
-      subcategories={DOC_SUBCATEGORIES}
+      subcategories={sectionTitles}
       initial={{
         title: working.title || '',
         description: working.description || '',

@@ -1,6 +1,7 @@
 export default {
   name: 'page',
-  title: 'Page',
+  title: 'Legal page',
+  // Privacy Policy and Terms & Conditions
   type: 'document',
   fields: [
     {
@@ -111,6 +112,10 @@ export default {
       name: 'publishedAt',
       title: 'Published At',
       type: 'datetime',
+    },    {
+      name: 'seo',
+      title: 'SEO',
+      type: 'seo',
     },
   ],
   preview: {

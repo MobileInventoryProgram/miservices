@@ -12,6 +12,7 @@ import {
 import { getMemberScope } from '@/lib/members-access';
 import { countQuotesForScope } from '@/lib/quote/quotes';
 import PricingQuotingCards from './PricingQuotingCards';
+import { getMembersText } from '@/lib/cms/members';
 
 export const metadata: Metadata = {
   title: 'Pricing & Quoting | Franchise Login | miServices',
@@ -53,6 +54,7 @@ export default async function PricingQuotingPage() {
 
   return (
     <PricingQuotingCards
+      text={(await getMembersText()).pricingQuoting || {}}
       userRole={session.user.role}
       hasFranchisee={!!franchisee}
       categoryCounts={categoryCounts}

@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { FiArrowLeft, FiEdit3, FiImage } from 'react-icons/fi';
 import { authOptions } from '@/lib/auth-options';
+import { getMembersText } from '@/lib/cms/members';
 
 export const metadata: Metadata = {
   title: 'Assets | Franchise Login | miServices',
@@ -12,15 +13,13 @@ export const metadata: Metadata = {
 const TILES = [
   {
     href: '/members/assets/brand',
-    title: 'Brand Assets',
-    description: 'On-brand banners and covers for LinkedIn, Facebook, X, email and your profile picture — ready to download.',
+    key: 'brand' as const,
     icon: FiImage,
     color: 'bg-purple-500',
   },
   {
     href: '/members/assets/social',
-    title: 'Social Post Creator',
-    description: 'Ready-made post templates: reviews, quotes, announcements, milestones, events and tips. Just add your words and a photo.',
+    key: 'social' as const,
     icon: FiEdit3,
     color: 'bg-brand-light-blue',
   },
@@ -31,6 +30,7 @@ export default async function AssetsPage() {
   if (!session?.user) {
     redirect('/members/login');
   }
+  const text = (await getMembersText()).assets || {};
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -40,8 +40,8 @@ export default async function AssetsPage() {
             <FiArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </Link>
-          <h1 className="text-3xl md:text-4xl font-bold font-helvetica">Assets</h1>
-          <p className="mt-1 text-blue-200">Brand assets and social post templates</p>
+          <h1 className="text-3xl md:text-4xl font-bold font-helvetica">{text.heading}</h1>
+          <p className="mt-1 text-blue-200">{text.intro}</p>
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -60,9 +60,9 @@ export default async function AssetsPage() {
                   </div>
                   <div className="min-w-0">
                     <h2 className="text-xl font-semibold text-gray-900 group-hover:text-brand-dark-blue transition-colors font-helvetica">
-                      {tile.title}
+                      {text[tile.key]?.title}
                     </h2>
-                    <p className="text-gray-500 mt-1">{tile.description}</p>
+                    <p className="text-gray-500 mt-1">{text[tile.key]?.description}</p>
                   </div>
                 </div>
               </Link>

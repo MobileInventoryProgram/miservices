@@ -4,32 +4,30 @@ import "./globals.css";
 import LoadingBar from "@/components/LoadingBar";
 import SessionProvider from "@/components/providers/SessionProvider";
 import ConditionalLayout from "@/components/ConditionalLayout";
+import { BASE_URL, getSiteSettings } from "@/lib/cms/site";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
+// Pages pick up CMS changes within a minute
+export const revalidate = 60;
 
-export const metadata: Metadata = {
-  metadataBase: new URL(BASE_URL),
-  title: {
-    default: "miServices - Professional Property Inventory Services UK",
-    template: "%s",
-  },
-  description: "Professional property inventory services across the UK. Inventory reports, check-ins, check-outs, mid-tenancy inspections and more from the UK's trusted inventory clerk network.",
-  keywords: "property inventory, inventory reports, check-in, check-out, property inspection, inventory clerk, letting agent services",
-  openGraph: {
-    siteName: 'miServices',
-    type: 'website',
-    locale: 'en_GB',
-  },
-  twitter: {
-    card: 'summary_large_image',
-  },
-};
+/** Site-wide defaults from Site Settings; each page sets its own title and description */
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSiteSettings();
+  return {
+    metadataBase: new URL(BASE_URL),
+    title: { default: site.defaultTitle || site.siteName, template: '%s' },
+    description: site.defaultDescription,
+    keywords: site.defaultKeywords,
+    openGraph: { siteName: site.siteName, type: 'website', locale: 'en_GB' },
+    twitter: { card: 'summary_large_image' },
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const site = await getSiteSettings();
   return (
     <html lang="en">
       <body>
@@ -37,7 +35,7 @@ export default function RootLayout({
           <Suspense fallback={null}>
             <LoadingBar />
           </Suspense>
-          <ConditionalLayout>
+          <ConditionalLayout site={site}>
             {children}
           </ConditionalLayout>
         </SessionProvider>

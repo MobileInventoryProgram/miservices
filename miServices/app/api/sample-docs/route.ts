@@ -1,3 +1,4 @@
+import { sanityClient } from '@/lib/sanity';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -58,16 +59,15 @@ export async function POST(request: NextRequest) {
       console.error('Zapier webhook error:', zapierError);
     }
 
-    const documentUrls: Record<string, string> = {
-      'Inventory': '/sample-docs/miServices_Inventory_Report_Sample.pdf',
-      'Check-Out': '/sample-docs/miServices_CheckOut_Report_Sample.pdf',
-      'Property Visit': '/sample-docs/miServices_Property_Visit_Sample.pdf',
-    };
+    // The sample PDF uploaded for this report type on the Sample Documents page in the CMS
+    const documentUrl = await sanityClient
+      .fetch<string | null>(`*[_id == "sampleDocumentsPage"][0].documents[name == $name][0].file.asset->url`, { name: String(documentType || '') })
+      .catch(() => null);
 
     return NextResponse.json({
       success: true,
       message: 'Form submitted successfully',
-      documentUrl: documentUrls[documentType] || '/sample-docs/sample.pdf',
+      documentUrl,
     });
   } catch (error) {
     console.error('Error processing sample docs request:', error);

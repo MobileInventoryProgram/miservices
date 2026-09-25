@@ -2,18 +2,14 @@ import { Metadata } from 'next';
 import { getSinglePage } from '@/lib/sanity';
 import PortableText from '@/components/PortableText';
 import { notFound } from 'next/navigation';
+import { buildMetadata } from '@/lib/cms/site';
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
-
-export const metadata: Metadata = {
-  title: 'Terms & Conditions | miServices',
-  description: 'miServices terms and conditions. Read our terms of service for using our property inspection services.',
-  alternates: {
-    canonical: `${BASE_URL}/terms`,
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getSinglePage('terms-conditions');
+  return buildMetadata(page?.seo, { title: page?.title, path: '/terms' });
+}
 
 export default async function Terms() {
   const page = await getSinglePage('terms-conditions');

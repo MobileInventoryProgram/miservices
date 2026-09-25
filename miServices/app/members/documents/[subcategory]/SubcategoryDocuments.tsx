@@ -17,6 +17,7 @@ interface SubcategoryDocumentsProps {
   documents: SanityMemberDocument[];
   /** Head Office only: documents with unpublished changes, never-published drafts, hidden documents */
   admin?: { draftIds: string[]; unpublished: AdminDoc[]; hidden: AdminDoc[] };
+  emptyText?: string;
 }
 
 /** Name a new document, then open it in the editor */
@@ -110,6 +111,7 @@ export default function SubcategoryDocuments({
   subcategoryTitle,
   documents,
   admin,
+  emptyText,
 }: SubcategoryDocumentsProps) {
   const docPage = usePagedList(documents, CARD_PAGE_SIZE);
   const [creating, setCreating] = useState(false);
@@ -157,7 +159,7 @@ export default function SubcategoryDocuments({
         )}
         {documents.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-gray-500 text-lg">No documents in this subcategory yet.</p>
+            <p className="text-gray-500 text-lg">{emptyText}</p>
             <Link
               href="/members/documents"
               className="mt-4 inline-flex items-center gap-2 text-brand-light-blue hover:text-brand-dark-blue"

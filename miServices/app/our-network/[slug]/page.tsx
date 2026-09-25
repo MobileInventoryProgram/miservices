@@ -2,6 +2,10 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
+import { getPageDoc, getSiteSettings, telHref } from '@/lib/cms/site';
+import { CmsIcon } from '@/lib/cms/icons';
+import { RichText } from '@/components/cms/Sections';
+import type { CmsFeature, CmsLink } from '@/lib/cms/types';
 import { getFranchisees, getFranchiseeBySlug } from '@/lib/sanity';
 import type { TransformedFranchisee } from '@/lib/sanity';
 import { PortableText } from '@portabletext/react';
@@ -11,9 +15,8 @@ import ProfileTabs from './ProfileTabs';
 import { FiMapPin, FiPhone, FiMail, FiCheckCircle, FiUser, FiAward, FiShield, FiClock, FiStar } from 'react-icons/fi';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
-const HEAD_OFFICE_PHONE = '0345 680 7976';
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
 type Props = {
   params: { slug: string };
@@ -37,12 +40,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? franchisee.townsCities.split(',').slice(0, 3).map((t) => t.trim()).join(', ')
     : franchisee.territory;
 
+  const template = await getTemplate();
+  const values = { territory: franchisee.territory, towns: topTowns };
+  const title = fill(template?.profileSeo?.title, values);
+  const description = fill(template?.profileSeo?.description, values);
   return {
-    title: `Property Inventory Services ${franchisee.territory} | miServices`,
-    description: `Professional property inventory services in ${franchisee.territory}. Inventory reports, check-ins, check-outs & inspections. Book your local miServices clerk in ${topTowns}.`,
+    title,
+    description,
     openGraph: {
-      title: `Property Inventory Services ${franchisee.territory} | miServices`,
-      description: `Professional property inventory services in ${franchisee.territory}. Inventory reports, check-ins, check-outs & inspections.`,
+      title,
+      description,
       url: `${BASE_URL}/our-network/${params.slug}`,
       siteName: 'miServices',
       type: 'website',
@@ -50,8 +57,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `Property Inventory Services ${franchisee.territory} | miServices`,
-      description: `Professional property inventory services in ${franchisee.territory}. Book your local miServices clerk.`,
+      title,
+      description,
     },
     alternates: {
       canonical: `${BASE_URL}/our-network/${params.slug}`,
@@ -59,14 +66,30 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-const defaultServices = [
-  { slug: 'inventory-reports', title: 'Inventory Reports', description: 'Comprehensive property documentation with photography', href: '/services/inventory-reports' },
-  { slug: 'check-ins', title: 'Check-In Services', description: 'Professional tenant move-in inspections', href: '/services/check-ins' },
-  { slug: 'check-outs', title: 'Check-Out Services', description: 'End of tenancy condition assessments', href: '/services/check-outs' },
-  { slug: 'mid-tenancy', title: 'Mid-Tenancy Inspections', description: 'Regular property condition monitoring', href: '/services/mid-tenancy' },
-  { slug: 'property-visits', title: 'Property Visits', description: 'Routine property checks and reporting', href: '/services/property-visits' },
-  { slug: 'block-management', title: 'Block Management', description: 'Multi-unit and communal area inspections', href: '/services/block-management' },
-];
+interface NetworkProfileTemplate {
+  profileHero?: { heading?: string; subheading?: string; primaryButton?: CmsLink; secondaryButton?: CmsLink };
+  profileIntro?: { heading?: string; defaultText?: { children?: { text?: string }[] }[] };
+  profileServices?: { heading?: string; items?: CmsFeature[] };
+  profileAreas?: { areasHeading?: string; areasText?: string; postcodesHeading?: string; postcodesText?: string };
+  profileWhy?: { heading?: string; items?: CmsFeature[] };
+  profileCta?: { heading?: string; text?: string; primaryButton?: CmsLink; secondaryButton?: CmsLink };
+  profileSeo?: { title?: string; description?: string };
+}
+
+const getTemplate = () =>
+  getPageDoc<NetworkProfileTemplate>('ourNetworkPage', 'profileHero, profileIntro, profileServices, profileAreas, profileWhy, profileCta, profileSeo');
+
+/** Fill {territory} / {towns} in template text from the Our Network page in the CMS */
+const fill = (text: string | undefined, values: Record<string, string>) =>
+  (text || '').replace(/\{(\w+)\}/g, (m, key: string) => values[key] ?? m);
+
+/** Rich text with {territory} filled in */
+function fillBlocks<T extends { children?: { text?: string }[] }>(value: T[] | undefined, values: Record<string, string>): T[] {
+  return (value || []).map((block) => ({ ...block, children: block.children?.map((c) => ({ ...c, text: fill(c.text, values) })) }));
+}
+
+/** The service a franchise highlights, from the standard services list */
+const findService = (services: CmsFeature[], slug: string) => services.find((s) => s.href === `/services/${slug}`);
 
 function Stars({ rating }: { rating: number }) {
   return (
@@ -83,7 +106,11 @@ function Stars({ rating }: { rating: number }) {
   );
 }
 
-function buildJsonLd(franchisee: TransformedFranchisee, primaryOwner: TransformedFranchisee['owners'][0] | undefined) {
+function buildJsonLd(
+  franchisee: TransformedFranchisee,
+  primaryOwner: TransformedFranchisee['owners'][0] | undefined,
+  site: { phone?: string; email?: string; siteName: string }
+) {
   const schema: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
@@ -91,8 +118,8 @@ function buildJsonLd(franchisee: TransformedFranchisee, primaryOwner: Transforme
     name: `miServices ${franchisee.territory}`,
     description: `Professional property inventory services in ${franchisee.territory}. Inventory reports, check-ins, check-outs and mid-tenancy inspections.`,
     url: `${BASE_URL}/our-network/${franchisee.slug}`,
-    telephone: primaryOwner?.phone || HEAD_OFFICE_PHONE,
-    email: primaryOwner?.email || 'enquiries@miprogram.co.uk',
+    telephone: primaryOwner?.phone || site.phone,
+    email: primaryOwner?.email || site.email,
     areaServed: {
       '@type': 'Place',
       name: franchisee.territory,
@@ -150,7 +177,7 @@ function buildJsonLd(franchisee: TransformedFranchisee, primaryOwner: Transforme
 }
 
 export default async function FranchiseePage({ params }: Props) {
-  const franchisee = await getFranchiseeBySlug(params.slug);
+  const [franchisee, template, site] = await Promise.all([getFranchiseeBySlug(params.slug), getTemplate(), getSiteSettings()]);
 
   if (!franchisee) {
     notFound();
@@ -163,7 +190,9 @@ export default async function FranchiseePage({ params }: Props) {
     ? franchisee.postCodes.split(',').map((pc) => pc.trim()).filter(Boolean)
     : [];
   const primaryOwner = franchisee.owners[0];
-  const localBusinessSchema = buildJsonLd(franchisee, primaryOwner);
+  const localBusinessSchema = buildJsonLd(franchisee, primaryOwner, site);
+  const values = { territory: franchisee.territory };
+  const standardServices = template?.profileServices?.items || [];
 
   // Determine if there's any "About" content to show
   const hasQualifications =
@@ -189,31 +218,14 @@ export default async function FranchiseePage({ params }: Props) {
     <>
       {/* About / Location Description */}
       <div className="bg-white p-8 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-4 text-brand-dark-blue font-helvetica">
-          Professional Inventory Services in {franchisee.territory}
-        </h2>
+        <h2 className="text-2xl font-bold mb-4 text-brand-dark-blue font-helvetica">{fill(template?.profileIntro?.heading, values)}</h2>
         {franchisee.locationDescription ? (
           <div className="prose prose-lg max-w-none text-gray-700">
             <PortableText value={franchisee.locationDescription} />
           </div>
         ) : (
           <div className="space-y-4 text-gray-700 leading-relaxed">
-            <p>
-              Looking for a reliable property inventory clerk in {franchisee.territory}? miServices provides
-              professional property reporting services to letting agents, landlords and property managers
-              across {franchisee.territory} and the surrounding areas.
-            </p>
-            <p>
-              Our locally based team delivers comprehensive inventory reports, check-in and check-out
-              inspections, mid-tenancy visits and block management reporting. Every report is produced
-              using our proprietary miProgram software, ensuring consistent, high-quality documentation
-              with detailed photography.
-            </p>
-            <p>
-              Whether you manage a single property or a large portfolio in {franchisee.territory}, miServices
-              provides the reliable, professional inspection service you need to protect your investment
-              and meet compliance requirements.
-            </p>
+            <RichText value={fillBlocks(template?.profileIntro?.defaultText, values)} paragraphClass="" />
           </div>
         )}
       </div>
@@ -221,13 +233,13 @@ export default async function FranchiseePage({ params }: Props) {
       {/* Services — always the standard 6 on this tab */}
       <div className="bg-white p-8 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-6 text-brand-dark-blue font-helvetica">
-          Our Services in {franchisee.territory}
+          {fill(template?.profileServices?.heading, values)}
         </h2>
         <div className="grid sm:grid-cols-2 gap-4">
-          {defaultServices.map((service) => (
+          {standardServices.map((service, i) => (
             <Link
-              key={service.href}
-              href={service.href}
+              key={service._key || i}
+              href={service.href || '/services'}
               className="flex items-start p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
             >
               <FiCheckCircle className="text-brand-light-blue mt-1 mr-3 flex-shrink-0" size={20} />
@@ -244,10 +256,10 @@ export default async function FranchiseePage({ params }: Props) {
       {locationsArray.length > 0 && (
         <div className="bg-white p-8 rounded-lg shadow-md">
           <h2 className="text-2xl font-bold mb-6 text-brand-dark-blue font-helvetica">
-            Areas We Cover in {franchisee.territory}
+            {fill(template?.profileAreas?.areasHeading, values)}
           </h2>
           <p className="text-gray-600 mb-4">
-            Our property inventory services are available across the following locations:
+            {template?.profileAreas?.areasText}
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {locationsArray.map((location, idx) => (
@@ -263,9 +275,9 @@ export default async function FranchiseePage({ params }: Props) {
       {/* Postcodes */}
       {postcodesArray.length > 0 && (
         <div className="bg-white p-8 rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold mb-6 text-brand-dark-blue font-helvetica">Postcodes We Cover</h2>
+          <h2 className="text-2xl font-bold mb-6 text-brand-dark-blue font-helvetica">{fill(template?.profileAreas?.postcodesHeading, values)}</h2>
           <p className="text-gray-600 mb-4">
-            We provide professional property inspection services across all the following postcodes:
+            {template?.profileAreas?.postcodesText}
           </p>
           <div className="flex flex-wrap gap-2">
             {postcodesArray.map((postcode, idx) => (
@@ -280,45 +292,20 @@ export default async function FranchiseePage({ params }: Props) {
       {/* Why Choose */}
       <div className="bg-white p-8 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-6 text-brand-dark-blue font-helvetica">
-          Why Choose miServices in {franchisee.territory}
+          {fill(template?.profileWhy?.heading, values)}
         </h2>
         <div className="grid sm:grid-cols-2 gap-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-brand-light-blue/10 rounded-full flex items-center justify-center flex-shrink-0">
-              <FiAward className="w-6 h-6 text-brand-light-blue" />
+          {(template?.profileWhy?.items || []).map((item, i) => (
+            <div key={item._key || i} className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-brand-light-blue/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <CmsIcon name={item.icon} className="w-6 h-6 text-brand-light-blue" />
+              </div>
+              <div>
+                <h3 className="font-bold text-brand-dark-blue font-helvetica">{item.title}</h3>
+                <p className="text-gray-600 text-sm">{fill(item.description, values)}</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-bold text-brand-dark-blue font-helvetica">Quality Assured</h3>
-              <p className="text-gray-600 text-sm">Every report meets rigorous quality standards with comprehensive photography</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-brand-light-blue/10 rounded-full flex items-center justify-center flex-shrink-0">
-              <FiClock className="w-6 h-6 text-brand-light-blue" />
-            </div>
-            <div>
-              <h3 className="font-bold text-brand-dark-blue font-helvetica">Fast Turnaround</h3>
-              <p className="text-gray-600 text-sm">Reports delivered promptly, typically within 24 hours</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-brand-light-blue/10 rounded-full flex items-center justify-center flex-shrink-0">
-              <FiShield className="w-6 h-6 text-brand-light-blue" />
-            </div>
-            <div>
-              <h3 className="font-bold text-brand-dark-blue font-helvetica">Deposit Protection</h3>
-              <p className="text-gray-600 text-sm">Reports accepted by all major deposit protection schemes</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-brand-light-blue/10 rounded-full flex items-center justify-center flex-shrink-0">
-              <FiUser className="w-6 h-6 text-brand-light-blue" />
-            </div>
-            <div>
-              <h3 className="font-bold text-brand-dark-blue font-helvetica">Local Expertise</h3>
-              <p className="text-gray-600 text-sm">Your dedicated {franchisee.territory} team with local knowledge</p>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </>
@@ -381,9 +368,7 @@ export default async function FranchiseePage({ params }: Props) {
           </h2>
           <div className="grid sm:grid-cols-2 gap-4">
             {franchisee.highlightedServices.map((hs) => {
-              const matched = defaultServices.find(
-                (s) => s.slug === hs.serviceSlug
-              );
+              const matched = findService(standardServices, hs.serviceSlug);
               const title = hs.customServiceName || matched?.title || 'Service';
               const description = hs.description || matched?.description || '';
               const href = matched?.href || '/services';
@@ -495,24 +480,28 @@ export default async function FranchiseePage({ params }: Props) {
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 font-helvetica">
-            Property Inventory Services in {franchisee.territory}
+            {fill(template?.profileHero?.heading, values)}
           </h1>
           <p className="text-xl md:text-2xl opacity-95 max-w-3xl">
-            Professional inventory reports, check-ins, check-outs and property inspections from your local miServices team.
+            {template?.profileHero?.subheading}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 pt-8">
-            <Link
-              href="/booking"
-              className="bg-white text-brand-dark-blue px-8 py-3 rounded-md font-medium hover:bg-gray-100 transition-all text-center"
-            >
-              Book a Service
-            </Link>
-            <Link
-              href="/contact"
-              className="border-2 border-white text-white px-8 py-3 rounded-md font-medium hover:bg-white hover:text-brand-dark-blue transition-all text-center"
-            >
-              Get a Quote
-            </Link>
+            {template?.profileHero?.primaryButton && (
+              <Link
+                href={template.profileHero.primaryButton.href}
+                className="bg-white text-brand-dark-blue border-2 border-transparent px-8 py-3 rounded-md font-medium hover:bg-gray-100 transition-all text-center"
+              >
+                {template.profileHero.primaryButton.label}
+              </Link>
+            )}
+            {template?.profileHero?.secondaryButton && (
+              <Link
+                href={template.profileHero.secondaryButton.href}
+                className="border-2 border-white text-white px-8 py-3 rounded-md font-medium hover:bg-white hover:text-brand-dark-blue transition-all text-center"
+              >
+                {template.profileHero.secondaryButton.label}
+              </Link>
+            )}
           </div>
         </div>
       </section>
@@ -614,8 +603,8 @@ export default async function FranchiseePage({ params }: Props) {
                   <FiPhone className="text-brand-light-blue mr-3 flex-shrink-0" size={18} />
                   <div>
                     <p className="text-xs text-gray-500">Head Office</p>
-                    <a href={`tel:${HEAD_OFFICE_PHONE.replace(/\s/g, '')}`} className="text-brand-light-blue hover:underline font-medium">
-                      {HEAD_OFFICE_PHONE}
+                    <a href={telHref(site.phone)} className="text-brand-light-blue hover:underline font-medium">
+                      {site.phone}
                     </a>
                   </div>
                 </div>
@@ -642,7 +631,7 @@ export default async function FranchiseePage({ params }: Props) {
               <div className="space-y-3 pt-2">
                 <Link
                   href="/booking"
-                  className="block w-full bg-brand-light-blue text-white px-6 py-3 rounded-md font-medium hover:bg-opacity-90 text-center transition-all"
+                  className="block w-full bg-brand-light-blue text-white border-2 border-transparent px-6 py-3 rounded-md font-medium hover:bg-opacity-90 text-center transition-all"
                 >
                   Book a Service
                 </Link>
@@ -674,24 +663,28 @@ export default async function FranchiseePage({ params }: Props) {
         </div>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <h2 className="text-3xl md:text-4xl font-bold mb-6 font-helvetica">
-            Book a Property Inventory in {franchisee.territory}
+            {fill(template?.profileCta?.heading, values)}
           </h2>
           <p className="text-xl mb-8 opacity-95">
-            Get professional property inventory services from your local miServices team. Fast turnaround, consistent quality, nationwide standards.
+            {template?.profileCta?.text}
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link
-              href="/booking"
-              className="bg-white text-brand-dark-blue px-10 py-4 rounded-md font-bold hover:bg-gray-100 transition-all text-lg"
-            >
-              Book a Service
-            </Link>
-            <Link
-              href="/contact"
-              className="border-2 border-white text-white px-10 py-4 rounded-md font-bold hover:bg-white hover:text-brand-dark-blue transition-all text-lg"
-            >
-              Request a Quote
-            </Link>
+            {template?.profileCta?.primaryButton && (
+              <Link
+                href={template.profileCta.primaryButton.href}
+                className="bg-white text-brand-dark-blue border-2 border-transparent px-10 py-4 rounded-md font-bold hover:bg-gray-100 transition-all text-lg"
+              >
+                {template.profileCta.primaryButton.label}
+              </Link>
+            )}
+            {template?.profileCta?.secondaryButton && (
+              <Link
+                href={template.profileCta.secondaryButton.href}
+                className="border-2 border-white text-white px-10 py-4 rounded-md font-bold hover:bg-white hover:text-brand-dark-blue transition-all text-lg"
+              >
+                {template.profileCta.secondaryButton.label}
+              </Link>
+            )}
           </div>
         </div>
       </section>
