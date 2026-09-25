@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { notFound, redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth-options';
 import { getMemberDocumentsByCategoryAndSubcategory, type DocumentTargetingParams } from '@/lib/sanity';
+import { getDraftSummary } from '@/lib/documents/admin';
 import SubcategoryDocuments from './SubcategoryDocuments';
 
 const VALID_SUBCATEGORIES: Record<string, string> = {
@@ -43,13 +44,18 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
     role: session.user.role,
   };
 
-  const docs = await getMemberDocumentsByCategoryAndSubcategory('documents', params.subcategory, targeting);
+  const isAdmin = session.user.role === 'admin';
+  const [docs, admin] = await Promise.all([
+    getMemberDocumentsByCategoryAndSubcategory('documents', params.subcategory, targeting),
+    isAdmin ? getDraftSummary(params.subcategory) : Promise.resolve(undefined),
+  ]);
 
   return (
     <SubcategoryDocuments
       subcategory={params.subcategory}
       subcategoryTitle={subcategoryTitle}
       documents={docs}
+      admin={admin}
     />
   );
 }

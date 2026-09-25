@@ -653,6 +653,8 @@ export interface SanityMemberDocument {
     };
   };
   body?: any[];
+  /** Section numbers (1, 1.1) worked out from the headings */
+  numberHeadings?: boolean;
   publishedAt: string;
   isPublished: boolean;
   order: number;
@@ -704,6 +706,7 @@ const memberDocFields = `
     }
   },
   body,
+  numberHeadings,
   publishedAt,
   isPublished,
   order,

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { notFound, redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth-options';
 import { getMemberDocumentBySlug, type DocumentTargetingParams } from '@/lib/sanity';
+import { getEditableById } from '@/lib/documents/admin';
 import DocumentView from './DocumentView';
 
 const VALID_SUBCATEGORIES: Record<string, string> = {
@@ -43,9 +44,15 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
 
   const doc = await getMemberDocumentBySlug(params.slug, targeting);
 
+  const isAdmin = session.user.role === 'admin';
+
   if (!doc || doc.category !== 'documents' || doc.subcategory !== params.subcategory) {
+    // Admins opening a document that isn't published yet go to its editor
+    if (isAdmin) redirect(`/members/documents/${params.subcategory}/${params.slug}/edit`);
     notFound();
   }
+
+  const hasDraft = isAdmin ? !!(await getEditableById(doc._id)).draft : false;
 
   return (
     <DocumentView
@@ -53,6 +60,8 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
       subcategory={params.subcategory}
       subcategoryTitle={VALID_SUBCATEGORIES[params.subcategory]}
       viewer={{ name: session.user.name || session.user.email, email: session.user.email }}
+      editHref={isAdmin ? `/members/documents/${params.subcategory}/${params.slug}/edit` : undefined}
+      hasDraft={hasDraft}
     />
   );
 }
