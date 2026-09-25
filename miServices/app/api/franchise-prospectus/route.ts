@@ -1,3 +1,4 @@
+import { formsDisabled } from '@/lib/forms';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -52,7 +53,9 @@ export async function POST(request: NextRequest) {
 
     const zapierWebhookUrl = process.env.ZAPIER_FRANCHISE_WEBHOOK_URL;
     
-    if (zapierWebhookUrl) {
+    if (formsDisabled()) {
+      console.log('[forms disabled] franchise prospectus request not sent');
+    } else if (zapierWebhookUrl) {
       try {
         const zapierResponse = await fetch(zapierWebhookUrl, {
           method: 'POST',

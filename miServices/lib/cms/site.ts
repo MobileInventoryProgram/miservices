@@ -46,7 +46,7 @@ export async function buildMetadata(
     description,
     keywords: seo?.keywords || site.defaultKeywords,
     alternates: { canonical: url },
-    robots: seo?.noIndex ? { index: false, follow: false } : undefined,
+    robots: seo?.noIndex || process.env.SITE_NOINDEX === 'true' ? { index: false, follow: false } : undefined,
     openGraph: { title, description, url, siteName: site.siteName, type: 'website', locale: 'en_GB', ...(image ? { images: [{ url: image, width: 1200, height: 630 }] } : {}) },
     twitter: { card: 'summary_large_image', title, description, ...(image ? { images: [image] } : {}) },
   };

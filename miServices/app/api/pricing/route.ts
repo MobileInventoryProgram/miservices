@@ -1,3 +1,4 @@
+import { sendToZapier } from '@/lib/forms';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -41,18 +42,11 @@ export async function POST(request: NextRequest) {
       submittedAt: new Date().toISOString(),
     };
 
-    const zapierWebhookUrl = 'https://hooks.zapier.com/hooks/catch/20505846/23c8rny/';
 
-    const zapierResponse = await fetch(zapierWebhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(zapierPayload),
-    });
+    const zapier = await sendToZapier(process.env.ZAPIER_PRICING_WEBHOOK_URL, zapierPayload);
 
-    if (!zapierResponse.ok) {
-      console.error('Zapier webhook failed:', await zapierResponse.text());
+    if (!zapier.ok) {
+      console.error('Zapier webhook failed:', zapier.error);
       return NextResponse.json(
         { success: false, error: 'Failed to process request' },
         { status: 500 }

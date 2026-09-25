@@ -1,3 +1,4 @@
+import { sendToZapier } from '@/lib/forms';
 import { sanityClient } from '@/lib/sanity';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -31,8 +32,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const zapierWebhookUrl = process.env.ZAPIER_SAMPLE_DOCS_WEBHOOK_URL || 
-      'https://hooks.zapier.com/hooks/catch/xxxxxx/xxxxxx/';
 
     const zapierPayload = {
       first_name: firstName,
@@ -48,13 +47,8 @@ export async function POST(request: NextRequest) {
     };
 
     try {
-      await fetch(zapierWebhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(zapierPayload),
-      });
+      const zapier = await sendToZapier(process.env.ZAPIER_SAMPLE_DOCS_WEBHOOK_URL, zapierPayload);
+      if (!zapier.ok) console.error('Zapier webhook failed:', zapier.error);
     } catch (zapierError) {
       console.error('Zapier webhook error:', zapierError);
     }

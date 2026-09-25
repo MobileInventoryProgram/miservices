@@ -19,6 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
     keywords: site.defaultKeywords,
     openGraph: { siteName: site.siteName, type: 'website', locale: 'en_GB' },
     twitter: { card: 'summary_large_image' },
+    ...(process.env.SITE_NOINDEX === 'true' ? { robots: { index: false, follow: false } } : {}),
   };
 }
 

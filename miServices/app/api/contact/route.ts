@@ -1,3 +1,4 @@
+import { sendToZapier } from '@/lib/forms';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface ContactFormData {
@@ -73,7 +74,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const zapierWebhookUrl = process.env.ZAPIER_WEBHOOK_URL || 'https://hooks.zapier.com/hooks/catch/xxxxxxxx/xxxxxxxxx/';
 
     const zapierPayload = {
       firstName: body.firstName,
@@ -88,16 +88,10 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
     };
 
-    const zapierResponse = await fetch(zapierWebhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(zapierPayload),
-    });
+    const zapier = await sendToZapier(process.env.ZAPIER_WEBHOOK_URL, zapierPayload);
 
-    if (!zapierResponse.ok) {
-      console.error('Zapier webhook failed:', await zapierResponse.text());
+    if (!zapier.ok) {
+      console.error('Zapier webhook failed:', zapier.error);
       return NextResponse.json(
         { message: 'Failed to send data to CRM. Please try again later.' },
         { status: 500 }

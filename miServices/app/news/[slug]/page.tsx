@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     keywords: post.seo?.keywords,
-    robots: post.seo?.noIndex ? { index: false, follow: false } : undefined,
+    robots: post.seo?.noIndex || process.env.SITE_NOINDEX === 'true' ? { index: false, follow: false } : undefined,
     openGraph: {
       title: post.title,
       description,
