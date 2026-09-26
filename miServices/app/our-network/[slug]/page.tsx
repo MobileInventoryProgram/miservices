@@ -6,7 +6,7 @@ import { getPageDoc, getSiteSettings, telHref } from '@/lib/cms/site';
 import { CmsIcon } from '@/lib/cms/icons';
 import { RichText } from '@/components/cms/Sections';
 import type { CmsFeature, CmsLink } from '@/lib/cms/types';
-import { getFranchisees, getFranchiseeBySlug } from '@/lib/sanity';
+import { getFranchisees, getFranchiseeBySlug, urlFor } from '@/lib/sanity';
 import type { TransformedFranchisee } from '@/lib/sanity';
 import { PortableText } from '@portabletext/react';
 import JsonLd from '@/components/JsonLd';
@@ -50,6 +50,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
+      ...(franchisee.areaImage?.asset?._ref ? { images: [{ url: urlFor(franchisee.areaImage).width(1200).height(630).fit('crop').url(), width: 1200, height: 630 }] } : {}),
       url: `${BASE_URL}/our-network/${params.slug}`,
       siteName: 'miServices',
       type: 'website',
@@ -472,6 +473,20 @@ export default async function FranchiseePage({ params }: Props) {
 
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-brand-dark-blue to-brand-light-blue text-white py-20 overflow-hidden">
+        {/* The area's landmark photo, under the brand colours so the text stays readable */}
+        {franchisee.areaImage?.asset?._ref && (
+          <>
+            <Image
+              src={urlFor(franchisee.areaImage).width(2000).height(900).fit('crop').auto('format').url()}
+              alt={franchisee.areaImage.alt || ''}
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-dark-blue/85 to-brand-light-blue/75" />
+          </>
+        )}
         <div className="absolute inset-0 opacity-10">
           <svg viewBox="0 0 1200 800" fill="none" className="w-full h-full">
             <path d="M 0 400 Q 300 200 600 400 Q 900 600 1200 400 L 1200 800 L 0 800 Z" fill="white"/>

@@ -307,7 +307,7 @@ export interface SanityTeamMember {
   bio?: string;
   photo?: {
     asset: {
-      _ref: string;
+      _id?: string;
       url?: string;
     };
   };
@@ -330,6 +330,7 @@ export interface SanityFranchisee {
   tags: string[];
   isActive: boolean;
   locationDescription?: any[];
+  areaImage?: { asset?: { _ref: string }; alt?: string; hotspot?: unknown; crop?: unknown };
   owners: SanityFranchiseeOwner[];
   testimonials?: SanityTestimonial[];
   qualifications?: SanityQualifications;
@@ -377,6 +378,8 @@ export interface TransformedFranchisee {
   tags: string[];
   profilePicture: string | null;
   locationDescription?: any[];
+  /** Photo of the area's best-known landmark, for the profile header */
+  areaImage?: { asset?: { _ref: string }; alt?: string; hotspot?: unknown; crop?: unknown };
   owners: Array<{
     id: string;
     firstName: string;
@@ -408,6 +411,7 @@ const franchiseeFields = `
   tags,
   isActive,
   locationDescription,
+  areaImage { asset, alt, hotspot, crop },
   owners[] {
     firstName,
     lastName,
@@ -440,7 +444,7 @@ const franchiseeFields = `
     bio,
     photo {
       asset->{
-        _ref,
+        _id,
         url
       }
     }
@@ -506,6 +510,7 @@ function transformFranchisee(doc: SanityFranchisee): TransformedFranchisee {
     tags: doc.tags || [],
     profilePicture: firstOwner?.profilePicture || null,
     locationDescription: doc.locationDescription,
+    areaImage: doc.areaImage,
     owners,
     firstName: firstOwner?.firstName || '',
     lastName: firstOwner?.lastName || '',

@@ -28,6 +28,8 @@ export async function POST(request: Request) {
       ownerEmail,
       ownerPhone,
       ownerProfilePicture,
+      areaImageAssetId,
+      areaImageAlt,
       townsCities,
       testimonials,
       qualifications,
@@ -109,6 +111,18 @@ export async function POST(request: Request) {
       };
 
       patch.owners = updatedOwners;
+    }
+
+    // Area photo: a new upload replaces the photo (and its old crop); otherwise only the description changes
+    const alt = typeof areaImageAlt === 'string' ? areaImageAlt.trim().slice(0, 200) : undefined;
+    if (typeof areaImageAssetId === 'string' && areaImageAssetId) {
+      patch.areaImage = {
+        _type: 'image',
+        asset: { _type: 'reference', _ref: areaImageAssetId },
+        ...(alt ? { alt } : {}),
+      };
+    } else if (alt !== undefined && franchisee.areaImage) {
+      patch['areaImage.alt'] = alt;
     }
 
     // Testimonials

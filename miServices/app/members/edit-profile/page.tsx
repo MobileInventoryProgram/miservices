@@ -50,6 +50,10 @@ export default async function EditProfilePage() {
         ownerEmail: firstOwner?.email || '',
         ownerPhone: firstOwner?.phone || '',
         ownerProfilePictureUrl,
+        areaImageUrl: franchisee.areaImage?.asset?._ref
+          ? urlFor(franchisee.areaImage).width(1200).height(540).fit('crop').auto('format').url()
+          : null,
+        areaImageAlt: franchisee.areaImage?.alt || '',
         townsCities: franchisee.townsCities || '',
         testimonials: (franchisee.testimonials || []).map((t, i) => ({
           _key: t._key || `testimonial-${i}`,
@@ -70,7 +74,8 @@ export default async function EditProfilePage() {
           role: tm.role || '',
           bio: tm.bio || '',
           photoUrl: tm.photo?.asset?.url || null,
-          photoAssetId: null as string | null,
+          // Keep the saved photo when the profile is saved again
+          photoAssetId: tm.photo?.asset?._id || null,
         })),
         highlightedServices: (franchisee.highlightedServices || []).map((hs, i) => ({
           _key: hs._key || `service-${i}`,

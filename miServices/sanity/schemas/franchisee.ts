@@ -82,6 +82,18 @@ export default defineType({
       ],
     }),
     defineField({
+      name: 'areaImage',
+      title: 'Area photo',
+      type: 'image',
+      options: { hotspot: true },
+      description: 'A well-known landmark or view of the area, shown behind the header of the franchise’s page. Use photos that need no credit (e.g. Unsplash, Pexels, public domain).',
+      fields: [
+        defineField({ name: 'alt', title: 'Description', type: 'string', description: 'What the photo shows, e.g. "Clifton Suspension Bridge, Bristol"' }),
+        defineField({ name: 'source', title: 'Where the photo came from', type: 'url' }),
+        defineField({ name: 'licence', title: 'Licence', type: 'string', description: 'e.g. Unsplash licence, Pexels licence, Public domain' }),
+      ],
+    }),
+    defineField({
       name: 'postCodes',
       title: 'Post Codes',
       description: 'Comma-separated list of post codes',

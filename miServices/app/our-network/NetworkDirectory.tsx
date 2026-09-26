@@ -30,6 +30,7 @@ interface Franchisee {
   slug: string;
   tags: string[] | null;
   owners: Owner[];
+  areaImage?: CmsImage & { hotspot?: unknown; crop?: unknown };
 }
 
 export interface OurNetworkPageDoc {
@@ -315,17 +316,19 @@ export default function NetworkDirectory({ page }: { page: OurNetworkPageDoc | n
                   href={`/our-network/${franchisee.slug}`}
                   className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all overflow-hidden group"
                 >
-                  {primaryOwner.profilePicture && (
+                  {/* The area's photo, not the owner's */}
+                  {franchisee.areaImage?.asset?._ref && (
                     <div className="relative h-48 w-full bg-gradient-to-br from-brand-dark-blue to-brand-light-blue">
                       <Image
-                        src={primaryOwner.profilePicture}
-                        alt={primaryOwner.name}
+                        src={urlFor(franchisee.areaImage).width(800).height(384).fit('crop').auto('format').url()}
+                        alt={franchisee.areaImage.alt || franchisee.territory || ''}
                         fill
+                        sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
                         className="object-cover"
                       />
                     </div>
                   )}
-                  {!primaryOwner.profilePicture && (
+                  {!franchisee.areaImage?.asset?._ref && (
                     <div className="relative h-48 w-full bg-gradient-to-br from-brand-dark-blue to-brand-light-blue flex items-center justify-center">
                       <span className="text-6xl font-bold text-white font-helvetica">
                         {initials}

@@ -60,6 +60,8 @@ interface EditProfileFormProps {
     ownerEmail: string;
     ownerPhone: string;
     ownerProfilePictureUrl: string | null;
+    areaImageUrl: string | null;
+    areaImageAlt: string;
     townsCities: string;
     testimonials: Testimonial[];
     qualifications: Qualifications;
@@ -145,17 +147,22 @@ function StarRating({
 function ImageUploadButton({
   onUploaded,
   label,
+  saveAs,
 }: {
   onUploaded: (assetId: string, url: string) => void;
   label?: string;
+  /** Save the photo to the profile straight away, without waiting for the Save button */
+  saveAs?: { target: 'owner' | 'area' | 'team'; key?: string };
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [status, setStatus] = useState('');
 
   const handleUpload = async (file: File) => {
     setUploading(true);
     setUploadError('');
+    setStatus('');
 
     const formData = new FormData();
     formData.append('file', file);
@@ -170,6 +177,16 @@ function ImageUploadButton({
         setUploadError(data.error || 'Upload failed');
       } else {
         onUploaded(data.assetId, data.url);
+        if (saveAs) {
+          const saved = await fetch('/api/members/profile-photo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...saveAs, assetId: data.assetId }),
+          })
+            .then((r) => (r.ok ? r.json() : { saved: false }))
+            .catch(() => ({ saved: false }));
+          setStatus(saved.saved ? 'Photo saved' : 'Press Save Changes to keep this photo');
+        }
       }
     } catch {
       setUploadError('Upload failed. Please try again.');
@@ -202,6 +219,9 @@ function ImageUploadButton({
       {uploadError && (
         <p className="text-xs text-red-600 mt-1">{uploadError}</p>
       )}
+      {status && !uploadError && (
+        <p className={`text-xs mt-1 ${status === 'Photo saved' ? 'text-green-700' : 'text-amber-700'}`}>{status}</p>
+      )}
     </div>
   );
 }
@@ -221,6 +241,11 @@ export default function EditProfileForm({
     initialData.ownerProfilePictureUrl
   );
   const [profilePicAssetId, setProfilePicAssetId] = useState<string | null>(null);
+
+  // Area photo (a landmark or view of the area, separate from the owner's photo)
+  const [areaImageUrl, setAreaImageUrl] = useState<string | null>(initialData.areaImageUrl);
+  const [areaImageAssetId, setAreaImageAssetId] = useState<string | null>(null);
+  const [areaImageAlt, setAreaImageAlt] = useState(initialData.areaImageAlt);
 
   // Bio (locationDescription as plain text for simple editing)
   const [bio, setBio] = useState(() => {
@@ -316,9 +341,10 @@ Whether you manage a single property or a large portfolio in ${territory}, miSer
     setTeamMembers(teamMembers.filter((tm) => tm._key !== key));
   };
 
-  const updateTeamMember = (key: string, field: keyof TeamMember, value: unknown) => {
-    setTeamMembers(
-      teamMembers.map((tm) => (tm._key === key ? { ...tm, [field]: value } : tm))
+  // Functional update, so changes made together (e.g. a photo's ID and URL) don't overwrite each other
+  const updateTeamMember = (key: string, changes: Partial<TeamMember>) => {
+    setTeamMembers((current) =>
+      current.map((tm) => (tm._key === key ? { ...tm, ...changes } : tm))
     );
   };
 
@@ -411,6 +437,8 @@ Whether you manage a single property or a large portfolio in ${territory}, miSer
           ...(profilePicAssetId !== null && {
             ownerProfilePicture: profilePicAssetId,
           }),
+          ...(areaImageAssetId !== null && { areaImageAssetId }),
+          areaImageAlt,
           locationDescription,
           townsCities,
           testimonials: testimonials.map((t) => ({
@@ -517,6 +545,7 @@ Whether you manage a single property or a large portfolio in ${territory}, miSer
               )}
               <ImageUploadButton
                 label="Upload Profile Picture"
+                saveAs={{ target: 'owner' }}
                 onUploaded={(assetId, url) => {
                   setProfilePicAssetId(assetId);
                   setProfilePicUrl(url);
@@ -589,6 +618,42 @@ Whether you manage a single property or a large portfolio in ${territory}, miSer
                 />
               </div>
             </div>
+          </Section>
+
+          {/* Area photo */}
+          <Section title="Area Photo">
+            <p className="text-sm text-gray-500 mb-3">
+              A well-known landmark or view of your area, shown on your listing in Our Network and behind the
+              top of your profile page. Use a landscape photo you have the rights to use.
+            </p>
+            <div className="relative w-full aspect-[20/9] rounded-md overflow-hidden bg-gradient-to-br from-brand-dark-blue to-brand-light-blue mb-3">
+              {areaImageUrl ? (
+                <Image src={areaImageUrl} alt={areaImageAlt || 'Area photo'} fill className="object-cover" />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center text-white/80 text-sm">
+                  No area photo yet
+                </div>
+              )}
+            </div>
+            <ImageUploadButton
+              label={areaImageUrl ? 'Replace Area Photo' : 'Upload Area Photo'}
+              saveAs={{ target: 'area' }}
+              onUploaded={(assetId, url) => {
+                setAreaImageAssetId(assetId);
+                setAreaImageUrl(url);
+              }}
+            />
+            <label htmlFor="areaImageAlt" className="block text-sm font-medium text-gray-700 mt-4 mb-1">
+              What the photo shows
+            </label>
+            <input
+              id="areaImageAlt"
+              type="text"
+              value={areaImageAlt}
+              onChange={(e) => setAreaImageAlt(e.target.value)}
+              placeholder="e.g. Knebworth House, Hertfordshire"
+              className={inputClass}
+            />
           </Section>
 
           {/* 2. Bio */}
@@ -833,9 +898,9 @@ Whether you manage a single property or a large portfolio in ${territory}, miSer
                     )}
                     <ImageUploadButton
                       label="Photo"
+                      saveAs={{ target: 'team', key: tm._key }}
                       onUploaded={(assetId, url) => {
-                        updateTeamMember(tm._key, 'photoAssetId', assetId);
-                        updateTeamMember(tm._key, 'photoUrl', url);
+                        updateTeamMember(tm._key, { photoAssetId: assetId, photoUrl: url });
                       }}
                     />
                   </div>
@@ -853,7 +918,7 @@ Whether you manage a single property or a large portfolio in ${territory}, miSer
                     placeholder="Name *"
                     value={tm.name}
                     onChange={(e) =>
-                      updateTeamMember(tm._key, 'name', e.target.value)
+                      updateTeamMember(tm._key, { name: e.target.value })
                     }
                     className={inputClass}
                   />
@@ -862,7 +927,7 @@ Whether you manage a single property or a large portfolio in ${territory}, miSer
                     placeholder="Role (e.g. Inventory Clerk)"
                     value={tm.role}
                     onChange={(e) =>
-                      updateTeamMember(tm._key, 'role', e.target.value)
+                      updateTeamMember(tm._key, { role: e.target.value })
                     }
                     className={inputClass}
                   />
@@ -873,7 +938,7 @@ Whether you manage a single property or a large portfolio in ${territory}, miSer
                   value={tm.bio}
                   maxLength={300}
                   onChange={(e) =>
-                    updateTeamMember(tm._key, 'bio', e.target.value)
+                    updateTeamMember(tm._key, { bio: e.target.value })
                   }
                   className={inputClass}
                 />
