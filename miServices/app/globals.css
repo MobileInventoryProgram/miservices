@@ -130,3 +130,59 @@ h1, h2, h3, h4, h5, h6 {
   background-size: 200% 200%;
   animation: stats-bg-pulse 8s ease infinite;
 }
+
+/* Our Network map */
+.network-pin {
+  display: block;
+  cursor: pointer;
+  padding: 0;
+  border: 0;
+  background: none;
+  transition: opacity 0.2s ease;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.25));
+}
+.network-pin svg {
+  transition: transform 0.2s ease;
+  transform-origin: bottom center;
+}
+.network-pin:hover svg,
+.network-pin:focus-visible svg,
+.network-pin-active svg {
+  transform: scale(1.25);
+}
+.network-search-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 4px solid #157ec3;
+  box-shadow: 0 0 0 0 rgb(21 126 195 / 0.5);
+  animation: network-pulse 1.8s ease-out infinite;
+}
+@keyframes network-pulse {
+  to {
+    box-shadow: 0 0 0 18px rgb(21 126 195 / 0);
+  }
+}
+.network-popup-title {
+  font-family: Helvetica, Arial, sans-serif;
+  font-weight: 700;
+  color: #3f59a9;
+  font-size: 0.95rem;
+}
+.network-popup-town {
+  color: #4b5563;
+  font-size: 0.8rem;
+  margin: 2px 0 6px;
+}
+.network-popup-link {
+  color: #157ec3;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.network-popup-link:hover {
+  text-decoration: underline;
+}
+.maplibregl-popup {
+  z-index: 10;
+}

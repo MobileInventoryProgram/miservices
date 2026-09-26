@@ -6,10 +6,17 @@ export default [
     _id: 'ourNetworkPage',
     _type: 'ourNetworkPage',
     hero: hero(
-      'Our Network',
-      'Find your local miServices operative across the UK. Our network of experienced professionals is ready to provide comprehensive property inspection services in your area.'
+      'Find Your Local Inventory Clerk',
+      'Professional inventory reports, check-ins, check-outs and mid-term inspections from local miServices branches across the UK. Search by postcode or town to find yours.'
     ),
-    searchPlaceholder: 'Search by postcode, area, town, or territory...',
+    searchPlaceholder: 'Enter your postcode or town',
+    nearMeLabel: 'Use my location',
+    countLine: '{count} local branches across England, Scotland and Wales',
+    nearestHeading: 'Nearest branches to {place}',
+    regions: {
+      heading: 'Inventory clerks by region',
+      text: 'Every miServices branch is run by a local, fully trained inventory clerk. Find the branch that covers your area.',
+    },
     noResults: { heading: 'No franchisees found in that area', text: 'No franchisees match "{search}". Please contact our Head Office for assistance.' },
     headOffice: { initials: 'HO', name: 'miServices - Head Office', tagline: 'National Coverage Support', basedIn: 'Chester, Cheshire', button: link('Contact Head Office', '/contact') },
     profileHero: {

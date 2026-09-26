@@ -279,6 +279,10 @@ export const ourNetworkPage = page(
   [
     hero,
     str('searchPlaceholder', 'Search box text'),
+    str('nearMeLabel', '“Use my location” button'),
+    str('countLine', 'Line under the search (use {count} for the number of branches)'),
+    str('nearestHeading', 'Heading above the nearest branches when nothing matches exactly (use {place})'),
+    section('regions', 'Branches by region (below the list)', [str('heading', 'Heading'), txt('text', 'Text', 2)]),
     section('noResults', 'No results', [str('heading', 'Heading'), txt('text', 'Text (use {search} for what was searched)', 2)]),
     section('headOffice', 'Head Office card (shown when nothing is found)', [
       str('initials', 'Initials'),

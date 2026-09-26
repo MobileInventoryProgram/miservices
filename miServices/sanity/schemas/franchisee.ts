@@ -82,6 +82,12 @@ export default defineType({
       ],
     }),
     defineField({
+      name: 'mapTown',
+      title: 'Map pin town',
+      type: 'string',
+      description: 'The town the franchise’s pin marks on the Our Network map. Leave empty to use the first town in “Towns & cities”.',
+    }),
+    defineField({
       name: 'areaImage',
       title: 'Area photo',
       type: 'image',

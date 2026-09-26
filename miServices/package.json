@@ -6,7 +6,8 @@
     "dev": "next dev -p 3000 -H 0.0.0.0",
     "build": "next build",
     "start": "next start -p 3000 -H 0.0.0.0",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "node scripts/copy-maplibre-worker.mjs"
   },
   "dependencies": {
     "@portabletext/editor": "1.58.0",
@@ -19,6 +20,7 @@
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.22",
     "lucide-react": "^0.553.0",
+    "maplibre-gl": "^6.11.2",
     "next": "^14.2.33",
     "next-auth": "^4.24.13",
     "next-sanity": "^9.0.0",

@@ -12,6 +12,8 @@ import { PortableText } from '@portabletext/react';
 import JsonLd from '@/components/JsonLd';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import ProfileTabs from './ProfileTabs';
+import NetworkMap from '@/components/network/NetworkMap';
+import { getNetworkGeo, type FranchiseGeo } from '@/lib/network/geo';
 import { FiMapPin, FiPhone, FiMail, FiCheckCircle, FiUser, FiAward, FiShield, FiClock, FiStar } from 'react-icons/fi';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://mobileinventoryservices.co.uk';
@@ -110,8 +112,10 @@ function Stars({ rating }: { rating: number }) {
 function buildJsonLd(
   franchisee: TransformedFranchisee,
   primaryOwner: TransformedFranchisee['owners'][0] | undefined,
-  site: { phone?: string; email?: string; siteName: string }
+  site: { phone?: string; email?: string; siteName: string },
+  geo: FranchiseGeo | null
 ) {
+  const towns = (franchisee.townsCities || '').split(',').map((t) => t.trim()).filter(Boolean);
   const schema: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
@@ -121,10 +125,16 @@ function buildJsonLd(
     url: `${BASE_URL}/our-network/${franchisee.slug}`,
     telephone: primaryOwner?.phone || site.phone,
     email: primaryOwner?.email || site.email,
-    areaServed: {
-      '@type': 'Place',
-      name: franchisee.territory,
-    },
+    // The towns covered, so the page can rank for "inventory clerk <town>"
+    areaServed: towns.length
+      ? towns.slice(0, 40).map((name) => ({ '@type': 'City', name }))
+      : { '@type': 'Place', name: franchisee.territory },
+    ...(geo
+      ? {
+          geo: { '@type': 'GeoCoordinates', latitude: +geo.pin[1].toFixed(4), longitude: +geo.pin[0].toFixed(4) },
+          address: { '@type': 'PostalAddress', ...(geo.town ? { addressLocality: geo.town } : {}), addressRegion: geo.region, addressCountry: 'GB' },
+        }
+      : {}),
     parentOrganization: {
       '@type': 'Organization',
       name: 'miServices',
@@ -137,7 +147,8 @@ function buildJsonLd(
       closes: '18:00',
     },
     priceRange: '££',
-    image: `${BASE_URL}/logo.png`,
+    image: franchisee.areaImage?.asset?._ref ? urlFor(franchisee.areaImage).width(1200).height(630).fit('crop').url() : `${BASE_URL}/logo.png`,
+    logo: `${BASE_URL}/logo.png`,
   };
 
   if (franchisee.qualifications.yearsExperience && franchisee.qualifications.yearsExperience > 0) {
@@ -191,7 +202,8 @@ export default async function FranchiseePage({ params }: Props) {
     ? franchisee.postCodes.split(',').map((pc) => pc.trim()).filter(Boolean)
     : [];
   const primaryOwner = franchisee.owners[0];
-  const localBusinessSchema = buildJsonLd(franchisee, primaryOwner, site);
+  const geo = (await getNetworkGeo([franchisee]))[franchisee.slug] || null;
+  const localBusinessSchema = buildJsonLd(franchisee, primaryOwner, site, geo);
   const values = { territory: franchisee.territory };
   const standardServices = template?.profileServices?.items || [];
 
@@ -262,6 +274,14 @@ export default async function FranchiseePage({ params }: Props) {
           <p className="text-gray-600 mb-4">
             {template?.profileAreas?.areasText}
           </p>
+          {/* The postcode districts covered, on a map */}
+          {geo && geo.points.length > 0 && (
+            <NetworkMap
+              franchises={[{ slug: franchisee.slug, name: `miServices ${franchisee.territory}`, town: geo.town, pin: geo.pin, points: geo.points }]}
+              frame={[franchisee.slug]}
+              className="relative h-72 md:h-96 rounded-lg overflow-hidden mb-6 bg-gray-100"
+            />
+          )}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {locationsArray.map((location, idx) => (
               <div key={idx} className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
@@ -484,7 +504,9 @@ export default async function FranchiseePage({ params }: Props) {
               sizes="100vw"
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-dark-blue/85 to-brand-light-blue/75" />
+            <div className="absolute inset-0 bg-gradient-to-r from-brand-dark-blue/90 via-brand-dark-blue/60 to-brand-dark-blue/20" />
+            {/* On phones the text spans the full width, so darken the whole photo a little more */}
+            <div className="absolute inset-0 bg-brand-dark-blue/40 md:hidden" />
           </>
         )}
         <div className="absolute inset-0 opacity-10">
