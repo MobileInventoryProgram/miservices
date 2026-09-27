@@ -45,6 +45,20 @@ export default function DocumentView({ document: doc, subcategory, subcategoryTi
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // Arriving from the Help Centre or search (#s-…): bring that section into view and mark it briefly
+  useEffect(() => {
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    if (!id) return;
+    const target = document.getElementById(id);
+    if (!target) return;
+    const timer = setTimeout(() => {
+      target.scrollIntoView({ block: 'start' });
+      target.classList.add('section-highlight');
+      setTimeout(() => target.classList.remove('section-highlight'), 2500);
+    }, 50);
+    return () => clearTimeout(timer);
+  }, []);
+
   const stop = (e: SyntheticEvent) => e.preventDefault();
   const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 

@@ -130,6 +130,8 @@ export default function MembersShell({ user, children }: { user: ShellUser | nul
       cameBack.current = false;
       return;
     }
+    // A link to a section (#…) scrolls there itself
+    if (window.location.hash) return;
     window.scrollTo(0, 0);
   }, [pathname]);
 

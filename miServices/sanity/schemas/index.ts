@@ -7,6 +7,7 @@ import franchisee from './franchisee';
 import member from './member';
 import memberDocument from './memberDocument';
 import documentSection from './documentSection';
+import helpArticle from './helpArticle';
 import membersArea from './membersArea';
 import priceList from './priceList';
 import flyerSettings from './flyerSettings';
@@ -28,6 +29,7 @@ export const schemaTypes = [
   member,
   memberDocument,
   documentSection,
+  helpArticle,
   membersArea,
   priceList,
   flyerSettings,

@@ -52,6 +52,17 @@ export default defineType({
     }),
     { ...heading('documents', 'Documents', ['empty']), group: 'sections' },
     defineField({ name: 'documentNotice', title: 'Notice under each document', type: 'string', group: 'sections' }),
+    defineField({
+      name: 'helpContact',
+      title: 'Help Centre: Head Office contact',
+      type: 'object',
+      group: 'sections',
+      description: 'Shown as "Still stuck? Contact Head Office". Empty fields use the main phone and email from Site settings.',
+      fields: [
+        defineField({ name: 'phone', title: 'Phone', type: 'string' }),
+        defineField({ name: 'email', title: 'Email', type: 'string' }),
+      ],
+    }),
     {
       ...defineField({
         name: 'pricingQuoting',

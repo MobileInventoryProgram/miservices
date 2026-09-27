@@ -54,6 +54,7 @@ const customStructure = (S: StructureBuilder) =>
               S.divider(),
               list(S, 'memberDocument', 'Documents'),
               list(S, 'documentSection', 'Document sections'),
+              list(S, 'helpArticle', 'Help answers'),
               S.divider(),
               list(S, 'franchisee', 'Franchisees'),
               list(S, 'member', 'Members'),

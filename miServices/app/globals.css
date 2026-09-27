@@ -186,3 +186,9 @@ h1, h2, h3, h4, h5, h6 {
 .maplibregl-popup {
   z-index: 10;
 }
+
+/* Help Centre links: the section the member was sent to, marked briefly */
+.section-highlight {
+  background-color: rgb(254 249 195); /* yellow-100 */
+  box-shadow: 0 0 0 6px rgb(254 249 195);
+}

@@ -771,6 +771,17 @@ export async function getMemberDocuments(
   }
 }
 
+/** Ids of the published documents this member can see (no content), e.g. for Help Centre links */
+export async function getVisibleMemberDocumentIds(params?: DocumentTargetingParams): Promise<string[]> {
+  try {
+    const { filter, queryParams } = buildTargetingFilter(params);
+    return await sanityLiveClient.fetch<string[]>(`*[_type == "memberDocument" && isPublished == true${filter}]._id`, queryParams);
+  } catch (error) {
+    console.error('Error fetching visible member document ids:', error);
+    return [];
+  }
+}
+
 export async function getMemberDocumentsByCategory(
   category: string,
   params?: DocumentTargetingParams

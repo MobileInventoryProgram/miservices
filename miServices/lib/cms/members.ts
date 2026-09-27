@@ -1,6 +1,7 @@
 import 'server-only';
 import { cache } from 'react';
 import { sanityLiveClient } from '@/lib/sanity';
+import { getSiteSettings } from './site';
 
 type Tile = { title?: string; description?: string };
 type Heading = { heading?: string; intro?: string; introAdmin?: string; empty?: string };
@@ -11,6 +12,7 @@ export interface MembersAreaText {
   dashboard?: { documents?: Tile; pricingQuoting?: Tile; assets?: Tile; contacts?: Tile };
   documents?: Heading;
   documentNotice?: string;
+  helpContact?: { phone?: string; email?: string };
   pricingQuoting?: { heading?: string; intro?: string; myPricing?: Tile; pricingDocuments?: Tile; quoting?: Tile; standardPriceLists?: Tile; quoteTemplate?: Tile };
   myPricing?: Heading;
   pricingDocuments?: Heading;
@@ -22,3 +24,12 @@ export interface MembersAreaText {
 export const getMembersText = cache(async (): Promise<MembersAreaText> =>
   (await sanityLiveClient.fetch<MembersAreaText | null>(`*[_id == "membersArea"][0]`).catch(() => null)) || {}
 );
+
+/** Head Office contact for the Help Centre, falling back to the main site phone and email */
+export async function getHelpContact(): Promise<{ phone: string | null; email: string | null }> {
+  const [text, site] = await Promise.all([getMembersText(), getSiteSettings()]);
+  return {
+    phone: text.helpContact?.phone || site.phone || null,
+    email: text.helpContact?.email || site.email || null,
+  };
+}

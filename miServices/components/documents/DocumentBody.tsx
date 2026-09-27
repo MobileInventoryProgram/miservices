@@ -103,7 +103,7 @@ export default function DocumentBody({ body, numberHeadings }: { body: DocBlock[
     function Heading({ children, value }: { children?: ReactNode; value: any }) {
       const number = numbers.get(value._key);
       return (
-        <Tag id={headingAnchor(value._key)} className={className}>
+        <Tag id={headingAnchor(value._key)} className={`${className} scroll-mt-20 rounded transition-colors duration-700`}>
           {number && <span className={DOC_CLASS.number}>{number}</span>}
           {children}
         </Tag>

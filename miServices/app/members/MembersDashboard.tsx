@@ -9,8 +9,10 @@ import {
   FiEdit3,
   FiEye,
   FiFileText,
+  FiHelpCircle,
   FiImage,
   FiPlus,
+  FiSearch,
   FiSend,
   FiUserPlus,
   FiUsers,
@@ -302,6 +304,23 @@ export default function MembersDashboard({ data }: { data: DashboardData }) {
             </Panel>
           </div>
         </div>
+
+        {/* Help */}
+        <form action="/members/help" className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center">
+          <label htmlFor="dashboard-help" className="flex items-center gap-2 font-semibold text-gray-900 font-helvetica sm:w-44">
+            <FiHelpCircle className="h-5 w-5 text-brand-light-blue" /> Need an answer?
+          </label>
+          <input
+            id="dashboard-help"
+            name="q"
+            type="search"
+            placeholder="Search the Help Centre, e.g. holiday, check-out, company van"
+            className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand-light-blue focus:outline-none focus:ring-brand-light-blue"
+          />
+          <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-dark-blue px-4 py-2 text-sm font-medium text-white hover:bg-brand-light-blue">
+            <FiSearch className="h-4 w-4" /> Search
+          </button>
+        </form>
 
         {/* Quick actions */}
         <section>
