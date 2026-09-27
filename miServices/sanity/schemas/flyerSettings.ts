@@ -2,7 +2,7 @@ import { defineField, defineType } from 'sanity';
 
 /**
  * Singleton: marketing wording printed on every A5 price flyer
- * (Franchise Login → Pricing Documents). Empty fields fall back to the
+ * (Members Area → Pricing leaflets). Empty fields fall back to the
  * wording from the original leaflet (DEFAULT_FLYER_SETTINGS in lib/flyer/data.ts).
  */
 export default defineType({

@@ -7,7 +7,7 @@ import { getAdminPriceLists, getFranchiseeForSession, getPriceListsForFranchisee
 import PricingDocumentsListing, { type LeafletListItem } from './PricingDocumentsListing';
 
 export const metadata: Metadata = {
-  title: 'Pricing Documents | Franchise Login | miServices',
+  title: 'Pricing Documents | Members Area | miServices',
 };
 
 export default async function PricingDocumentsPage() {
@@ -58,5 +58,5 @@ export default async function PricingDocumentsPage() {
     );
   }
 
-  redirect('/members/pricing-quoting');
+  redirect('/members');
 }

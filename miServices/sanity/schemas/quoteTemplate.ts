@@ -1,7 +1,7 @@
 import { defineField, defineType } from 'sanity';
 
 /**
- * Singleton: the Head Office quote template (Franchise Login → Quote Template).
+ * Singleton: the Head Office quote template (Members Area → Quote Template).
  * Empty fields fall back to DEFAULT_QUOTE_TEMPLATE in lib/quote/template.ts.
  */
 export default defineType({

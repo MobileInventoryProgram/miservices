@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import PageHeader from '@/components/members/PageHeader';
 import Pagination from '@/components/members/Pagination';
 import { usePagedList } from '@/components/members/usePagedList';
 import { CARD_PAGE_SIZE } from '@/lib/pagination';
 import { useRouter } from 'next/navigation';
 import {
-  FiArrowLeft,
   FiPlus,
   FiEdit2,
   FiTrash2,
@@ -86,19 +86,7 @@ export default function PricingListing({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-brand-dark-blue text-white py-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link
-            href="/members/pricing-quoting"
-            className="inline-flex items-center gap-2 text-blue-200 hover:text-white text-sm mb-4 transition-colors"
-          >
-            <FiArrowLeft className="w-4 h-4" />
-            Back to Pricing &amp; Quoting
-          </Link>
-          <h1 className="text-3xl md:text-4xl font-bold font-helvetica">{text.heading}</h1>
-          <p className="mt-1 text-blue-200">{territory} territory</p>
-        </div>
-      </div>
+      <PageHeader width="5xl" title={text.heading} intro={`${territory} territory`} />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
         {error && (

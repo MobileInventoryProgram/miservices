@@ -1,6 +1,6 @@
 /**
  * Head Office quote template: the sections every quote is built from.
- * Studio → Franchise Login → Quote Template overrides these defaults.
+ * Studio → Members Area → Quote Template overrides these defaults.
  * Client-safe (no Sanity client).
  *
  * Section text is plain text: blank lines separate paragraphs, lines starting

@@ -1,8 +1,7 @@
 import { Metadata } from 'next';
-import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { notFound, redirect } from 'next/navigation';
-import { FiArrowLeft } from 'react-icons/fi';
+import PageHeader from '@/components/members/PageHeader';
 import { authOptions } from '@/lib/auth-options';
 import { getMemberScope } from '@/lib/members-access';
 import { editableDefaults, getBuilderData } from '@/lib/quote/builder-data';
@@ -10,7 +9,7 @@ import { getQuoteForScope } from '@/lib/quote/quotes';
 import QuoteBuilder from '../../QuoteBuilder';
 
 export const metadata: Metadata = {
-  title: 'Edit Quote | Franchise Login | miServices',
+  title: 'Edit Quote | Members Area | miServices',
 };
 
 export default async function EditQuotePage({ params }: { params: Promise<{ id: string }> }) {
@@ -36,18 +35,14 @@ export default async function EditQuotePage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-brand-dark-blue text-white py-10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link
-            href={`/members/quoting/${id}`}
-            className="inline-flex items-center gap-2 text-blue-200 hover:text-white text-sm mb-4 transition-colors"
-          >
-            <FiArrowLeft className="w-4 h-4" />
-            Back to {quote.reference}
-          </Link>
-          <h1 className="text-3xl md:text-4xl font-bold font-helvetica">Edit Quote {quote.reference}</h1>
-        </div>
-      </div>
+      <PageHeader width="4xl"
+        title={`Edit Quote ${quote.reference}`}
+        breadcrumbs={[
+          { label: 'Quotes', href: '/members/quoting' },
+          { label: quote.reference || 'Quote', href: `/members/quoting/${id}` },
+          { label: 'Edit' },
+        ]}
+      />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <QuoteBuilder
           quoteId={id}

@@ -10,7 +10,7 @@ import {
 import PricingListing from './PricingListing';
 
 export const metadata: Metadata = {
-  title: 'My Pricing | Franchise Login | miServices',
+  title: 'My Pricing | Members Area | miServices',
 };
 
 export default async function PricingPage() {
@@ -25,7 +25,7 @@ export default async function PricingPage() {
     if (session.user.role === 'admin') {
       redirect('/members/pricing/admin');
     }
-    redirect('/members/pricing-quoting');
+    redirect('/members');
   }
 
   const franchisee = await getFranchiseeForSession(session);

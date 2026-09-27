@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { signOut } from 'next-auth/react';
-import { FiFileText, FiDollarSign, FiImage, FiUsers, FiLogOut, FiUser, FiClock } from 'react-icons/fi';
+import PageHeader from '@/components/members/PageHeader';
+import { FiFileText, FiDollarSign, FiImage, FiUsers, FiClock } from 'react-icons/fi';
 
 type Tile = { title?: string; description?: string };
 
@@ -18,7 +18,7 @@ const CATEGORIES = [
     slug: 'pricing-quoting',
     icon: FiDollarSign,
     color: 'bg-green-500',
-    href: '/members/pricing-quoting',
+    href: '/members/quoting',
     countSlugs: ['quoteRecords'],
     countNoun: 'quote',
   },
@@ -58,7 +58,7 @@ interface MembersDashboardProps {
   hasFranchisee: boolean;
   isAdmin?: boolean;
   categoryCounts: Record<string, number>;
-  /** Tile wording from the CMS (Franchise Login text) */
+  /** Tile wording from the CMS (Members Area text) */
   tiles?: Partial<Record<'documents' | 'pricing-quoting' | 'assets' | 'contacts', Tile>>;
   heading?: string;
 }
@@ -74,41 +74,15 @@ export default function MembersDashboard({
 }: MembersDashboardProps) {
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-brand-dark-blue text-white py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold font-helvetica">
-              {heading}
-            </h1>
-            <p className="mt-1 text-blue-200">
-              Welcome back, {userName}
-              {userTerritory && (
-                <span className="ml-2 text-sm bg-blue-800/50 px-2 py-0.5 rounded">
-                  {userTerritory}
-                </span>
-              )}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            {hasFranchisee && (
-              <Link
-                href="/members/edit-profile"
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-white/10 hover:bg-white/20 transition-colors"
-              >
-                <FiUser className="w-4 h-4" />
-                Edit Profile
-              </Link>
-            )}
-            <button
-              onClick={() => signOut({ callbackUrl: '/members/login' })}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-white/10 hover:bg-white/20 transition-colors"
-            >
-              <FiLogOut className="w-4 h-4" />
-              Sign Out
-            </button>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title={heading}
+        intro={
+          <>
+            Welcome back, {userName}
+            {userTerritory && <span className="ml-2 rounded bg-gray-100 px-2 py-0.5 text-sm text-gray-700">{userTerritory}</span>}
+          </>
+        }
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

@@ -143,7 +143,7 @@ export default [
       ['Lancashire', 'lancashire'],
     ].map(([label, slug]) => ({ _type: 'footerLocation', label, franchisee: { __franchiseeSlug: slug } })),
     copyright: 'miServices. All rights reserved.',
-    legalLinks: [link('Privacy Policy', '/privacy-policy'), link('Terms & Conditions', '/terms'), link('Franchise Login', '/members/login')],
+    legalLinks: [link('Privacy Policy', '/privacy-policy'), link('Terms & Conditions', '/terms'), link('Members Area', '/members/login')],
 
     defaultTitle: 'miServices - Professional Property Inventory Services UK',
     titleSuffix: ' | miServices',

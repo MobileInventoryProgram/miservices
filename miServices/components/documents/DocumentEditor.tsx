@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   EditorProvider,
@@ -21,7 +20,6 @@ import * as selectors from '@portabletext/editor/selectors';
 import {
   FiAlertCircle,
   FiArrowDown,
-  FiArrowLeft,
   FiArrowUp,
   FiBold,
   FiCheck,
@@ -39,6 +37,7 @@ import {
   FiUsers,
   FiX,
 } from 'react-icons/fi';
+import PageHeader from '@/components/members/PageHeader';
 import DocumentBody, { DocContacts, DocTable, imageSize } from '@/components/documents/DocumentBody';
 import DocumentContents from '@/components/documents/DocumentContents';
 import { ContactsEditor, ImageEditor, TableEditor, uploadDocumentImage } from '@/components/documents/BlockEditors';
@@ -600,18 +599,20 @@ export default function DocumentEditor(props: DocumentEditorProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-brand-dark-blue text-white py-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href={viewHref || listHref} className="inline-flex items-center gap-2 text-blue-200 hover:text-white text-sm mb-4 transition-colors">
-            <FiArrowLeft className="w-4 h-4" />
-            {viewHref ? 'Back to the document' : `Back to ${subcategories[subcategory] || 'Documents'}`}
-          </Link>
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl md:text-3xl font-bold font-helvetica">Edit document</h1>
+      <PageHeader width="6xl"
+        title={
+          <span className="inline-flex flex-wrap items-center gap-3">
+            Edit document
             <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${status.className}`}>{status.text}</span>
-          </div>
-        </div>
-      </div>
+          </span>
+        }
+        breadcrumbs={[
+          { label: 'Documents', href: '/members/documents' },
+          { label: subcategories[props.initial.subcategory] || 'Documents', href: listHref },
+          { label: props.initial.title || 'Untitled document', href: viewHref || undefined },
+          { label: 'Edit' },
+        ]}
+      />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Details */}

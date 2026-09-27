@@ -12,7 +12,7 @@ import { getMemberDocumentsByCategory } from '@/lib/sanity';
 import QuotesListing from './QuotesListing';
 
 export const metadata: Metadata = {
-  title: 'Quotes | Franchise Login | miServices',
+  title: 'Quotes | Members Area | miServices',
 };
 
 type Search = { q?: string; status?: string; franchise?: string; contact?: string; page?: string };
@@ -26,7 +26,7 @@ export default async function QuotesPage({ searchParams }: { searchParams: Promi
 
   const scope = await getMemberScope(session);
   if (!scope) {
-    redirect('/members/pricing-quoting');
+    redirect('/members');
   }
 
   const search = await searchParams;

@@ -10,7 +10,7 @@ import { getMemberDocumentsByCategory } from '@/lib/sanity';
 import ContactsListing from './ContactsListing';
 
 export const metadata: Metadata = {
-  title: 'Contacts | Franchise Login | miServices',
+  title: 'Contacts | Members Area | miServices',
 };
 
 type Search = { q?: string; status?: string; job?: string; franchise?: string; page?: string };

@@ -5,7 +5,7 @@ import { sanityLiveClient } from '@/lib/sanity';
 type Tile = { title?: string; description?: string };
 type Heading = { heading?: string; intro?: string; introAdmin?: string; empty?: string };
 
-/** The wording of the Franchise Login area (CMS: Franchise Login text) */
+/** The wording of the Members Area (CMS: Members Area text) */
 export interface MembersAreaText {
   login?: { heading?: string; intro?: string; forgotText?: string; needAccessText?: string; needAccessLink?: { label: string; href: string } };
   dashboard?: { documents?: Tile; pricingQuoting?: Tile; assets?: Tile; contacts?: Tile };

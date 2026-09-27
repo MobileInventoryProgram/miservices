@@ -6,7 +6,7 @@ import { getStandardPriceList } from '@/lib/sanity';
 import PriceListEditor from '@/components/pricing/PriceListEditor';
 
 export const metadata: Metadata = {
-  title: 'Edit Standard Price List | Franchise Login | miServices',
+  title: 'Edit Standard Price List | Members Area | miServices',
 };
 
 export default async function EditStandardPriceListPage({ params }: { params: Promise<{ id: string }> }) {
@@ -31,7 +31,8 @@ export default async function EditStandardPriceListPage({ params }: { params: Pr
       mode="admin"
       saveUrl={`/api/admin/pricing/${priceList._id}`}
       backHref="/members/pricing/admin"
-      backLabel="Back to Standard Price Lists"
+      backLabel="Standard price lists"
+      viewHref={`/members/pricing/${priceList._id}`}
       initialTitle={priceList.title}
       initialIsDefault={!!priceList.isDefault}
       initialAvailableToFranchisees={!!priceList.availableToFranchisees}

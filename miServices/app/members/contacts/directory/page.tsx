@@ -6,7 +6,7 @@ import { getMemberDocumentsByCategory, type DocumentTargetingParams } from '@/li
 import CategoryDocuments from '../../[category]/CategoryDocuments';
 
 export const metadata: Metadata = {
-  title: 'Key Contacts & Directory | Franchise Login | miServices',
+  title: 'Key Contacts & Directory | Members Area | miServices',
 };
 
 /** Head Office "contacts" documents (key contacts, directories), now under Contacts. */

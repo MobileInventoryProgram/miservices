@@ -7,7 +7,7 @@ import { getDocumentSections } from '@/lib/sanity';
 import DocumentEditor from '@/components/documents/DocumentEditor';
 
 export const metadata: Metadata = {
-  title: 'Edit Document | Franchise Login | miServices',
+  title: 'Edit Document | Members Area | miServices',
 };
 
 export const dynamic = 'force-dynamic';

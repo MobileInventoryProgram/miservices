@@ -49,7 +49,7 @@ export default defineType({
         }),
     }),
     defineField({
-      // Previous way of storing the section; kept in step by Franchise Login and used if Section is empty
+      // Previous way of storing the section; kept in step by Members Area and used if Section is empty
       name: 'subcategory',
       title: 'Section (legacy)',
       type: 'string',
@@ -169,7 +169,7 @@ export default defineType({
         },
       ],
       description:
-        'The document content, shown to logged-in members only (it cannot be downloaded). Edit and publish here — changes appear in Franchise Login immediately.',
+        'The document content, shown to logged-in members only (it cannot be downloaded). Edit and publish here — changes appear in Members Area immediately.',
     }),
     defineField({
       name: 'numberHeadings',

@@ -11,7 +11,7 @@ import { getMembersText } from '@/lib/cms/members';
 
 export const metadata: Metadata = {
   title: 'Members Dashboard | miServices',
-  description: 'miServices Franchise Login dashboard.',
+  description: 'miServices Members Area dashboard.',
 };
 
 export default async function MembersPage() {

@@ -623,7 +623,7 @@ export async function getAllServiceSlugs(): Promise<string[]> {
 // Authenticated write client for mutations
 /**
  * Uncached reader for member-only content (documents), so edits published in
- * Studio show in Franchise Login straight away rather than after the CDN cache.
+ * Studio show in Members Area straight away rather than after the CDN cache.
  */
 export const sanityLiveClient = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'a4q9j3x1',

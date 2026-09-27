@@ -6,7 +6,7 @@ import { getMemberDocumentsByCategory, type DocumentTargetingParams } from '@/li
 import CategoryDocuments from '../../[category]/CategoryDocuments';
 
 export const metadata: Metadata = {
-  title: 'Quoting Guides | Franchise Login | miServices',
+  title: 'Quoting Guides | Members Area | miServices',
 };
 
 /** Head Office "quoting" documents (guides, templates), now under Quotes. */

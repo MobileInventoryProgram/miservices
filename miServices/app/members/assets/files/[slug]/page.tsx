@@ -6,7 +6,7 @@ import { getMemberDocumentBySlug, type DocumentTargetingParams } from '@/lib/san
 import DocumentView from '../../../[category]/[slug]/DocumentView';
 
 export const metadata: Metadata = {
-  title: 'Brand Assets | Franchise Login | miServices',
+  title: 'Brand Assets | Members Area | miServices',
 };
 
 /** Head Office uploaded asset files, listed under Brand Assets → More downloads */
@@ -26,5 +26,5 @@ export default async function AssetFilePage({ params }: { params: { slug: string
     notFound();
   }
 
-  return <DocumentView document={doc} category="assets/brand" categoryTitle="Brand Assets" />;
+  return <DocumentView document={doc} category="assets/brand" categoryTitle="Brand Assets" sectionLabel="Assets" sectionHref="/members/assets" />;
 }

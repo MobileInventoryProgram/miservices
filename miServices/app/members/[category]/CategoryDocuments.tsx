@@ -5,6 +5,7 @@ import Pagination from '@/components/members/Pagination';
 import { usePagedList } from '@/components/members/usePagedList';
 import { CARD_PAGE_SIZE } from '@/lib/pagination';
 import { FiArrowLeft, FiDownload, FiEye } from 'react-icons/fi';
+import PageHeader from '@/components/members/PageHeader';
 import type { SanityMemberDocument } from '@/lib/sanity';
 
 interface CategoryDocumentsProps {
@@ -25,23 +26,11 @@ export default function CategoryDocuments({
   const docPage = usePagedList(documents, CARD_PAGE_SIZE);
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-brand-dark-blue text-white py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link
-            href={backHref}
-            className="inline-flex items-center gap-2 text-blue-200 hover:text-white text-sm mb-4 transition-colors"
-          >
-            <FiArrowLeft className="w-4 h-4" />
-            Back to {backLabel}
-          </Link>
-          <h1 className="text-3xl md:text-4xl font-bold font-helvetica">
-            {categoryTitle}
-          </h1>
-          <p className="mt-1 text-blue-200">
-            {documents.length} {documents.length === 1 ? 'document' : 'documents'}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title={categoryTitle}
+        breadcrumbs={[{ label: backLabel, href: backHref }, { label: categoryTitle }]}
+        intro={`${documents.length} ${documents.length === 1 ? 'document' : 'documents'}`}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {documents.length === 0 ? (

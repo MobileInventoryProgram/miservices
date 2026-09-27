@@ -8,7 +8,7 @@ import { PAGE_SINGLETONS } from './sanity/schemas/site/pages';
 const SINGLETONS: { id: string; type: string; title: string }[] = [
   { id: 'siteSettings', type: 'siteSettings', title: 'Site Settings' },
   ...PAGE_SINGLETONS.map((p) => ({ id: p.id, type: p.id, title: p.title })),
-  { id: 'membersArea', type: 'membersArea', title: 'Franchise Login text' },
+  { id: 'membersArea', type: 'membersArea', title: 'Members Area text' },
   { id: 'quoteTemplate', type: 'quoteTemplate', title: 'Quote Template' },
   { id: 'flyerSettings', type: 'flyerSettings', title: 'Flyer Settings' },
 ];
@@ -45,10 +45,10 @@ const customStructure = (S: StructureBuilder) =>
             ])
         ),
       S.listItem()
-        .title('Franchise Login')
+        .title('Members Area')
         .child(
           S.list()
-            .title('Franchise Login')
+            .title('Members Area')
             .items([
               singleton(S, 'membersArea'),
               S.divider(),

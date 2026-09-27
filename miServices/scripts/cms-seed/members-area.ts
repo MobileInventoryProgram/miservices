@@ -2,13 +2,13 @@ import { link } from './helpers';
 
 const t = (title: string, description: string) => ({ title, description });
 
-/** Copied from the previous hardcoded Franchise Login pages; document sections from the old hardcoded list */
+/** Copied from the previous hardcoded Members Area pages; document sections from the old hardcoded list */
 export default [
   {
     _id: 'membersArea',
     _type: 'membersArea',
     login: {
-      heading: 'Franchise Login',
+      heading: 'Members Area',
       intro: 'Sign in to access your documents',
       forgotText: 'Forgot your password? Contact your franchisor to have it reset.',
       needAccessText: 'Need access?',
@@ -21,7 +21,7 @@ export default [
       contacts: t('Contacts', 'Your clients and prospects, ready to quote'),
     },
     documents: { heading: 'Documents', intro: 'Browse documents by subcategory', empty: 'No documents in this subcategory yet.' },
-    documentNotice: 'Internal miServices document — for viewing in Franchise Login only. Please do not share or copy.',
+    documentNotice: 'Internal miServices document — for viewing in Members Area only. Please do not share or copy.',
     pricingQuoting: {
       heading: 'Pricing & Quoting',
       intro: 'Your pricing, pricing documents and quoting guides',

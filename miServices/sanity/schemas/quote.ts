@@ -4,7 +4,7 @@ import { JOB_TYPES } from '../../lib/job-types';
 /**
  * A bespoke quote sent to a contact. Belongs to a franchise; built from the
  * Quote Template. Once sent, its sections and price snapshot are frozen.
- * Created in Franchise Login → Pricing & Quoting → Quoting.
+ * Created in Members Area → Quotes.
  */
 export default defineType({
   name: 'quote',

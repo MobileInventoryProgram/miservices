@@ -90,7 +90,7 @@ async function applyPatch(doc: Any) {
   console.log(`updated           ${existingId} (${slugs[0]})${FORCE ? ' [force]' : ''}`);
 }
 
-/** Point each Franchise Login document at its section document (from its old section name) */
+/** Point each Members Area document at its section document (from its old section name) */
 async function linkDocumentSections() {
   const docs = await client.fetch<{ _id: string; subcategory: string }[]>(
     `*[_type == "memberDocument" && category == "documents" && defined(subcategory) && !defined(section)] { _id, subcategory }`

@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { FiArrowLeft, FiEdit2, FiPlus } from 'react-icons/fi';
+import { FiEdit2, FiPlus } from 'react-icons/fi';
+import PageHeader, { headerPrimaryButton } from '@/components/members/PageHeader';
 import { CmsIcon } from '@/lib/cms/icons';
 import type { DocumentSection } from '@/lib/sanity';
 import SectionForm from './SectionForm';
@@ -24,30 +25,19 @@ export default function SubcategoryCards({ subcategoryCounts, sections, heading,
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-brand-dark-blue text-white py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/members" className="inline-flex items-center gap-2 text-blue-200 hover:text-white text-sm mb-4 transition-colors">
-            <FiArrowLeft className="w-4 h-4" />
-            Back to Dashboard
-          </Link>
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold font-helvetica">{heading}</h1>
-              <p className="mt-1 text-blue-200">{intro}</p>
-            </div>
-            {isAdmin && editing !== 'new' && (
-              <button
-                type="button"
-                onClick={() => setEditing('new')}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-white text-brand-dark-blue hover:bg-blue-50 transition-colors font-helvetica"
-              >
-                <FiPlus className="w-4 h-4" />
-                New section
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title={heading}
+        intro={intro}
+        actions={
+          isAdmin &&
+          editing !== 'new' && (
+            <button type="button" onClick={() => setEditing('new')} className={headerPrimaryButton}>
+              <FiPlus className="w-4 h-4" />
+              New section
+            </button>
+          )
+        }
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {isAdmin && editing === 'new' && <SectionForm onClose={() => setEditing(null)} />}

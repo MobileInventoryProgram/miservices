@@ -6,7 +6,7 @@ import { getFranchiseeForSession, getSharedTemplates } from '@/lib/sanity';
 import DuplicateForm from './DuplicateForm';
 
 export const metadata: Metadata = {
-  title: 'Duplicate Template | My Pricing | Franchise Login | miServices',
+  title: 'Duplicate Template | My Pricing | Members Area | miServices',
 };
 
 export default async function DuplicateTemplatePage({

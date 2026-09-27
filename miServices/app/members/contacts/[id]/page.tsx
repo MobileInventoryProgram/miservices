@@ -2,20 +2,21 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { notFound, redirect } from 'next/navigation';
-import { FiArrowLeft, FiEdit2, FiFileText, FiMail, FiMapPin, FiPhone, FiPlus } from 'react-icons/fi';
+import { FiEdit2, FiFileText, FiMail, FiMapPin, FiPhone, FiPlus } from 'react-icons/fi';
 import { authOptions } from '@/lib/auth-options';
 import { contactName, getContactForScope } from '@/lib/crm/contacts';
 import { clientTypeLabel } from '@/lib/crm/options';
 import { jobTypeLabel } from '@/lib/job-types';
 import { getMemberScope } from '@/lib/members-access';
 import { getQuotesPage } from '@/lib/quote/quotes';
+import PageHeader, { headerSecondaryButton } from '@/components/members/PageHeader';
 import { effectiveStatus } from '@/lib/quote/types';
 import QuoteStatusBadge from '../../quoting/QuoteStatusBadge';
 import StatusBadge from '../StatusBadge';
 import ArchiveContactButton from './ArchiveContactButton';
 
 export const metadata: Metadata = {
-  title: 'Contact | Franchise Login | miServices',
+  title: 'Contact | Members Area | miServices',
 };
 
 function formatDate(value?: string) {
@@ -59,35 +60,22 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-brand-dark-blue text-white py-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link
-            href="/members/contacts"
-            className="inline-flex items-center gap-2 text-blue-200 hover:text-white text-sm mb-4 transition-colors"
-          >
-            <FiArrowLeft className="w-4 h-4" />
-            Back to Contacts
+      <PageHeader width="5xl"
+        title={
+          <span className="flex items-center gap-3">
+            {contactName(contact)}
+            <StatusBadge status={contact.status} />
+          </span>
+        }
+        intro={contact.companyName && (contact.firstName || contact.lastName) && contact.companyName}
+        breadcrumbs={[{ label: 'Contacts', href: '/members/contacts' }, { label: contactName(contact) }]}
+        actions={
+          <Link href={`/members/contacts/${id}/edit`} className={`${headerSecondaryButton} self-start`}>
+            <FiEdit2 className="w-4 h-4" />
+            Edit
           </Link>
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-3xl md:text-4xl font-bold font-helvetica">{contactName(contact)}</h1>
-                <StatusBadge status={contact.status} />
-              </div>
-              {contact.companyName && (contact.firstName || contact.lastName) && (
-                <p className="mt-1 text-blue-200">{contact.companyName}</p>
-              )}
-            </div>
-            <Link
-              href={`/members/contacts/${id}/edit`}
-              className="inline-flex items-center gap-2 self-start px-4 py-2 text-sm font-medium rounded-md bg-white/10 hover:bg-white/20 transition-colors"
-            >
-              <FiEdit2 className="w-4 h-4" />
-              Edit
-            </Link>
-          </div>
-        </div>
-      </div>
+        }
+      />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">

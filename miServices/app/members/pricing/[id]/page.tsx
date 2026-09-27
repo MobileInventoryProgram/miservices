@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
-import { FiArrowLeft, FiCopy, FiEdit2 } from 'react-icons/fi';
+import { FiCopy, FiEdit2 } from 'react-icons/fi';
+import PageHeader, { headerPrimaryButton } from '@/components/members/PageHeader';
 import { authOptions } from '@/lib/auth-options';
 import { getFranchiseeForSession, getVisiblePriceList, getPriceListById, getStandardPriceList } from '@/lib/sanity';
 import {
@@ -14,7 +15,7 @@ import {
 } from '@/lib/pricing';
 
 export const metadata: Metadata = {
-  title: 'View Price List | Franchise Login | miServices',
+  title: 'View Price List | Members Area | miServices',
 };
 
 export default async function ViewPriceListPage({
@@ -40,7 +41,7 @@ export default async function ViewPriceListPage({
     // Admin can view any price list (standard lists read live, as admins edit them)
     priceList = (await getStandardPriceList(id)) || (await getPriceListById(id));
     backHref = '/members/pricing/admin';
-    backLabel = 'Back to Standard Price Lists';
+    backLabel = 'Standard price lists';
   } else {
     // Franchisee must have a franchisee association
     if (!session.user.franchiseeId && !session.user.territory) {
@@ -55,7 +56,7 @@ export default async function ViewPriceListPage({
 
     priceList = await getVisiblePriceList(id, franchisee._id);
     backHref = '/members/pricing';
-    backLabel = 'Back to My Pricing';
+    backLabel = 'Price lists';
     showDuplicateButton = true;
   }
 
@@ -65,34 +66,26 @@ export default async function ViewPriceListPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-brand-dark-blue text-white py-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link
-            href={backHref}
-            className="inline-flex items-center gap-2 text-blue-200 hover:text-white text-sm mb-4 transition-colors"
-          >
-            <FiArrowLeft className="w-4 h-4" />
-            {backLabel}
-          </Link>
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl md:text-4xl font-bold font-helvetica">
-              {priceList.title}
-            </h1>
-            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-blue-800 text-blue-200 rounded-full">
+      <PageHeader width="5xl"
+        title={
+          <span className="inline-flex flex-wrap items-center gap-3">
+            {priceList.title}
+            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
               Read-only
             </span>
-            {isAdmin && !priceList.ownerRef && (
-              <Link
-                href={`/members/pricing/admin/${priceList._id}/edit`}
-                className="ml-auto inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-white text-brand-dark-blue hover:bg-blue-50 transition-colors font-helvetica"
-              >
-                <FiEdit2 className="w-4 h-4" />
-                Edit
-              </Link>
-            )}
-          </div>
-        </div>
-      </div>
+          </span>
+        }
+        breadcrumbs={[{ label: backLabel, href: backHref }, { label: priceList.title }]}
+        actions={
+          isAdmin &&
+          !priceList.ownerRef && (
+            <Link href={`/members/pricing/admin/${priceList._id}/edit`} className={headerPrimaryButton}>
+              <FiEdit2 className="w-4 h-4" />
+              Edit
+            </Link>
+          )
+        }
+      />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
         {/* Service Tables */}

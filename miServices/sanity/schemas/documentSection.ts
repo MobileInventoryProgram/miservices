@@ -2,7 +2,7 @@ import { defineField, defineType } from 'sanity';
 import { ICON_OPTIONS } from '../../lib/cms/icon-names';
 import { DEFAULT_SECTION_COLOUR, SECTION_COLOURS } from '../../lib/documents/sections';
 
-/** A section of Franchise Login → Documents (General, Operating Procedures…) */
+/** A section of Members Area → Documents (General, Operating Procedures…) */
 export default defineType({
   name: 'documentSection',
   title: 'Document section',

@@ -2,12 +2,13 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import { FiArrowLeft, FiEdit3, FiImage } from 'react-icons/fi';
+import { FiEdit3, FiImage } from 'react-icons/fi';
 import { authOptions } from '@/lib/auth-options';
 import { getMembersText } from '@/lib/cms/members';
+import PageHeader from '@/components/members/PageHeader';
 
 export const metadata: Metadata = {
-  title: 'Assets | Franchise Login | miServices',
+  title: 'Assets | Members Area | miServices',
 };
 
 const TILES = [
@@ -34,16 +35,7 @@ export default async function AssetsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-brand-dark-blue text-white py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/members" className="inline-flex items-center gap-2 text-blue-200 hover:text-white text-sm mb-4 transition-colors">
-            <FiArrowLeft className="w-4 h-4" />
-            Back to Dashboard
-          </Link>
-          <h1 className="text-3xl md:text-4xl font-bold font-helvetica">{text.heading}</h1>
-          <p className="mt-1 text-blue-200">{text.intro}</p>
-        </div>
-      </div>
+      <PageHeader title={text.heading} intro={text.intro} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {TILES.map((tile) => {

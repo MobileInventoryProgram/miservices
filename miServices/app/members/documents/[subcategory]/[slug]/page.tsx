@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: DocumentPageProps): Promise<M
   const doc = await getMemberDocumentBySlug(params.slug);
   if (!doc) return {};
   return {
-    title: `${doc.title} | Franchise Login | miServices`,
+    title: `${doc.title} | Members Area | miServices`,
   };
 }
 

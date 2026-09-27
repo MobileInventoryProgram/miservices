@@ -7,7 +7,7 @@ import { getMembersText } from '@/lib/cms/members';
 import SubcategoryCards from './SubcategoryCards';
 
 export const metadata: Metadata = {
-  title: 'Documents | Franchise Login | miServices',
+  title: 'Documents | Members Area | miServices',
   description: 'Browse documents by subcategory.',
 };
 

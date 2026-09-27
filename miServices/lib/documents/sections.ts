@@ -1,7 +1,7 @@
 import { ICON_OPTIONS } from '../cms/icon-names';
 
 /**
- * Documents section settings shared by the Studio schema and Franchise Login.
+ * Documents section settings shared by the Studio schema and Members Area.
  * Plain values only, so the Studio can import this file.
  */
 export const SECTION_COLOURS = [

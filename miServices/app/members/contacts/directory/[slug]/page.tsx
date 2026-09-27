@@ -6,7 +6,7 @@ import { getMemberDocumentBySlug, type DocumentTargetingParams } from '@/lib/san
 import DocumentView from '../../../[category]/[slug]/DocumentView';
 
 export const metadata: Metadata = {
-  title: 'Key Contacts & Directory | Franchise Login | miServices',
+  title: 'Key Contacts & Directory | Members Area | miServices',
 };
 
 export default async function ContactsDirectoryDocumentPage({ params }: { params: { slug: string } }) {
@@ -28,5 +28,5 @@ export default async function ContactsDirectoryDocumentPage({ params }: { params
     notFound();
   }
 
-  return <DocumentView document={doc} category="contacts/directory" categoryTitle="Key Contacts & Directory" />;
+  return <DocumentView document={doc} category="contacts/directory" categoryTitle="Key Contacts & Directory" sectionLabel="Contacts" sectionHref="/members/contacts" />;
 }

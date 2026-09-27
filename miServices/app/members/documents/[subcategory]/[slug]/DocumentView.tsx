@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, type SyntheticEvent } from 'react';
 import Link from 'next/link';
-import { FiArrowLeft, FiEdit2, FiLock } from 'react-icons/fi';
+import { FiEdit2, FiLock } from 'react-icons/fi';
 import DocumentBody from '@/components/documents/DocumentBody';
 import DocumentContents from '@/components/documents/DocumentContents';
 import { buildOutline, type DocBlock } from '@/lib/documents/standard';
 import type { SanityMemberDocument } from '@/lib/sanity';
+import PageHeader, { headerPrimaryButton } from '@/components/members/PageHeader';
 
 interface DocumentViewProps {
   document: SanityMemberDocument;
@@ -49,50 +50,45 @@ export default function DocumentView({ document: doc, subcategory, subcategoryTi
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-brand-dark-blue text-white py-10 print:hidden">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link
-            href={`/members/documents/${subcategory}`}
-            className="inline-flex items-center gap-2 text-blue-200 hover:text-white text-sm mb-4 transition-colors"
-          >
-            <FiArrowLeft className="w-4 h-4" />
-            Back to {subcategoryTitle}
-          </Link>
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold font-helvetica">{doc.title}</h1>
-              {doc.publishedAt && (
-                <p className="mt-2 text-blue-200 text-sm">
-                  Updated{' '}
-                  {new Date(doc.publishedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-                </p>
-              )}
-            </div>
-            {editHref && (
-              <Link
-                href={editHref}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-white text-brand-dark-blue hover:bg-blue-50 transition-colors font-helvetica"
-              >
-                <FiEdit2 className="w-4 h-4" />
-                Edit
-              </Link>
-            )}
-          </div>
-          {hasDraft && (
-            <p className="mt-4 inline-flex items-center gap-2 rounded-md bg-amber-100 px-3 py-1.5 text-sm text-amber-900">
-              Draft changes are waiting to be published.{' '}
-              <Link href={editHref || '#'} className="font-medium underline">
-                Open the editor
-              </Link>
-            </p>
-          )}
-        </div>
-      </div>
+      <PageHeader width="6xl"
+        className="print:hidden"
+        title={doc.title}
+        breadcrumbs={[
+          { label: 'Documents', href: '/members/documents' },
+          { label: subcategoryTitle, href: `/members/documents/${subcategory}` },
+          { label: doc.title },
+        ]}
+        intro={
+          doc.publishedAt && (
+            <span className="text-sm">
+              Updated{' '}
+              {new Date(doc.publishedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </span>
+          )
+        }
+        actions={
+          editHref && (
+            <Link href={editHref} className={headerPrimaryButton}>
+              <FiEdit2 className="w-4 h-4" />
+              Edit
+            </Link>
+          )
+        }
+      >
+        {hasDraft && (
+          <p className="mt-4 inline-flex items-center gap-2 rounded-md bg-amber-100 px-3 py-1.5 text-sm text-amber-900">
+            Draft changes are waiting to be published.{' '}
+            <Link href={editHref || '#'} className="font-medium underline">
+              Open the editor
+            </Link>
+          </p>
+        )}
+      </PageHeader>
 
       {/* Shown instead of the document if someone tries to print it */}
       <div className="hidden p-16 text-center print:block">
         <p className="text-xl font-bold">This document is not available to print.</p>
-        <p className="mt-2">miServices internal documents can only be viewed in Franchise Login.</p>
+        <p className="mt-2">miServices internal documents can only be viewed in Members Area.</p>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 print:hidden">

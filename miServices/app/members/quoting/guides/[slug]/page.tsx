@@ -6,7 +6,7 @@ import { getMemberDocumentBySlug, type DocumentTargetingParams } from '@/lib/san
 import DocumentView from '../../../[category]/[slug]/DocumentView';
 
 export const metadata: Metadata = {
-  title: 'Quoting Guides | Franchise Login | miServices',
+  title: 'Quoting Guides | Members Area | miServices',
 };
 
 export default async function QuotingGuideDocumentPage({ params }: { params: { slug: string } }) {
@@ -28,5 +28,5 @@ export default async function QuotingGuideDocumentPage({ params }: { params: { s
     notFound();
   }
 
-  return <DocumentView document={doc} category="quoting/guides" categoryTitle="Quoting Guides & Templates" />;
+  return <DocumentView document={doc} category="quoting/guides" categoryTitle="Quoting Guides & Templates" sectionLabel="Quotes" sectionHref="/members/quoting" />;
 }

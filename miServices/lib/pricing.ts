@@ -190,8 +190,9 @@ export function buildLeafletData(priceList: {
   };
 }
 
-/** £69 for whole pounds, £55.50 otherwise. */
-export function formatPrice(amount: number): string {
+/** £69 for whole pounds, £55.50 otherwise; — when there's no price. */
+export function formatPrice(amount: number | null | undefined): string {
+  if (amount == null || !Number.isFinite(amount)) return '—';
   return Number.isInteger(amount)
     ? `£${amount.toLocaleString('en-GB')}`
     : `£${amount.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

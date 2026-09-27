@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { notFound, redirect } from 'next/navigation';
-import { FiArrowLeft } from 'react-icons/fi';
+import PageHeader from '@/components/members/PageHeader';
 import { authOptions } from '@/lib/auth-options';
 import FlyerSheets from '@/components/pricing/flyer/FlyerSheets';
 import { getFlyerImageInfo } from '@/lib/flyer/assets';
@@ -12,7 +12,7 @@ import { getFlyerSettings } from '@/lib/sanity';
 import LeafletActions from '../LeafletActions';
 
 export const metadata: Metadata = {
-  title: 'Preview | Pricing Documents | Franchise Login | miServices',
+  title: 'Preview | Pricing Documents | Members Area | miServices',
 };
 
 const LAYOUTS: { value: FlyerLayout; label: string }[] = [
@@ -47,19 +47,11 @@ export default async function PricingDocumentPreviewPage({
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <div className="bg-brand-dark-blue text-white py-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link
-            href="/members/pricing-documents"
-            className="inline-flex items-center gap-2 text-blue-200 hover:text-white text-sm mb-4 transition-colors"
-          >
-            <FiArrowLeft className="w-4 h-4" />
-            Back to Pricing Documents
-          </Link>
-          <h1 className="text-2xl md:text-3xl font-bold font-helvetica">{priceList.title}</h1>
-          <p className="mt-1 text-blue-200 text-sm">A5 flyer · 148 × 210mm</p>
-        </div>
-      </div>
+      <PageHeader width="6xl"
+        title={priceList.title}
+        intro={<span className="text-sm">A5 flyer · 148 × 210mm</span>}
+        breadcrumbs={[{ label: 'Pricing leaflets', href: '/members/pricing-documents' }, { label: priceList.title }]}
+      />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex flex-col lg:flex-row lg:items-start gap-4">

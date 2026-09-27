@@ -6,7 +6,7 @@ import { getFranchiseeForSession, getOwnedPriceList } from '@/lib/sanity';
 import PriceListEditor from '@/components/pricing/PriceListEditor';
 
 export const metadata: Metadata = {
-  title: 'Edit Price List | Franchise Login | miServices',
+  title: 'Edit Price List | Members Area | miServices',
 };
 
 export default async function EditPriceListPage({
@@ -43,7 +43,8 @@ export default async function EditPriceListPage({
       saveUrl={`/api/members/pricing/${priceList._id}`}
       setDefaultUrl={`/api/members/pricing/${priceList._id}/default`}
       backHref="/members/pricing"
-      backLabel="Back to My Pricing"
+      backLabel="Price lists"
+      viewHref={`/members/pricing/${priceList._id}`}
       initialTitle={priceList.title}
       initialIsDefault={priceList.isDefault}
       initialServiceRows={priceList.serviceRows || []}

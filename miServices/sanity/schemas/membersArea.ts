@@ -20,10 +20,10 @@ const heading = (name: string, title: string, extra: string[] = []) =>
     ],
   });
 
-/** Singleton: the wording of the Franchise Login area (buttons and form labels stay in code) */
+/** Singleton: the wording of the Members Area (buttons and form labels stay in code) */
 export default defineType({
   name: 'membersArea',
-  title: 'Franchise Login text',
+  title: 'Members Area text',
   type: 'document',
   groups: [
     { name: 'login', title: 'Login & dashboard', default: true },
@@ -92,5 +92,5 @@ export default defineType({
       group: 'sections',
     },
   ],
-  preview: { prepare: () => ({ title: 'Franchise Login text' }) },
+  preview: { prepare: () => ({ title: 'Members Area text' }) },
 });

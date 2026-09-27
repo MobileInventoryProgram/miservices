@@ -7,7 +7,7 @@ import { getQuoteTemplate } from '@/lib/quote/quotes';
 import TemplateEditor from './TemplateEditor';
 
 export const metadata: Metadata = {
-  title: 'Quote Template | Franchise Login | miServices',
+  title: 'Quote Template | Members Area | miServices',
 };
 
 export const dynamic = 'force-dynamic';

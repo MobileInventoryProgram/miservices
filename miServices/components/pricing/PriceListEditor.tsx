@@ -1,11 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   FiAlertCircle,
-  FiArrowLeft,
   FiCheck,
   FiPercent,
   FiPlus,
@@ -15,6 +13,7 @@ import {
   FiTrash2,
   FiX,
 } from 'react-icons/fi';
+import PageHeader from '@/components/members/PageHeader';
 import type { SanityAdditionalRoomRates, SanityFlatRate, SanityServiceRow } from '@/lib/sanity';
 import { BEDROOM_LABELS, BEDROOM_ORDER, SERVICE_TYPE_LABELS, SERVICE_TYPE_ORDER, adjustPrice, formatPrice } from '@/lib/pricing';
 
@@ -54,6 +53,8 @@ export interface PriceListEditorProps {
   setDefaultUrl?: string;
   backHref: string;
   backLabel: string;
+  /** Read-only view of this list, for the breadcrumbs */
+  viewHref?: string;
 }
 
 /** Price box that accepts pence; the list updates as you type */
@@ -100,7 +101,7 @@ function sortRows(rows: SanityServiceRow[]) {
 }
 
 export default function PriceListEditor(props: PriceListEditorProps) {
-  const { mode, saveUrl, setDefaultUrl, backHref, backLabel } = props;
+  const { mode, saveUrl, setDefaultUrl, backHref, backLabel, viewHref } = props;
   const isAdmin = mode === 'admin';
   const router = useRouter();
 
@@ -334,20 +335,17 @@ export default function PriceListEditor(props: PriceListEditorProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-brand-dark-blue text-white py-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href={backHref} className="inline-flex items-center gap-2 text-blue-200 hover:text-white text-sm mb-4 transition-colors">
-            <FiArrowLeft className="w-4 h-4" />
-            {backLabel}
-          </Link>
-          <h1 className="text-3xl md:text-4xl font-bold font-helvetica">{isAdmin ? 'Edit Standard Price List' : 'Edit Price List'}</h1>
-          {isAdmin && (
-            <p className="mt-2 text-blue-200 text-sm max-w-2xl">
+      <PageHeader width="5xl"
+        title={isAdmin ? 'Edit Standard Price List' : 'Edit Price List'}
+        intro={
+          isAdmin && (
+            <span className="block text-sm max-w-2xl">
               Head Office standard list. Changes don&apos;t affect franchises&apos; own copies, or quotes already sent.
-            </p>
-          )}
-        </div>
-      </div>
+            </span>
+          )
+        }
+        breadcrumbs={[{ label: backLabel, href: backHref }, { label: props.initialTitle, href: viewHref }, { label: 'Edit' }]}
+      />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
         {/* Details */}

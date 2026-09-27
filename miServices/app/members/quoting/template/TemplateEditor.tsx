@@ -1,11 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
 import {
   FiAlertCircle,
   FiArrowDown,
-  FiArrowLeft,
   FiArrowUp,
   FiCheck,
   FiChevronDown,
@@ -18,6 +16,7 @@ import {
   FiTrash2,
   FiX,
 } from 'react-icons/fi';
+import PageHeader from '@/components/members/PageHeader';
 import QuoteSlides from '@/components/quote/QuoteSlides';
 import type { QuoteDocumentData } from '@/lib/quote/document';
 import {
@@ -291,18 +290,14 @@ export default function TemplateEditor({ initialTemplate, logoSrc }: { initialTe
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-brand-dark-blue text-white py-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/members/pricing-quoting" className="inline-flex items-center gap-2 text-blue-200 hover:text-white text-sm mb-4 transition-colors">
-            <FiArrowLeft className="w-4 h-4" />
-            Back to Pricing &amp; Quoting
-          </Link>
-          <h1 className="text-3xl md:text-4xl font-bold font-helvetica">Quote Template</h1>
-          <p className="mt-2 text-blue-200 text-sm max-w-2xl">
+      <PageHeader width="5xl"
+        title="Quote Template"
+        intro={
+          <span className="block text-sm max-w-2xl">
             The standard wording and details in every franchise&apos;s quotes. Head Office sections can only be changed here.
-          </p>
-        </div>
-      </div>
+          </span>
+        }
+      />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
         <p className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">

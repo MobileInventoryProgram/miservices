@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: SubcategoryPageProps): Promis
   const title = (await getDocumentSection(params.subcategory))?.title;
   if (!title) return {};
   return {
-    title: `${title} | Documents | Franchise Login | miServices`,
+    title: `${title} | Documents | Members Area | miServices`,
   };
 }
 

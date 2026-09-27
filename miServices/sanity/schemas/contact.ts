@@ -5,7 +5,7 @@ import { CLIENT_TYPES, CONTACT_STATUSES } from '../../lib/crm/options';
 /**
  * A franchise's client/prospect. Belongs to a franchise (every login on that
  * franchise can see it) and records which member owns it. Head Office admins
- * see all contacts. Managed in Franchise Login → Contacts.
+ * see all contacts. Managed in Members Area → Contacts.
  */
 export default defineType({
   name: 'contact',

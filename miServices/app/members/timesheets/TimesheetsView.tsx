@@ -3,8 +3,9 @@
 import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { FiAlertCircle, FiArrowLeft, FiDownload, FiRefreshCw, FiSearch } from 'react-icons/fi';
+import { FiAlertCircle, FiDownload, FiRefreshCw, FiSearch } from 'react-icons/fi';
 import Pagination from '@/components/members/Pagination';
+import PageHeader, { headerPrimaryButton, headerSecondaryButton } from '@/components/members/PageHeader';
 import StaffPicker from './StaffPicker';
 import type { StaffSummary, TimesheetLine } from '@/lib/servicem8/timesheets';
 
@@ -128,45 +129,31 @@ export default function TimesheetsView({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-brand-dark-blue text-white py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/members" className="inline-flex items-center gap-2 text-blue-200 hover:text-white text-sm mb-4 transition-colors">
-            <FiArrowLeft className="w-4 h-4" />
-            Back to Dashboard
-          </Link>
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold font-helvetica">Staff Timesheets</h1>
-              <p className="mt-1 text-blue-200">
-                Check-ins and completed jobs for every member of staff, live from ServiceM8
-                {fetchedAt && (
-                  <> · updated {new Date(fetchedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</>
-                )}
-              </p>
-            </div>
-            <div className="flex gap-2 self-start">
-              <button
-                type="button"
-                onClick={refresh}
-                disabled={busy}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-60"
-              >
-                <FiRefreshCw className={`w-4 h-4 ${busy ? 'animate-spin' : ''}`} />
-                Refresh
-              </button>
-              {!error && (
-                <a
-                  href={exportHref}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-white text-brand-dark-blue hover:bg-blue-50 transition-colors font-helvetica"
-                >
-                  <FiDownload className="w-4 h-4" />
-                  Download CSV{selectedStaff.length > 0 && ` (${selectedStaff.length} staff)`}
-                </a>
-              )}
-            </div>
+      <PageHeader
+        title="Staff Timesheets"
+        intro={
+          <>
+            Check-ins and completed jobs for every member of staff, live from ServiceM8
+            {fetchedAt && (
+              <> · updated {new Date(fetchedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</>
+            )}
+          </>
+        }
+        actions={
+          <div className="flex gap-2 self-start">
+            <button type="button" onClick={refresh} disabled={busy} className={headerSecondaryButton}>
+              <FiRefreshCw className={`w-4 h-4 ${busy ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
+            {!error && (
+              <a href={exportHref} className={headerPrimaryButton}>
+                <FiDownload className="w-4 h-4" />
+                Download CSV{selectedStaff.length > 0 && ` (${selectedStaff.length} staff)`}
+              </a>
+            )}
           </div>
-        </div>
-      </div>
+        }
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-end gap-3">

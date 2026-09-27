@@ -1,10 +1,8 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import {
-  FiArrowLeft,
   FiSave,
   FiCheck,
   FiAlertCircle,
@@ -17,6 +15,7 @@ import {
   FiUser,
   FiCamera,
 } from 'react-icons/fi';
+import PageHeader from '@/components/members/PageHeader';
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -492,23 +491,7 @@ Whether you manage a single property or a large portfolio in ${territory}, miSer
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-brand-dark-blue text-white py-10">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link
-            href="/members"
-            className="inline-flex items-center gap-2 text-blue-200 hover:text-white text-sm mb-4 transition-colors"
-          >
-            <FiArrowLeft className="w-4 h-4" />
-            Back to Dashboard
-          </Link>
-          <h1 className="text-3xl md:text-4xl font-bold font-helvetica">
-            Edit Profile
-          </h1>
-          <p className="mt-1 text-blue-200">
-            Update your details for the {territory} territory page
-          </p>
-        </div>
-      </div>
+      <PageHeader width="3xl" title="Edit Profile" intro={`Update your details for the ${territory} territory page`} />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <form onSubmit={handleSubmit} className="space-y-4">

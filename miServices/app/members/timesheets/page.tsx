@@ -8,7 +8,7 @@ import { filterLines, filterSummary, getTimesheets, type TimesheetData } from '@
 import TimesheetsView from './TimesheetsView';
 
 export const metadata: Metadata = {
-  title: 'Staff Timesheets | Franchise Login | miServices',
+  title: 'Staff Timesheets | Members Area | miServices',
 };
 
 export const maxDuration = 60;
