@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FiAlertCircle, FiCheck, FiPlus, FiX } from 'react-icons/fi';
+import { FiAlertCircle, FiCheck, FiPlus, FiTrash2, FiX } from 'react-icons/fi';
 import { ICON_OPTIONS } from '@/lib/cms/icon-names';
 import { CmsIcon } from '@/lib/cms/icons';
 import { DEFAULT_SECTION_COLOUR, DEFAULT_SECTION_ICON, SECTION_COLOURS } from '@/lib/documents/sections';
@@ -23,6 +23,7 @@ export default function SectionForm({ section, onClose }: { section?: DocumentSe
   const [colour, setColour] = useState(section?.colour || DEFAULT_SECTION_COLOUR);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +47,22 @@ export default function SectionForm({ section, onClose }: { section?: DocumentSe
       // Straight into the new section, ready to add its first document
       router.push(`/members/documents/${data.slug}`);
     }
+  };
+
+  const remove = async () => {
+    if (!section) return;
+    setBusy(true);
+    setError('');
+    const res = await fetch(`/api/admin/documents/sections/${section._id}`, { method: 'DELETE' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setError(data.error || 'Failed to delete the section');
+      setConfirmingDelete(false);
+      setBusy(false);
+      return;
+    }
+    router.refresh();
+    onClose();
   };
 
   const fieldId = section ? `section-${section._id}` : 'new-section';
@@ -164,6 +181,35 @@ export default function SectionForm({ section, onClose }: { section?: DocumentSe
             ? 'The section keeps its web address, so links to it still work.'
             : 'Franchisees won’t see it until it has a published document.'}
         </p>
+        {section && (
+          <div className="ml-auto flex items-center gap-2">
+            {confirmingDelete ? (
+              <>
+                <span className="text-sm text-gray-700">Delete this section?</span>
+                <button
+                  type="button"
+                  onClick={remove}
+                  disabled={busy}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
+                >
+                  <FiTrash2 className="h-4 w-4" /> {busy ? 'Deleting…' : 'Yes, delete'}
+                </button>
+                <button type="button" onClick={() => setConfirmingDelete(false)} disabled={busy} className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900">
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirmingDelete(true)}
+                disabled={busy}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-600 rounded-md hover:bg-red-50 disabled:opacity-50"
+              >
+                <FiTrash2 className="h-4 w-4" /> Delete section
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </form>
   );
