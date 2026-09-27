@@ -14,6 +14,7 @@ import {
   FiEye,
   FiStar,
   FiCopy,
+  FiPrinter,
 } from 'react-icons/fi';
 import type { SanityPriceListSummary } from '@/lib/sanity';
 
@@ -149,6 +150,13 @@ export default function PricingListing({
                       <FiEdit2 className="w-3.5 h-3.5" />
                       Edit
                     </Link>
+                    <Link
+                      href={`/members/pricing/${list._id}/leaflet`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                    >
+                      <FiPrinter className="w-3.5 h-3.5" />
+                      Leaflet
+                    </Link>
                     {!list.isDefault && (
                       <button
                         type="button"
@@ -212,6 +220,13 @@ export default function PricingListing({
                     >
                       <FiEye className="w-3.5 h-3.5" />
                       View
+                    </Link>
+                    <Link
+                      href={`/members/pricing/${template._id}/leaflet`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                    >
+                      <FiPrinter className="w-3.5 h-3.5" />
+                      Leaflet
                     </Link>
                     <Link
                       href={`/members/pricing/new?templateId=${template._id}`}

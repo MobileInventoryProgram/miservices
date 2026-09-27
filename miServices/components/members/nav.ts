@@ -1,5 +1,5 @@
 import type { IconType } from 'react-icons';
-import { FiBook, FiClock, FiEdit3, FiFileText, FiGrid, FiImage, FiPrinter, FiUsers } from 'react-icons/fi';
+import { FiBook, FiClock, FiEdit3, FiFileText, FiGrid, FiImage, FiUsers } from 'react-icons/fi';
 import FiPoundSign from '@/components/icons/FiPoundSign';
 
 /** Members Area side menu */
@@ -26,8 +26,13 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/members/quoting', label: 'Quotes', icon: FiFileText },
       { href: '/members/contacts', label: 'Contacts', icon: FiUsers },
-      { href: '/members/pricing', label: 'Price lists', icon: FiPoundSign as IconType, adminHref: '/members/pricing/admin' },
-      { href: '/members/pricing-documents', label: 'Pricing leaflets', icon: FiPrinter },
+      {
+        href: '/members/pricing',
+        label: 'Pricing',
+        icon: FiPoundSign as IconType,
+        adminHref: '/members/pricing/admin',
+        also: ['/members/pricing-documents'],
+      },
     ],
   },
   {

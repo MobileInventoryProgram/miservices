@@ -1,19 +1,21 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   FiAlertCircle,
   FiCheck,
   FiPercent,
   FiPlus,
+  FiPrinter,
   FiRotateCcw,
   FiSave,
   FiStar,
   FiTrash2,
   FiX,
 } from 'react-icons/fi';
-import PageHeader from '@/components/members/PageHeader';
+import PageHeader, { headerSecondaryButton } from '@/components/members/PageHeader';
 import type { SanityAdditionalRoomRates, SanityFlatRate, SanityServiceRow } from '@/lib/sanity';
 import { BEDROOM_LABELS, BEDROOM_ORDER, SERVICE_TYPE_LABELS, SERVICE_TYPE_ORDER, adjustPrice, formatPrice } from '@/lib/pricing';
 
@@ -55,6 +57,8 @@ export interface PriceListEditorProps {
   backLabel: string;
   /** Read-only view of this list, for the breadcrumbs */
   viewHref?: string;
+  /** This list's leaflet (A5 flyer and PDFs) */
+  leafletHref?: string;
 }
 
 /** Price box that accepts pence; the list updates as you type */
@@ -101,7 +105,7 @@ function sortRows(rows: SanityServiceRow[]) {
 }
 
 export default function PriceListEditor(props: PriceListEditorProps) {
-  const { mode, saveUrl, setDefaultUrl, backHref, backLabel, viewHref } = props;
+  const { mode, saveUrl, setDefaultUrl, backHref, backLabel, viewHref, leafletHref } = props;
   const isAdmin = mode === 'admin';
   const router = useRouter();
 
@@ -345,7 +349,25 @@ export default function PriceListEditor(props: PriceListEditorProps) {
           )
         }
         breadcrumbs={[{ label: backLabel, href: backHref }, { label: props.initialTitle, href: viewHref }, { label: 'Edit' }]}
+        actions={
+          leafletHref &&
+          (dirty ? (
+            // The leaflet is built from the saved list, so unsaved changes wouldn't show on it yet
+            <span className={`${headerSecondaryButton} cursor-not-allowed opacity-60`} title="Save first so the leaflet shows your changes">
+              <FiPrinter className="w-4 h-4" />
+              Generate leaflet
+            </span>
+          ) : (
+            <Link href={leafletHref} className={headerSecondaryButton}>
+              <FiPrinter className="w-4 h-4" />
+              Generate leaflet
+            </Link>
+          ))
+        }
       />
+      {leafletHref && dirty && (
+        <p className="mx-auto max-w-5xl px-4 pt-3 text-right text-xs text-gray-500 sm:px-6 lg:px-8">Save first so the leaflet shows your changes.</p>
+      )}
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
         {/* Details */}

@@ -31,8 +31,9 @@ export default async function EditStandardPriceListPage({ params }: { params: Pr
       mode="admin"
       saveUrl={`/api/admin/pricing/${priceList._id}`}
       backHref="/members/pricing/admin"
-      backLabel="Price lists"
+      backLabel="Pricing"
       viewHref={`/members/pricing/${priceList._id}`}
+      leafletHref={`/members/pricing/${priceList._id}/leaflet`}
       initialTitle={priceList.title}
       initialIsDefault={!!priceList.isDefault}
       initialAvailableToFranchisees={!!priceList.availableToFranchisees}

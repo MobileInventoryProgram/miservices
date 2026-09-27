@@ -161,7 +161,7 @@ export default function MembersDashboard({ data }: { data: DashboardData }) {
           { href: '/members/contacts/new', label: 'New contact', icon: FiUserPlus },
         ]
       : []),
-    { href: '/members/pricing', label: 'Price lists', icon: FiPoundSign as IconType },
+    { href: '/members/pricing', label: 'Pricing', icon: FiPoundSign as IconType },
     { href: '/members/assets/brand', label: 'Brand assets', icon: FiImage },
     ...(data.isAdmin
       ? [

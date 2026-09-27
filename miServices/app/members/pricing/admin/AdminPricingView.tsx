@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FiAlertCircle, FiEdit2, FiEye, FiPlus, FiStar, FiUsers, FiX } from 'react-icons/fi';
+import { FiAlertCircle, FiEdit2, FiEye, FiPlus, FiPrinter, FiStar, FiUsers, FiX } from 'react-icons/fi';
 import PageHeader from '@/components/members/PageHeader';
 import Pagination from '@/components/members/Pagination';
 import { usePagedList } from '@/components/members/usePagedList';
@@ -151,7 +151,7 @@ export default function AdminPricingView({
   return (
     <div className="min-h-screen bg-gray-50">
       <PageHeader width="5xl"
-        title="Price Lists"
+        title="Pricing"
         intro={
           <>
             Head Office — {templates.length} standard {templates.length === 1 ? 'list' : 'lists'}, {franchiseeLists.length} franchise {franchiseeLists.length === 1 ? 'list' : 'lists'}
@@ -228,6 +228,13 @@ export default function AdminPricingView({
                       <FiEye className="w-3.5 h-3.5" />
                       View
                     </Link>
+                    <Link
+                      href={`/members/pricing/${template._id}/leaflet`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                    >
+                      <FiPrinter className="w-3.5 h-3.5" />
+                      Leaflet
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -295,13 +302,20 @@ export default function AdminPricingView({
                         {list.ownerName && (
                           <p className="text-xs text-gray-400 mb-3">{list.ownerName}</p>
                         )}
-                        <div className="mt-auto pt-3 border-t border-gray-100">
+                        <div className="mt-auto flex items-center gap-2 pt-3 border-t border-gray-100">
                           <Link
                             href={`/members/pricing/${list._id}`}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
                           >
                             <FiEye className="w-3.5 h-3.5" />
                             View
+                          </Link>
+                          <Link
+                            href={`/members/pricing/${list._id}/leaflet`}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                          >
+                            <FiPrinter className="w-3.5 h-3.5" />
+                            Leaflet
                           </Link>
                         </div>
                       </div>

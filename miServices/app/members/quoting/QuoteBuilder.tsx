@@ -367,7 +367,7 @@ export default function QuoteBuilder({
         </select>
         {values.priceListId && (
           <Link
-            href={`/members/pricing-documents/${values.priceListId}`}
+            href={`/members/pricing/${values.priceListId}/leaflet`}
             target="_blank"
             className="mt-2 inline-flex items-center gap-1.5 text-sm text-brand-light-blue hover:text-brand-dark-blue"
           >

@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
-import { FiCopy, FiEdit2 } from 'react-icons/fi';
-import PageHeader, { headerPrimaryButton } from '@/components/members/PageHeader';
+import { FiCopy, FiEdit2, FiPrinter } from 'react-icons/fi';
+import PageHeader, { headerPrimaryButton, headerSecondaryButton } from '@/components/members/PageHeader';
 import { authOptions } from '@/lib/auth-options';
 import { getFranchiseeForSession, getVisiblePriceList, getPriceListById, getStandardPriceList } from '@/lib/sanity';
 import {
@@ -41,7 +41,7 @@ export default async function ViewPriceListPage({
     // Admin can view any price list (standard lists read live, as admins edit them)
     priceList = (await getStandardPriceList(id)) || (await getPriceListById(id));
     backHref = '/members/pricing/admin';
-    backLabel = 'Price lists';
+    backLabel = 'Pricing';
   } else {
     // Franchisee must have a franchisee association
     if (!session.user.franchiseeId && !session.user.territory) {
@@ -56,7 +56,7 @@ export default async function ViewPriceListPage({
 
     priceList = await getVisiblePriceList(id, franchisee._id);
     backHref = '/members/pricing';
-    backLabel = 'Price lists';
+    backLabel = 'Pricing';
     showDuplicateButton = true;
   }
 
@@ -77,13 +77,18 @@ export default async function ViewPriceListPage({
         }
         breadcrumbs={[{ label: backLabel, href: backHref }, { label: priceList.title }]}
         actions={
-          isAdmin &&
-          !priceList.ownerRef && (
-            <Link href={`/members/pricing/admin/${priceList._id}/edit`} className={headerPrimaryButton}>
-              <FiEdit2 className="w-4 h-4" />
-              Edit
+          <>
+            <Link href={`/members/pricing/${priceList._id}/leaflet`} className={headerSecondaryButton}>
+              <FiPrinter className="w-4 h-4" />
+              Generate leaflet
             </Link>
-          )
+            {isAdmin && !priceList.ownerRef && (
+              <Link href={`/members/pricing/admin/${priceList._id}/edit`} className={headerPrimaryButton}>
+                <FiEdit2 className="w-4 h-4" />
+                Edit
+              </Link>
+            )}
+          </>
         }
       />
 

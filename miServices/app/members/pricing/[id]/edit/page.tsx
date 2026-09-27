@@ -43,8 +43,9 @@ export default async function EditPriceListPage({
       saveUrl={`/api/members/pricing/${priceList._id}`}
       setDefaultUrl={`/api/members/pricing/${priceList._id}/default`}
       backHref="/members/pricing"
-      backLabel="Price lists"
+      backLabel="Pricing"
       viewHref={`/members/pricing/${priceList._id}`}
+      leafletHref={`/members/pricing/${priceList._id}/leaflet`}
       initialTitle={priceList.title}
       initialIsDefault={priceList.isDefault}
       initialServiceRows={priceList.serviceRows || []}

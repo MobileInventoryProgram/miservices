@@ -6,7 +6,7 @@ import { getAllPriceLists } from '@/lib/sanity';
 import AdminPricingView from './AdminPricingView';
 
 export const metadata: Metadata = {
-  title: 'Price Lists | Members Area | miServices',
+  title: 'Pricing | Members Area | miServices',
 };
 
 export default async function AdminPricingPage() {

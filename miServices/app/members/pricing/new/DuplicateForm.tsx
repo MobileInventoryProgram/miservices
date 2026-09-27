@@ -76,7 +76,7 @@ export default function DuplicateForm({
       <PageHeader width="5xl"
         title="Duplicate a Template"
         intro="Create a new price list from a shared template."
-        breadcrumbs={[{ label: 'Price lists', href: '/members/pricing' }, { label: 'New price list' }]}
+        breadcrumbs={[{ label: 'Pricing', href: '/members/pricing' }, { label: 'New price list' }]}
       />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
