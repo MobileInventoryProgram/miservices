@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { FiLogOut } from 'react-icons/fi';
 
 const LINKS = [
@@ -18,15 +18,23 @@ const LINKS = [
   { href: '/members/assets', label: 'Assets', match: (p: string) => p.startsWith('/members/assets') },
 ];
 
+/** Head Office only */
+const ADMIN_LINKS = [
+  { href: '/members/timesheets', label: 'Timesheets', match: (p: string) => p.startsWith('/members/timesheets') },
+];
+
 /**
  * Top bar on every Franchise Login page: one click back to the dashboard or
  * any section, wherever you are.
  */
 export default function MembersNav() {
   const pathname = usePathname();
+  const { data: session } = useSession();
   if (pathname.startsWith('/members/login')) return null;
 
-  const link = (item: (typeof LINKS)[number]) => {
+  const links = session?.user?.role === 'admin' ? [...LINKS, ...ADMIN_LINKS] : LINKS;
+
+  const link = (item: (typeof links)[number]) => {
     const active = item.match(pathname);
     return (
       <Link
@@ -49,7 +57,7 @@ export default function MembersNav() {
           <img src="/logo.png" alt="" className="h-8 w-auto" />
           <span className="hidden font-bold text-brand-dark-blue font-helvetica sm:inline">Franchise Login</span>
         </Link>
-        <div className="hidden flex-1 items-center gap-1 md:flex">{LINKS.map(link)}</div>
+        <div className="hidden flex-1 items-center gap-1 md:flex">{links.map(link)}</div>
         <button
           type="button"
           onClick={() => signOut({ callbackUrl: '/members/login' })}
@@ -60,7 +68,7 @@ export default function MembersNav() {
         </button>
       </div>
       {/* Phones: section links scroll sideways under the bar */}
-      <div className="flex gap-1 overflow-x-auto border-t border-gray-100 px-3 py-1.5 md:hidden">{LINKS.map(link)}</div>
+      <div className="flex gap-1 overflow-x-auto border-t border-gray-100 px-3 py-1.5 md:hidden">{links.map(link)}</div>
     </nav>
   );
 }

@@ -50,6 +50,7 @@ export default async function MembersPage() {
       userName={session.user.name || session.user.email}
       userTerritory={franchisee?.territory || session.user.territory || undefined}
       hasFranchisee={!!franchisee}
+      isAdmin={session.user.role === 'admin'}
       categoryCounts={categoryCounts}
       heading={text.login?.heading}
       tiles={{

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
-import { FiFileText, FiDollarSign, FiImage, FiUsers, FiLogOut, FiUser } from 'react-icons/fi';
+import { FiFileText, FiDollarSign, FiImage, FiUsers, FiLogOut, FiUser, FiClock } from 'react-icons/fi';
 
 type Tile = { title?: string; description?: string };
 
@@ -39,10 +39,24 @@ const CATEGORIES = [
   },
 ];
 
+/** Head Office only tiles */
+const ADMIN_TILES = [
+  {
+    slug: 'timesheets',
+    icon: FiClock,
+    color: 'bg-teal-500',
+    href: '/members/timesheets',
+    countSlugs: [] as string[],
+    title: 'Staff Timesheets',
+    description: 'Check-ins, hours and completed jobs for every member of staff, live from ServiceM8.',
+  },
+];
+
 interface MembersDashboardProps {
   userName: string;
   userTerritory?: string;
   hasFranchisee: boolean;
+  isAdmin?: boolean;
   categoryCounts: Record<string, number>;
   /** Tile wording from the CMS (Franchise Login text) */
   tiles?: Partial<Record<'documents' | 'pricing-quoting' | 'assets' | 'contacts', Tile>>;
@@ -53,6 +67,7 @@ export default function MembersDashboard({
   userName,
   userTerritory,
   hasFranchisee,
+  isAdmin = false,
   categoryCounts,
   tiles = {},
   heading,
@@ -97,7 +112,7 @@ export default function MembersDashboard({
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {CATEGORIES.map((cat) => {
+          {[...CATEGORIES, ...(isAdmin ? ADMIN_TILES : [])].map((cat) => {
             const count = cat.countSlugs.reduce(
               (sum, slug) => sum + (categoryCounts[slug] || 0),
               0
@@ -117,9 +132,9 @@ export default function MembersDashboard({
                   </div>
                   <div className="min-w-0">
                     <h3 className="text-xl font-semibold text-gray-900 group-hover:text-brand-dark-blue transition-colors font-helvetica">
-                      {tiles[cat.slug as keyof typeof tiles]?.title}
+                      {'title' in cat ? cat.title : tiles[cat.slug as keyof typeof tiles]?.title}
                     </h3>
-                    <p className="text-gray-500 mt-1">{tiles[cat.slug as keyof typeof tiles]?.description}</p>
+                    <p className="text-gray-500 mt-1">{'description' in cat ? cat.description : tiles[cat.slug as keyof typeof tiles]?.description}</p>
                     {cat.countSlugs.length > 0 && <p className="text-sm text-gray-400 mt-2">
                       {count} {'countNoun' in cat ? cat.countNoun : 'document'}{count === 1 ? '' : 's'}
                     </p>}
