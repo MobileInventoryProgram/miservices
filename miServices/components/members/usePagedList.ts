@@ -11,17 +11,16 @@ import { slicePage } from '@/lib/pagination';
 export function usePagedList<T>(items: T[], pageSize: number) {
   const [page, setPage] = useState(1);
   const topRef = useRef<HTMLDivElement>(null);
-  const firstRender = useRef(true);
 
   useEffect(() => setPage(1), [items]);
 
   const paged = useMemo(() => slicePage(items, page, pageSize), [items, page, pageSize]);
 
+  // Only when the page number really changes: never on arrival (effects can run twice then)
+  const shownPage = useRef(paged.page);
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
+    if (shownPage.current === paged.page) return;
+    shownPage.current = paged.page;
     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [paged.page]);
 

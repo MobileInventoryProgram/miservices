@@ -1,7 +1,7 @@
 'use client';
 
 /* eslint-disable @next/next/no-img-element */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
@@ -113,9 +113,27 @@ function Sidebar({ user, pathname, onNavigate }: { user: ShellUser; pathname: st
 export default function MembersShell({ user, children }: { user: ShellUser | null; children: React.ReactNode }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const cameBack = useRef(false);
 
-  // Close the slide-out menu when the page changes or Escape is pressed
-  useEffect(() => setOpen(false), [pathname]);
+  // Back/Forward should return to where the user was, so remember when that's how they arrived
+  useEffect(() => {
+    const onPop = () => (cameBack.current = true);
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  // A new page starts at the top (the shared layout would otherwise keep the old
+  // scroll position), and the slide-out menu closes
+  useEffect(() => {
+    setOpen(false);
+    if (cameBack.current) {
+      cameBack.current = false;
+      return;
+    }
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  // Escape closes the slide-out menu
   useEffect(() => {
     if (!open) return;
     const escape = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
