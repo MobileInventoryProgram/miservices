@@ -26,5 +26,17 @@ export default async function DocumentsPage() {
 
   const [subcategoryCounts, sections, text] = await Promise.all([getDocumentsSubcategoryCounts(targeting), getDocumentSections(), getMembersText()]);
 
-  return <SubcategoryCards subcategoryCounts={subcategoryCounts} sections={sections} heading={text.documents?.heading} intro={text.documents?.intro} />;
+  // Franchisees only see sections with something in them for them; Head Office sees every section
+  const isAdmin = session.user.role === 'admin';
+  const visibleSections = isAdmin ? sections : sections.filter((section) => (subcategoryCounts[section.slug] || 0) > 0);
+
+  return (
+    <SubcategoryCards
+      subcategoryCounts={subcategoryCounts}
+      sections={visibleSections}
+      heading={text.documents?.heading}
+      intro={text.documents?.intro}
+      isAdmin={isAdmin}
+    />
+  );
 }

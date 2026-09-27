@@ -1,5 +1,6 @@
 import { defineField, defineType } from 'sanity';
 import { ICON_OPTIONS } from '../../lib/cms/icon-names';
+import { DEFAULT_SECTION_COLOUR, SECTION_COLOURS } from '../../lib/documents/sections';
 
 /** A section of Franchise Login → Documents (General, Operating Procedures…) */
 export default defineType({
@@ -22,18 +23,8 @@ export default defineType({
       name: 'colour',
       title: 'Tile colour',
       type: 'string',
-      options: {
-        list: [
-          { title: 'Blue', value: 'bg-blue-500' },
-          { title: 'Indigo', value: 'bg-indigo-500' },
-          { title: 'Teal', value: 'bg-teal-500' },
-          { title: 'Orange', value: 'bg-orange-500' },
-          { title: 'Green', value: 'bg-green-500' },
-          { title: 'Red', value: 'bg-red-500' },
-          { title: 'Purple', value: 'bg-purple-500' },
-        ],
-      },
-      initialValue: 'bg-blue-500',
+      options: { list: SECTION_COLOURS },
+      initialValue: DEFAULT_SECTION_COLOUR,
     }),
     defineField({ name: 'order', title: 'Position', type: 'number' }),
   ],
