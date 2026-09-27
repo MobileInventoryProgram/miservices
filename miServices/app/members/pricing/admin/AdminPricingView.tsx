@@ -151,7 +151,7 @@ export default function AdminPricingView({
   return (
     <div className="min-h-screen bg-gray-50">
       <PageHeader width="5xl"
-        title="Standard Price Lists"
+        title="Price Lists"
         intro={
           <>
             Head Office — {templates.length} standard {templates.length === 1 ? 'list' : 'lists'}, {franchiseeLists.length} franchise {franchiseeLists.length === 1 ? 'list' : 'lists'}

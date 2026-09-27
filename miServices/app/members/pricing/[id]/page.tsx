@@ -41,7 +41,7 @@ export default async function ViewPriceListPage({
     // Admin can view any price list (standard lists read live, as admins edit them)
     priceList = (await getStandardPriceList(id)) || (await getPriceListById(id));
     backHref = '/members/pricing/admin';
-    backLabel = 'Standard price lists';
+    backLabel = 'Price lists';
   } else {
     // Franchisee must have a franchisee association
     if (!session.user.franchiseeId && !session.user.territory) {

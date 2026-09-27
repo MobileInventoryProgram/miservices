@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { FiLogOut, FiMenu, FiUser, FiX } from 'react-icons/fi';
-import { activeHref, NAV_GROUPS } from './nav';
+import { activeHref, navFor } from './nav';
 
 export interface ShellUser {
   name: string;
@@ -24,7 +24,7 @@ function initials(name: string) {
 }
 
 function Sidebar({ user, pathname, onNavigate }: { user: ShellUser; pathname: string; onNavigate?: () => void }) {
-  const groups = NAV_GROUPS.filter((g) => !g.adminOnly || user.isAdmin);
+  const groups = navFor(user.isAdmin);
   const active = activeHref(pathname, groups);
 
   return (
