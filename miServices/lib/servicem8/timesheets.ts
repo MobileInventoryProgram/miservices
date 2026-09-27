@@ -377,13 +377,20 @@ export function clearTimesheetCache() {
 
 // ─── Filtering and CSV ──────────────────────────────────────────────────────
 
+/** Staff ids from the `staff` query value (comma separated; empty means everyone) */
+export function parseStaff(value?: string | null): Set<string> {
+  return new Set((value || '').split(',').map((id) => id.trim()).filter(Boolean));
+}
+
 export function filterLines(lines: TimesheetLine[], { staff, q }: { staff?: string; q?: string }) {
+  const ids = parseStaff(staff);
   const job = q?.trim().replace(/^#/, '');
-  return lines.filter((l) => (!staff || l.staffId === staff) && (!job || l.jobNumber.includes(job)));
+  return lines.filter((l) => (!ids.size || ids.has(l.staffId)) && (!job || l.jobNumber.includes(job)));
 }
 
 export function filterSummary(summary: StaffSummary[], { staff }: { staff?: string }) {
-  return staff ? summary.filter((s) => s.staffId === staff) : summary;
+  const ids = parseStaff(staff);
+  return ids.size ? summary.filter((s) => ids.has(s.staffId)) : summary;
 }
 
 function csvCell(value: string | number | null | undefined): string {

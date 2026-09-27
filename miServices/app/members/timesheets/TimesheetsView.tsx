@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { FiAlertCircle, FiArrowLeft, FiDownload, FiRefreshCw, FiSearch } from 'react-icons/fi';
 import Pagination from '@/components/members/Pagination';
+import StaffPicker from './StaffPicker';
 import type { StaffSummary, TimesheetLine } from '@/lib/servicem8/timesheets';
 
 const selectClass =
@@ -58,6 +59,7 @@ export default function TimesheetsView({
   const [pending, startTransition] = useTransition();
   const [refreshing, setRefreshing] = useState(false);
   const [query, setQuery] = useState(filters.q);
+  const selectedStaff = filters.staff ? filters.staff.split(',').filter(Boolean) : [];
 
   // Filters live in the URL, so the server does the work and links can be shared
   const params = (next: Partial<Filters> & { page?: number } = {}) => {
@@ -158,7 +160,7 @@ export default function TimesheetsView({
                   className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-white text-brand-dark-blue hover:bg-blue-50 transition-colors font-helvetica"
                 >
                   <FiDownload className="w-4 h-4" />
-                  Download CSV
+                  Download CSV{selectedStaff.length > 0 && ` (${selectedStaff.length} staff)`}
                 </a>
               )}
             </div>
@@ -215,17 +217,7 @@ export default function TimesheetsView({
             })}
           </div>
           <div className="lg:ml-auto flex flex-col sm:flex-row gap-3">
-            <label htmlFor="ts-staff" className="sr-only">
-              Staff
-            </label>
-            <select id="ts-staff" value={filters.staff} onChange={(e) => apply({ staff: e.target.value })} className={selectClass}>
-              <option value="">All staff</option>
-              {staffOptions.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
+            <StaffPicker options={staffOptions} selected={selectedStaff} onApply={(ids) => apply({ staff: ids.join(',') })} />
             {filters.view === 'lines' && (
               <div className="relative">
                 <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />
@@ -287,7 +279,16 @@ export default function TimesheetsView({
                       <CheckInRate rate={s.checkInRate} />
                     </td>
                     <td className="px-4 py-3 text-right text-gray-700">{num(s.hours, 1)}</td>
-                    <td className="px-4 py-3 text-gray-700">{travel(s.travelMinutes, s.travelMiles)}</td>
+                    <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
+                      {s.travelMinutes || s.travelMiles ? (
+                        <>
+                          {num(s.travelMinutes)} min
+                          <div className="text-xs text-gray-500">{num(s.travelMiles, 1)} mi</div>
+                        </>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-right text-gray-700">{num(s.completionsPressed)}</td>
                     <td className="px-4 py-3 text-right text-gray-700">{num(s.completedByOther)}</td>
                     <td className="px-4 py-3 text-right text-gray-700">{money(s.valueCredited)}</td>
