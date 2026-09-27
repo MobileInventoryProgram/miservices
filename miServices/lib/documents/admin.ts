@@ -69,3 +69,21 @@ export async function getDraftSummary(subcategory: string): Promise<{
     hidden,
   };
 }
+
+/** For the Head Office dashboard: documents with changes waiting to be published */
+export async function getPendingDocumentDrafts(): Promise<{ total: number; items: { title: string; slug: string; section: string; isNew: boolean }[] }> {
+  try {
+    return await sanityWriteClient.fetch(
+      `{
+        "total": count(*[_type == "memberDocument" && _id in path("drafts.**") && category == "documents"]),
+        "items": *[_type == "memberDocument" && _id in path("drafts.**") && category == "documents"] | order(_updatedAt desc) [0...5] {
+          title, "slug": slug.current, "section": coalesce(section->slug.current, subcategory),
+          "isNew": count(*[_id == string::split(^._id, "drafts.")[1]]) == 0
+        }
+      }`
+    );
+  } catch (error) {
+    console.error('Error fetching pending document drafts:', error);
+    return { total: 0, items: [] };
+  }
+}

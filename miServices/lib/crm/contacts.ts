@@ -108,6 +108,20 @@ export async function countContactsForScope(scope: MemberScope): Promise<number>
   }
 }
 
+/** Contacts, and leads added since the start of this month, for the dashboard */
+export async function getContactDashboard(scope: MemberScope, now = new Date()): Promise<{ total: number; newLeads: number }> {
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const mine = `_type == "contact" && archived != true${scopeFilter(scope)}`;
+  try {
+    return await sanityWriteClient.fetch<{ total: number; newLeads: number }>(
+      `{ "total": count(*[${mine}]), "newLeads": count(*[${mine} && status == "lead" && coalesce(createdAt, _createdAt) >= $monthStart]) }`,
+      { franchiseeId: scope.franchiseeId, monthStart }
+    );
+  } catch {
+    return { total: 0, newLeads: 0 };
+  }
+}
+
 /** Franchises that have contacts, for Head Office's franchise filter */
 export async function getContactFranchiseOptions(): Promise<{ id: string; name: string }[]> {
   try {

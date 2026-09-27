@@ -288,3 +288,63 @@ export async function getQuoteFranchiseOptions(): Promise<{ id: string; name: st
     return [];
   }
 }
+
+// ─── Dashboard ──────────────────────────────────────────────────
+
+/** Just enough of a quote for a dashboard row */
+export type QuoteSummary = Pick<Quote, '_id' | 'reference' | 'status' | 'validUntil' | 'updatedAt' | 'sentAt' | 'viewedAt' | 'contact'> & {
+  franchise?: { companyName?: string };
+};
+
+export interface QuoteDashboard {
+  /** Sent or viewed, and still in date */
+  open: number;
+  acceptedThisMonth: number;
+  recent: QuoteSummary[];
+  /** Open quotes running out within a week */
+  expiringSoon: QuoteSummary[];
+  /** Opened by the client a few days ago with no answer yet */
+  awaitingReply: QuoteSummary[];
+  /** Drafts started a few days ago and never sent */
+  staleDrafts: QuoteSummary[];
+}
+
+const summaryFields = `
+  _id, reference, status, validUntil, sentAt, viewedAt,
+  "updatedAt": coalesce(updatedAt, _updatedAt),
+  "contact": contact->{ firstName, lastName, companyName },
+  "franchise": franchise->{ companyName }
+`;
+
+const EMPTY_DASHBOARD: QuoteDashboard = { open: 0, acceptedThisMonth: 0, recent: [], expiringSoon: [], awaitingReply: [], staleDrafts: [] };
+
+/** Numbers and lists for the Members Area dashboard, in one query */
+export async function getQuoteDashboard(scope: MemberScope, now = new Date()): Promise<QuoteDashboard> {
+  const day = (offset: number) => new Date(now.getTime() + offset * 86_400_000);
+  const params = {
+    franchiseeId: scope.franchiseeId,
+    today: now.toISOString().slice(0, 10),
+    weekAhead: day(7).toISOString().slice(0, 10),
+    monthStart: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(),
+    threeDaysAgo: day(-3).toISOString(),
+  };
+  const mine = `_type == "quote"${scopeFilter(scope)}`;
+  const open = `status in ["sent", "viewed"] && (!defined(validUntil) || validUntil >= $today)`;
+
+  try {
+    return await sanityWriteClient.fetch<QuoteDashboard>(
+      `{
+        "open": count(*[${mine} && ${open}]),
+        "acceptedThisMonth": count(*[${mine} && status == "accepted" && respondedAt >= $monthStart]),
+        "recent": *[${mine}] | order(coalesce(updatedAt, _updatedAt) desc) [0...5] { ${summaryFields} },
+        "expiringSoon": *[${mine} && ${open} && defined(validUntil) && validUntil <= $weekAhead] | order(validUntil asc) [0...5] { ${summaryFields} },
+        "awaitingReply": *[${mine} && status == "viewed" && validUntil >= $today && viewedAt <= $threeDaysAgo] | order(viewedAt asc) [0...5] { ${summaryFields} },
+        "staleDrafts": *[${mine} && status == "draft" && coalesce(createdAt, _createdAt) <= $threeDaysAgo] | order(coalesce(createdAt, _createdAt) asc) [0...5] { ${summaryFields} }
+      }`,
+      params
+    );
+  } catch (error) {
+    console.error('Error fetching quote dashboard:', error);
+    return EMPTY_DASHBOARD;
+  }
+}
