@@ -1,4 +1,5 @@
 import { sendToZapier } from '@/lib/forms';
+import { addWebsiteSignup } from '@/lib/marketing/sync';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -42,6 +43,10 @@ export async function POST(request: NextRequest) {
       submittedAt: new Date().toISOString(),
     };
 
+
+    if (marketingConsent === true) {
+      await addWebsiteSignup({ email, firstName, lastName, company, source: 'website-pricing-form' });
+    }
 
     const zapier = await sendToZapier(process.env.ZAPIER_PRICING_WEBHOOK_URL, zapierPayload);
 

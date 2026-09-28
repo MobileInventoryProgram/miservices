@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { parseContactInput } from '@/lib/crm/validate';
+import { syncContact } from '@/lib/marketing/sync';
 import { getMemberScope } from '@/lib/members-access';
 import { sanityWriteClient } from '@/lib/sanity';
 
@@ -32,10 +33,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error }, { status: 400 });
     }
 
+    const { marketingConsent, ...fields } = data;
     const now = new Date().toISOString();
     const doc = await sanityWriteClient.create({
       _type: 'contact',
-      ...data,
+      ...fields,
+      marketing: marketingConsent
+        ? { consent: true, consentAt: now, consentBy: session.user.name || session.user.email || 'Members Area', consentSource: 'Members Area' }
+        : { consent: false },
       franchise: { _type: 'reference', _ref: scope.franchiseeId },
       owner: { _type: 'reference', _ref: scope.memberId, _weak: true },
       source: body?.source === 'quote' ? 'quote' : 'manual',
@@ -43,6 +48,9 @@ export async function POST(request: Request) {
       createdAt: now,
       updatedAt: now,
     });
+
+    // Never fails the save: a Resend problem is recorded on the contact
+    if (marketingConsent) await syncContact(doc._id);
 
     return NextResponse.json({ id: doc._id }, { status: 201 });
   } catch (error) {

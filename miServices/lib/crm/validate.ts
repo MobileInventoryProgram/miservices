@@ -15,6 +15,8 @@ export interface ContactInput {
   jobTypes: string[];
   status: string;
   notes: string;
+  /** Agreed to Head Office marketing emails (saved into the contact's `marketing` record) */
+  marketingConsent: boolean;
 }
 
 const text = (value: unknown, max = 200) => (typeof value === 'string' ? value.trim().slice(0, max) : '');
@@ -42,6 +44,7 @@ export function parseContactInput(body: unknown): { data?: ContactInput; error?:
       : [],
     status: CONTACT_STATUSES.some((status) => status.value === input.status) ? (input.status as string) : 'lead',
     notes: text(input.notes, 5000),
+    marketingConsent: input.marketingConsent === true,
   };
 
   if (!data.firstName && !data.lastName && !data.companyName) {
@@ -49,6 +52,9 @@ export function parseContactInput(body: unknown): { data?: ContactInput; error?:
   }
   if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
     return { error: 'Please enter a valid email address.' };
+  }
+  if (data.marketingConsent && !data.email) {
+    return { error: 'Add an email address to sign this contact up to marketing emails.' };
   }
 
   if (input.propertyCount !== undefined && input.propertyCount !== null && input.propertyCount !== '') {

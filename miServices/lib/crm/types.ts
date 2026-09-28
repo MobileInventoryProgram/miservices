@@ -21,6 +21,25 @@ export interface Contact {
   franchiseName?: string;
   ownerId?: string;
   ownerName?: string;
+  marketing?: ContactMarketing;
+}
+
+/** Consent to Head Office marketing emails, and how the Resend list stands */
+export interface ContactMarketing {
+  consent?: boolean;
+  consentAt?: string;
+  consentBy?: string;
+  consentSource?: string;
+  unsubscribedAt?: string | null;
+  syncedAt?: string;
+  syncError?: string;
+}
+
+export type MarketingState = 'subscribed' | 'unsubscribed' | 'none';
+
+export function marketingState(m: ContactMarketing | undefined): MarketingState {
+  if (m?.unsubscribedAt) return 'unsubscribed';
+  return m?.consent ? 'subscribed' : 'none';
 }
 
 export function contactName(contact: Pick<Contact, 'firstName' | 'lastName' | 'companyName'>): string {
@@ -53,6 +72,9 @@ export interface ContactFormValues {
   jobTypes: string[];
   status: string;
   notes: string;
+  marketingConsent: boolean;
+  /** Read only: they unsubscribed through an email, so only they can sign up again */
+  marketingUnsubscribed?: boolean;
 }
 
 export const EMPTY_CONTACT: ContactFormValues = {
@@ -68,6 +90,7 @@ export const EMPTY_CONTACT: ContactFormValues = {
   jobTypes: [],
   status: 'lead',
   notes: '',
+  marketingConsent: false,
 };
 
 /** Contact record → form values */
@@ -85,5 +108,7 @@ export function contactToForm(contact: Partial<Contact>): ContactFormValues {
     jobTypes: contact.jobTypes || [],
     status: contact.status || 'lead',
     notes: contact.notes || '',
+    marketingConsent: !!contact.marketing?.consent,
+    marketingUnsubscribed: !!contact.marketing?.unsubscribedAt,
   };
 }

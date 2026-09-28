@@ -1,4 +1,5 @@
 import { formsDisabled } from '@/lib/forms';
+import { addWebsiteSignup } from '@/lib/marketing/sync';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -50,6 +51,10 @@ export async function POST(request: NextRequest) {
       source: 'Franchise Prospectus Download',
       submittedAt: new Date().toISOString(),
     };
+
+    if (marketingConsent === true) {
+      await addWebsiteSignup({ email, firstName, lastName, source: 'website-franchise-prospectus', list: 'enquiries' });
+    }
 
     const zapierWebhookUrl = process.env.ZAPIER_FRANCHISE_WEBHOOK_URL;
     

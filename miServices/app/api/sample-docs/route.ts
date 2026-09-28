@@ -1,4 +1,5 @@
 import { sendToZapier } from '@/lib/forms';
+import { addWebsiteSignup } from '@/lib/marketing/sync';
 import { sanityClient } from '@/lib/sanity';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -45,6 +46,10 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
       source: 'Sample Docs Page',
     };
+
+    if (marketingConsent === true) {
+      await addWebsiteSignup({ email, firstName, lastName, company, source: 'website-sample-documents' });
+    }
 
     try {
       const zapier = await sendToZapier(process.env.ZAPIER_SAMPLE_DOCS_WEBHOOK_URL, zapierPayload);

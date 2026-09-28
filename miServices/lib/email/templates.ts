@@ -3,18 +3,31 @@ import { escapeHtml } from '@/lib/email/send';
 const NAVY = '#233e8b';
 const WAVE = '#157ec3';
 
-/** Simple, email-client-safe branded layout (tables + inline styles) */
-function layout(content: string): string {
-  return `<!doctype html><html><body style="margin:0;padding:0;background:#f3f4f6;">
+/**
+ * Simple, email-client-safe branded layout (tables + inline styles).
+ * `footer` replaces the standard footer line (marketing adds company
+ * details and an unsubscribe link); `preheader` is the inbox preview text.
+ */
+export function brandLayout(content: string, opts: { footer?: string; preheader?: string } = {}): string {
+  const preheader = opts.preheader
+    ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${escapeHtml(opts.preheader)}${'&#847;&zwnj;&nbsp;'.repeat(30)}</div>`
+    : '';
+  return `<!doctype html><html><body style="margin:0;padding:0;background:#f3f4f6;">${preheader}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:24px 12px;">
 <tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:6px;overflow:hidden;font-family:Helvetica,Arial,sans-serif;color:#1f2937;">
 <tr><td style="background:${NAVY};padding:20px 28px;color:#ffffff;font-size:20px;font-weight:bold;">miServices</td></tr>
 <tr><td style="height:4px;background:${WAVE};"></td></tr>
 <tr><td style="padding:28px;font-size:15px;line-height:1.6;">${content}</td></tr>
-<tr><td style="padding:16px 28px;border-top:1px solid #e5e7eb;font-size:12px;color:#6b7280;">miServices · www.mobileinventoryservices.co.uk</td></tr>
+<tr><td style="padding:16px 28px;border-top:1px solid #e5e7eb;font-size:12px;line-height:1.5;color:#6b7280;">${opts.footer ?? 'miServices · www.mobileinventoryservices.co.uk'}</td></tr>
 </table></td></tr></table></body></html>`;
 }
+
+function layout(content: string): string {
+  return brandLayout(content);
+}
+
+export const BRAND = { NAVY, WAVE };
 
 function paragraphs(text: string): string {
   return text

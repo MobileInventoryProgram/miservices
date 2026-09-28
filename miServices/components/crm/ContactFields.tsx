@@ -139,6 +139,30 @@ export default function ContactFields({
         </div>
       </fieldset>
 
+      <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3">
+        {values.marketingUnsubscribed ? (
+          <p className="text-sm text-gray-600">
+            <strong className="font-medium text-gray-800">Unsubscribed from marketing emails.</strong> They used the link in an email, so only they can
+            sign up again.
+          </p>
+        ) : (
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={values.marketingConsent}
+              onChange={(e) => set('marketingConsent', e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-dark-blue focus:ring-brand-light-blue"
+            />
+            <span className="text-sm">
+              <span className="font-medium text-gray-800">Happy to receive marketing emails from miServices</span>
+              <span className="block text-gray-500">
+                Only tick this if they’ve agreed. They can unsubscribe from any email, and we record when and who ticked it.
+              </span>
+            </span>
+          </label>
+        )}
+      </div>
+
       {!compact && (
         <div>
           <label htmlFor={id('notes')} className={labelClass}>

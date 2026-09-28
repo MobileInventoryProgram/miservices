@@ -1,4 +1,5 @@
 import { sendToZapier } from '@/lib/forms';
+import { addWebsiteSignup } from '@/lib/marketing/sync';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface ContactFormData {
@@ -87,6 +88,10 @@ export async function POST(request: NextRequest) {
       source: 'Website Contact Form',
       timestamp: new Date().toISOString(),
     };
+
+    if (body.marketingConsent === true) {
+      await addWebsiteSignup({ email: body.email, firstName: body.firstName, lastName: body.lastName, company: body.company, source: 'website-contact-form' });
+    }
 
     const zapier = await sendToZapier(process.env.ZAPIER_WEBHOOK_URL, zapierPayload);
 

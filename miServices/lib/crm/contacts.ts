@@ -19,7 +19,8 @@ const contactFields = `
   "franchiseId": franchise._ref,
   "franchiseName": franchise->companyName,
   "ownerId": owner._ref,
-  "ownerName": owner->name
+  "ownerName": owner->name,
+  marketing
 `;
 
 

@@ -2,9 +2,10 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { notFound, redirect } from 'next/navigation';
-import { FiEdit2, FiFileText, FiMail, FiMapPin, FiPhone, FiPlus } from 'react-icons/fi';
+import { FiAlertCircle, FiEdit2, FiFileText, FiMail, FiMapPin, FiPhone, FiPlus, FiSend } from 'react-icons/fi';
 import { authOptions } from '@/lib/auth-options';
 import { contactName, getContactForScope } from '@/lib/crm/contacts';
+import { marketingState } from '@/lib/crm/types';
 import { clientTypeLabel } from '@/lib/crm/options';
 import { jobTypeLabel } from '@/lib/job-types';
 import { getMemberScope } from '@/lib/members-access';
@@ -163,6 +164,34 @@ export default async function ContactPage({ params }: { params: Promise<{ id: st
               <p className="flex items-start gap-2 text-gray-700">
                 <FiMapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <span className="whitespace-pre-line">{[contact.address, contact.postcode].filter(Boolean).join('\n')}</span>
+              </p>
+            )}
+          </section>
+
+          <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-sm space-y-2">
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900 font-helvetica">
+              <FiSend className="w-4 h-4 text-gray-400" /> Marketing emails
+            </h2>
+            {marketingState(contact.marketing) === 'subscribed' && (
+              <>
+                <p className="font-medium text-green-700">Subscribed</p>
+                <p className="text-gray-500">
+                  Agreed {formatDate(contact.marketing?.consentAt)}
+                  {contact.marketing?.consentBy && `, recorded by ${contact.marketing.consentBy}`}.
+                </p>
+              </>
+            )}
+            {marketingState(contact.marketing) === 'unsubscribed' && (
+              <>
+                <p className="font-medium text-gray-700">Unsubscribed</p>
+                <p className="text-gray-500">On {formatDate(contact.marketing?.unsubscribedAt || undefined)}, using the link in an email.</p>
+              </>
+            )}
+            {marketingState(contact.marketing) === 'none' && <p className="text-gray-500">Not signed up. Tick the box when editing, if they’ve agreed.</p>}
+            {contact.marketing?.syncError && (
+              <p className="flex items-start gap-1.5 text-amber-800">
+                <FiAlertCircle className="mt-0.5 w-4 h-4 flex-shrink-0" />
+                The mailing list couldn’t be updated. It will try again next time this contact is saved.
               </p>
             )}
           </section>
