@@ -9,6 +9,8 @@ import { getQuoteDashboard } from '@/lib/quote/quotes';
 import { getFranchiseeForSession, getMemberDocuments, type DocumentTargetingParams } from '@/lib/sanity';
 import { franchiseActions } from '@/lib/compliance/actions';
 import { getComplianceForFranchise, getComplianceOverview } from '@/lib/compliance/status';
+import { ukToday } from '@/lib/dates';
+import { contractAlerts, listFranchisees } from '@/lib/franchisees/admin';
 import MembersDashboard, { type DashboardData } from './MembersDashboard';
 
 export const metadata: Metadata = {
@@ -34,11 +36,12 @@ export default async function MembersPage() {
   };
 
   const [docs, franchisee, scope] = await Promise.all([getMemberDocuments(targeting), getFranchiseeForSession(session), getMemberScope(session)]);
-  const [quotes, contacts, drafts, compliance] = await Promise.all([
+  const [quotes, contacts, drafts, compliance, contracts] = await Promise.all([
     scope ? getQuoteDashboard(scope) : Promise.resolve(null),
     scope ? getContactDashboard(scope) : Promise.resolve(null),
     isAdmin ? getPendingDocumentDrafts() : Promise.resolve(null),
     complianceSummary(isAdmin, scope?.franchiseeId || null),
+    isAdmin ? contractSummary() : Promise.resolve(null),
   ]);
 
   const documents = docs.filter((doc) => doc.category === 'documents' && doc.subcategory);
@@ -58,9 +61,20 @@ export default async function MembersPage() {
     documents: { total: documents.length, newItems: newDocuments },
     drafts,
     compliance,
+    contracts,
   };
 
   return <MembersDashboard data={data} />;
+}
+
+/** Head Office: contracts due for renewal or expired */
+async function contractSummary(): Promise<DashboardData['contracts']> {
+  try {
+    return contractAlerts(await listFranchisees(), ukToday());
+  } catch (error) {
+    console.error('Dashboard contract summary failed:', error);
+    return null;
+  }
 }
 
 /** Compliance for the dashboard: a franchise's own items, or Head Office's summary */

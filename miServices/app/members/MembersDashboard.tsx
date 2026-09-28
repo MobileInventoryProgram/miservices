@@ -39,9 +39,11 @@ export interface DashboardData {
     | { kind: 'franchise'; total: number; urgent: number; items: { title: string; state: string; due: string | null }[] }
     | { kind: 'admin'; total: number; notCompliant: number; awaitingReview: number }
     | null;
+  /** Head Office: franchise contracts due for renewal or expired */
+  contracts: { renewalDue: number; expired: number } | null;
 }
 
-type Tone = 'amber' | 'blue' | 'gray' | 'green';
+type Tone = 'amber' | 'blue' | 'gray' | 'green' | 'red';
 
 interface AttentionItem {
   key: string;
@@ -57,6 +59,7 @@ const TONES: Record<Tone, string> = {
   blue: 'bg-blue-50 text-brand-light-blue',
   gray: 'bg-gray-100 text-gray-500',
   green: 'bg-green-50 text-green-600',
+  red: 'bg-red-50 text-red-600',
 };
 
 const UK = { timeZone: 'Europe/London' } as const;
@@ -95,11 +98,18 @@ function attentionItems(data: DashboardData): AttentionItem[] {
     }
   } else if (c?.kind === 'admin') {
     if (c.awaitingReview) {
-      items.push({ key: 'comp-review', icon: FiShield, tone: 'blue', title: `${c.awaitingReview} compliance submission${c.awaitingReview === 1 ? '' : 's'} to review`, detail: 'Approve, or send back with a note', href: '/members/compliance/review' });
+      items.push({ key: 'comp-review', icon: FiShield, tone: 'blue', title: `${c.awaitingReview} compliance submission${c.awaitingReview === 1 ? '' : 's'} to review`, detail: 'Approve, or send back with a note', href: '/members/franchisees/compliance/review' });
     }
     if (c.notCompliant) {
-      items.push({ key: 'comp-behind', icon: FiShield, tone: 'amber', title: `${c.notCompliant} franchise${c.notCompliant === 1 ? '' : 's'} not compliant`, detail: 'See who is behind and send reminders', href: '/members/compliance' });
+      items.push({ key: 'comp-behind', icon: FiShield, tone: 'amber', title: `${c.notCompliant} franchise${c.notCompliant === 1 ? '' : 's'} not compliant`, detail: 'See who is behind and send reminders', href: '/members/franchisees/compliance' });
     }
+  }
+  const k = data.contracts;
+  if (k?.expired) {
+    items.push({ key: 'contracts-expired', icon: FiFileText, tone: 'red', title: `${k.expired} contract${k.expired === 1 ? '' : 's'} expired`, detail: 'Renew or update the contract details', href: '/members/franchisees?filter=contracts' });
+  }
+  if (k?.renewalDue) {
+    items.push({ key: 'contracts-renewal', icon: FiFileText, tone: 'amber', title: `${k.renewalDue} contract${k.renewalDue === 1 ? '' : 's'} due for renewal`, detail: 'Within the renewal notice period', href: '/members/franchisees?filter=contracts' });
   }
   for (const q of data.quotes?.expiringSoon || []) {
     items.push({ key: `exp-${q._id}`, icon: FiClock, tone: 'amber', title: `Expires ${shortDate(q.validUntil)}`, detail: quoteLabel(q), href: `/members/quoting/${q._id}` });
@@ -195,7 +205,7 @@ export default function MembersDashboard({ data }: { data: DashboardData }) {
       ? [
           { href: '/members/documents', label: 'New document', icon: FiFileText },
           { href: '/members/timesheets', label: 'Timesheets', icon: FiClock },
-          { href: '/members/compliance', label: 'Compliance', icon: FiShield },
+          { href: '/members/franchisees/compliance', label: 'Compliance', icon: FiShield },
         ]
       : []),
   ];
@@ -255,7 +265,7 @@ export default function MembersDashboard({ data }: { data: DashboardData }) {
               label="Compliant franchises"
               value={data.compliance.total - data.compliance.notCompliant}
               sub={`of ${data.compliance.total} · ${data.compliance.awaitingReview} to review`}
-              href="/members/compliance"
+              href="/members/franchisees/compliance"
               icon={FiShield}
               colour={data.compliance.notCompliant ? 'bg-red-500' : 'bg-teal-500'}
             />

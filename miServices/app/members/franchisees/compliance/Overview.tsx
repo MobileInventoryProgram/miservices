@@ -7,6 +7,7 @@ import { FiAlertCircle, FiCheckCircle, FiInbox, FiList, FiSend } from 'react-ico
 import PageHeader, { headerPrimaryButton, headerSecondaryButton } from '@/components/members/PageHeader';
 import type { FranchiseCompliance } from '@/lib/compliance/status';
 import { formatUkDate } from '@/lib/dates';
+import Tabs, { FRANCHISEES_TABS } from '../Tabs';
 
 type Row = Omit<FranchiseCompliance, 'items'>;
 
@@ -93,19 +94,21 @@ export default function Overview({ franchises, reviewCount, emailConfigured }: {
   return (
     <div className="min-h-screen bg-gray-50">
       <PageHeader
-        title="Compliance"
-        intro={`${franchises.length - notCompliant} of ${franchises.length} franchises compliant · ${reviewCount} awaiting review`}
+        title="Franchisees"
+        intro={`Compliance: ${franchises.length - notCompliant} of ${franchises.length} franchises compliant · ${reviewCount} awaiting review`}
         actions={
           <>
-            <Link href="/members/compliance/requirements" className={headerSecondaryButton}>
+            <Link href="/members/franchisees/compliance/requirements" className={headerSecondaryButton}>
               <FiList className="h-4 w-4" /> Requirements
             </Link>
-            <Link href="/members/compliance/review" className={headerPrimaryButton}>
+            <Link href="/members/franchisees/compliance/review" className={headerPrimaryButton}>
               <FiInbox className="h-4 w-4" /> Review queue{reviewCount ? ` (${reviewCount})` : ''}
             </Link>
           </>
         }
-      />
+      >
+        <Tabs tabs={FRANCHISEES_TABS} label="Franchisees sections" />
+      </PageHeader>
 
       <div className="mx-auto max-w-7xl space-y-4 px-4 py-8 sm:px-6 lg:px-8">
         {!emailConfigured && (
@@ -157,7 +160,7 @@ export default function Overview({ franchises, reviewCount, emailConfigured }: {
                 return (
                   <tr key={f.franchiseId} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
-                      <Link href={`/members/compliance/franchise/${f.franchiseId}`} className="font-medium text-brand-dark-blue hover:text-brand-light-blue">
+                      <Link href={`/members/franchisees/${f.franchiseId}/compliance`} className="font-medium text-brand-dark-blue hover:text-brand-light-blue">
                         {f.name}
                       </Link>
                       {f.companyName && f.companyName !== f.name && <div className="text-xs text-gray-500">{f.companyName}</div>}

@@ -1,13 +1,11 @@
 import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { notFound, redirect } from 'next/navigation';
-import PageHeader from '@/components/members/PageHeader';
 import EditProfileForm from '@/app/members/edit-profile/EditProfileForm';
 import { authOptions } from '@/lib/auth-options';
 import { getFranchiseAdminDetail, HEAD_OFFICE_SLUG, mapPinFor } from '@/lib/franchisees/admin';
 import { profileFormData } from '@/lib/franchisees/profile';
 import { getFranchiseeById } from '@/lib/sanity';
-import FranchiseStatusBadge from '../StatusBadge';
 import FranchiseeAdmin from './FranchiseeAdmin';
 
 export const metadata: Metadata = {
@@ -24,22 +22,9 @@ export default async function FranchiseePage({ params }: { params: { id: string 
 
   const owner = franchisee.owners?.[0];
   const pin = await mapPinFor({ slug: franchisee.slug, postCodes: franchisee.postCodes, townsCities: franchisee.townsCities, mapTown: franchisee.mapTown });
-  const name = franchisee.territory || franchisee.companyName;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <PageHeader
-        title={
-          <span className="inline-flex flex-wrap items-center gap-3">
-            {name}
-            <FranchiseStatusBadge status={detail.status} />
-          </span>
-        }
-        intro={franchisee.companyName !== name ? franchisee.companyName : undefined}
-        breadcrumbs={[{ label: 'Franchisees', href: '/members/franchisees' }, { label: name }]}
-        width="5xl"
-      />
-
+    <>
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <FranchiseeAdmin
           franchise={{
@@ -73,6 +58,6 @@ export default async function FranchiseePage({ params }: { params: { id: string 
           <EditProfileForm territory={franchisee.territory || ''} initialData={profileFormData(franchisee)} adminFranchiseeId={franchisee._id} embedded />
         </section>
       </div>
-    </div>
+    </>
   );
 }

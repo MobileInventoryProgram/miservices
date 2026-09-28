@@ -306,6 +306,28 @@ export default defineType({
       description: 'Off when the franchise has left: hidden everywhere and its logins switched off.',
     }),
     defineField({
+      name: 'contract',
+      title: 'Contract (Head Office only)',
+      type: 'object',
+      description: 'Managed in Members Area → Franchisees → Contract. Never shown to the franchise.',
+      options: { collapsible: true, collapsed: true },
+      fields: [
+        defineField({ name: 'startDate', title: 'Start date', type: 'date' }),
+        defineField({ name: 'termYears', title: 'Term (years)', type: 'number' }),
+        defineField({ name: 'expiryDate', title: 'Expiry date', type: 'date' }),
+        defineField({ name: 'renewalNoticeMonths', title: 'Renewal due (months before expiry)', type: 'number', initialValue: 6 }),
+        defineField({
+          name: 'feeType',
+          title: 'Fee',
+          type: 'string',
+          options: { list: [{ title: 'Percentage of turnover', value: 'percentage' }, { title: 'Fixed monthly fee', value: 'fixed' }], layout: 'radio' },
+        }),
+        defineField({ name: 'feePercent', title: 'Percentage', type: 'number', initialValue: 10 }),
+        defineField({ name: 'feeMonthly', title: 'Monthly fee (£)', type: 'number' }),
+        defineField({ name: 'notes', title: 'Notes', type: 'text', rows: 3 }),
+      ],
+    }),
+    defineField({
       name: 'showOnNetwork',
       title: 'Show on Our Network',
       type: 'boolean',

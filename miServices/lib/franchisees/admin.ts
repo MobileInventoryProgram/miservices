@@ -4,6 +4,7 @@ import { hashPassword } from '@/lib/auth';
 import { slugify } from '@/lib/documents/validate';
 import { getNetworkGeo } from '@/lib/network/geo';
 import { sanityWriteClient } from '@/lib/sanity';
+import { contractInfo, type FranchiseContract } from './contract';
 
 /** Where a franchise stands: on the public site, set up but hidden, or left */
 export type FranchiseStatus = 'live' | 'hidden' | 'inactive';
@@ -27,6 +28,7 @@ export interface FranchiseRow {
   logins: number;
   activeLogins: number;
   isHeadOffice: boolean;
+  contract: FranchiseContract | null;
 }
 
 /** Every franchise, for Head Office's list */
@@ -34,7 +36,7 @@ export async function listFranchisees(): Promise<FranchiseRow[]> {
   const rows = await sanityWriteClient.fetch<(Omit<FranchiseRow, 'status' | 'isHeadOffice'> & { isActive?: boolean; showOnNetwork?: boolean })[]>(
     `*[_type == "franchisee" && !(_id in path("drafts.**"))] | order(lower(coalesce(territory, companyName)) asc) {
       _id, "companyName": coalesce(companyName, ""), "slug": coalesce(slug.current, ""), "territory": coalesce(territory, ""),
-      "townsCities": coalesce(townsCities, ""), isActive, showOnNetwork,
+      "townsCities": coalesce(townsCities, ""), isActive, showOnNetwork, "contract": coalesce(contract, null),
       "ownerName": coalesce(owners[0].firstName + " " + owners[0].lastName, ""), "ownerEmail": coalesce(owners[0].email, ""),
       "logins": count(*[_type == "member" && franchisee._ref == ^._id]),
       "activeLogins": count(*[_type == "member" && franchisee._ref == ^._id && isActive == true])
@@ -45,6 +47,17 @@ export async function listFranchisees(): Promise<FranchiseRow[]> {
     status: franchiseStatus({ isActive, showOnNetwork }),
     isHeadOffice: r.slug === HEAD_OFFICE_SLUG,
   }));
+}
+
+/** Contracts Head Office needs to act on: active franchises only (not Head Office or deactivated ones) */
+export function contractAlerts(rows: Pick<FranchiseRow, 'contract' | 'status' | 'isHeadOffice'>[], today: string) {
+  const counts = { renewalDue: 0, expired: 0 };
+  rows.forEach((r) => {
+    if (r.isHeadOffice || r.status === 'inactive') return;
+    const { state } = contractInfo(r.contract, today);
+    if (state === 'renewalDue' || state === 'expired') counts[state]++;
+  });
+  return counts;
 }
 
 export interface FranchiseLogin {

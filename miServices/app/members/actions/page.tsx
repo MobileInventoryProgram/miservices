@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 export default async function ActionsPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user) redirect('/members/login');
-  if (session.user.role === 'admin') redirect('/members/compliance');
+  if (session.user.role === 'admin') redirect('/members/franchisees/compliance');
 
   const scope = await getMemberScope(session);
   const compliance = scope?.franchiseeId ? await getComplianceForFranchise(scope.franchiseeId) : null;
