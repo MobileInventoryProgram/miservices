@@ -9,8 +9,8 @@ import { actionable, dueForAutoReminder } from './schedule';
 import { dueText, getComplianceOverview, type ComplianceItem, type FranchiseCompliance } from './status';
 
 /**
- * Compliance reminder emails: one digest per franchise listing what they
- * still need to do. Only items the franchise can act on are included
+ * Reminder emails about a franchise's Actions: one digest per franchise
+ * listing what they still need to do. Only items the franchise can act on are included
  * (Head Office's own ticks, like fees, are left out).
  */
 
@@ -48,7 +48,7 @@ async function lastSentFor(franchiseIds: string[]): Promise<SentLog[]> {
 
 function checklistUrl() {
   const base = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || '';
-  return `${base.replace(/\/$/, '')}/members/compliance`;
+  return `${base.replace(/\/$/, '')}/members/actions`;
 }
 
 /**

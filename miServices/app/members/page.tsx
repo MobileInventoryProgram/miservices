@@ -7,6 +7,7 @@ import { getPendingDocumentDrafts } from '@/lib/documents/admin';
 import { getMemberScope } from '@/lib/members-access';
 import { getQuoteDashboard } from '@/lib/quote/quotes';
 import { getFranchiseeForSession, getMemberDocuments, type DocumentTargetingParams } from '@/lib/sanity';
+import { franchiseActions } from '@/lib/compliance/actions';
 import { getComplianceForFranchise, getComplianceOverview } from '@/lib/compliance/status';
 import MembersDashboard, { type DashboardData } from './MembersDashboard';
 
@@ -76,14 +77,14 @@ async function complianceSummary(isAdmin: boolean, franchiseeId: string | null):
       };
     }
     const own = franchiseeId ? await getComplianceForFranchise(franchiseeId) : null;
-    if (!own || !own.items.length) return null;
-    const ORDER = ['overdue', 'returned', 'dueSoon'];
+    if (!own) return null;
+    const { actions, urgent } = franchiseActions(own);
     return {
       kind: 'franchise',
-      counts: own.counts,
-      items: own.items
-        .filter((i) => ORDER.includes(i.state))
-        .sort((a, b) => ORDER.indexOf(a.state) - ORDER.indexOf(b.state) || (a.due || '').localeCompare(b.due || ''))
+      total: actions.length,
+      urgent,
+      items: actions
+        .filter((i) => i.state !== 'todo')
         .slice(0, 4)
         .map((i) => ({ title: `${i.requirement.title}${i.periodLabel ? ` (${i.periodLabel})` : ''}`, state: i.state, due: i.due })),
     };

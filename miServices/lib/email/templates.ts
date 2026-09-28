@@ -62,7 +62,7 @@ export function quoteResponseEmail({
   };
 }
 
-/** Compliance reminder: everything a franchise still has to do, in one email */
+/** Actions reminder: everything a franchise still has to do, in one email */
 export function complianceReminderEmail({
   name,
   items,
@@ -74,8 +74,8 @@ export function complianceReminderEmail({
 }) {
   const overdue = items.filter((i) => i.overdue).length;
   const subject = overdue
-    ? `miServices compliance: ${overdue} item${overdue === 1 ? '' : 's'} overdue`
-    : `miServices compliance: ${items.length} item${items.length === 1 ? '' : 's'} due soon`;
+    ? `miServices: ${overdue} action${overdue === 1 ? '' : 's'} overdue`
+    : `miServices: ${items.length} action${items.length === 1 ? '' : 's'} due soon`;
   const rows = items
     .map(
       (i) =>
@@ -86,14 +86,14 @@ export function complianceReminderEmail({
     subject,
     html: layout(
       `<p style="margin:0 0 14px;">Hello ${escapeHtml(name)},</p>` +
-        `<p style="margin:0 0 14px;">This is a reminder about your franchise compliance checklist. The following ${items.length === 1 ? 'item needs' : 'items need'} your attention:</p>` +
+        `<p style="margin:0 0 14px;">Head Office needs the following from you. You can send or confirm ${items.length === 1 ? 'it' : 'each one'} in the Members Area:</p>` +
         `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table>` +
-        button(checklistUrl, 'Open your checklist') +
-        `<p style="margin:0;font-size:13px;color:#6b7280;">If you have already sent something, it will be ticked off once Head Office has checked it. Reply to this email if you have any questions.</p>`
+        button(checklistUrl, 'Open your actions') +
+        `<p style="margin:0;font-size:13px;color:#6b7280;">Already sent something? It comes off your list once Head Office has checked it. Reply to this email if you have any questions.</p>`
     ),
     text:
-      `Hello ${name},\n\nThis is a reminder about your franchise compliance checklist. The following ${items.length === 1 ? 'item needs' : 'items need'} your attention:\n\n` +
+      `Hello ${name},\n\nHead Office needs the following from you. You can send or confirm ${items.length === 1 ? 'it' : 'each one'} in the Members Area:\n\n` +
       items.map((i) => `- ${i.title}: ${i.detail}`).join('\n') +
-      `\n\nOpen your checklist: ${checklistUrl}\n\nIf you have already sent something, it will be ticked off once Head Office has checked it.`,
+      `\n\nOpen your actions: ${checklistUrl}\n\nAlready sent something? It comes off your list once Head Office has checked it.`,
   };
 }

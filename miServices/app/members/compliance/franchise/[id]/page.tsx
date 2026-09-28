@@ -49,7 +49,7 @@ export default async function FranchiseCompliancePage({ params }: { params: { id
         width="5xl"
       />
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-        <Checklist items={compliance.items} mode="admin" franchiseId={compliance.franchiseId} />
+        <Checklist items={compliance.items} franchiseId={compliance.franchiseId} />
       </div>
     </div>
   );

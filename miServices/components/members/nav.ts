@@ -28,7 +28,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/members/quoting', label: 'Quotes', icon: FiFileText },
       { href: '/members/contacts', label: 'Contacts', icon: FiUsers },
-      { href: '/members/compliance', label: 'Compliance', icon: FiCheckSquare, franchiseOnly: true },
+      { href: '/members/actions', label: 'Actions', icon: FiCheckSquare, franchiseOnly: true },
       {
         href: '/members/pricing',
         label: 'Pricing',

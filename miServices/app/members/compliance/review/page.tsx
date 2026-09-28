@@ -45,7 +45,7 @@ export default async function ReviewQueuePage() {
                 </Link>
               </p>
               <ul className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
-                <ItemRow item={item} mode="admin" franchiseId={franchise.franchiseId} defaultOpen />
+                <ItemRow item={item} franchiseId={franchise.franchiseId} defaultOpen />
               </ul>
             </section>
           ))

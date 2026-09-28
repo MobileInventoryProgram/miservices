@@ -4,6 +4,7 @@ import {
   FiAlertCircle,
   FiArrowRight,
   FiBook,
+  FiCheckSquare,
   FiCheckCircle,
   FiClock,
   FiEdit3,
@@ -35,7 +36,7 @@ export interface DashboardData {
   documents: { total: number; newItems: { title: string; href: string; publishedAt: string }[] };
   drafts: { total: number; items: { title: string; slug: string; section: string; isNew: boolean }[] } | null;
   compliance:
-    | { kind: 'franchise'; counts: { overdue: number; returned: number; dueSoon: number; todo: number; done: number; applicable: number }; items: { title: string; state: string; due: string | null }[] }
+    | { kind: 'franchise'; total: number; urgent: number; items: { title: string; state: string; due: string | null }[] }
     | { kind: 'admin'; total: number; notCompliant: number; awaitingReview: number }
     | null;
 }
@@ -85,11 +86,11 @@ function attentionItems(data: DashboardData): AttentionItem[] {
     for (const i of c.items) {
       items.push({
         key: `comp-${i.title}`,
-        icon: FiShield,
+        icon: FiCheckSquare,
         tone: i.state === 'dueSoon' ? 'blue' : 'amber',
-        title: i.state === 'returned' ? 'Compliance: sent back by Head Office' : i.state === 'overdue' ? `Compliance overdue since ${shortDate(i.due || undefined)}` : `Compliance due ${shortDate(i.due || undefined)}`,
+        title: i.state === 'returned' ? 'Action sent back by Head Office' : i.state === 'overdue' ? `Action overdue since ${shortDate(i.due || undefined)}` : `Action due ${shortDate(i.due || undefined)}`,
         detail: i.title,
-        href: '/members/compliance',
+        href: '/members/actions',
       });
     }
   } else if (c?.kind === 'admin') {
@@ -241,16 +242,12 @@ export default function MembersDashboard({ data }: { data: DashboardData }) {
           )}
           {data.compliance?.kind === 'franchise' && (
             <StatCard
-              label="Compliance"
-              value={data.compliance.counts.overdue + data.compliance.counts.returned + data.compliance.counts.dueSoon + data.compliance.counts.todo}
-              sub={
-                data.compliance.counts.overdue + data.compliance.counts.returned
-                  ? `${data.compliance.counts.overdue + data.compliance.counts.returned} overdue · ${data.compliance.counts.done} of ${data.compliance.counts.applicable} done`
-                  : `To do · ${data.compliance.counts.done} of ${data.compliance.counts.applicable} done`
-              }
-              href="/members/compliance"
-              icon={FiShield}
-              colour={data.compliance.counts.overdue + data.compliance.counts.returned ? 'bg-red-500' : 'bg-teal-500'}
+              label="Actions"
+              value={data.compliance.total}
+              sub={data.compliance.urgent ? `${data.compliance.urgent} overdue` : data.compliance.total ? 'Things Head Office needs from you' : 'All caught up'}
+              href="/members/actions"
+              icon={FiCheckSquare}
+              colour={data.compliance.urgent ? 'bg-red-500' : 'bg-teal-500'}
             />
           )}
           {data.compliance?.kind === 'admin' && (

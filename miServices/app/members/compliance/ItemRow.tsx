@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FiAlertCircle, FiBookOpen, FiCheck, FiChevronDown, FiFile, FiRotateCcw, FiSend, FiUpload } from 'react-icons/fi';
+import { FiAlertCircle, FiBookOpen, FiCheck, FiChevronDown, FiFile, FiRotateCcw } from 'react-icons/fi';
 import { formatUkDate } from '@/lib/dates';
 import { categoryTitle, frequencyTitle } from '@/lib/compliance/options';
 import type { ComplianceItem, ItemState } from '@/lib/compliance/status';
@@ -39,93 +39,6 @@ async function post(url: string, method: string, body: unknown) {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'Something went wrong');
   return data;
-}
-
-/** The franchise's upload / confirm form */
-function SubmitForm({ item, onDone }: { item: ComplianceItem; onDone: () => void }) {
-  const r = item.requirement;
-  const [files, setFiles] = useState<File[]>([]);
-  const [expiresOn, setExpiresOn] = useState('');
-  const [note, setNote] = useState('');
-  const [confirmed, setConfirmed] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const resubmitting = item.state === 'returned';
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
-    setError('');
-    const form = new FormData();
-    form.set('requirementId', r._id);
-    if (item.periodKey) form.set('period', item.periodKey);
-    form.set('note', note);
-    if (expiresOn) form.set('expiresOn', expiresOn);
-    form.set('confirmed', String(confirmed));
-    files.forEach((f) => form.append('files', f));
-    const res = await fetch('/api/compliance/submit', { method: 'POST', body: form });
-    const data = await res.json().catch(() => ({}));
-    setBusy(false);
-    if (!res.ok) {
-      setError(data.error || 'Failed to send');
-      return;
-    }
-    onDone();
-  };
-
-  return (
-    <form onSubmit={submit} className="space-y-3 rounded-md border border-gray-200 bg-gray-50 p-4">
-      {r.evidence === 'upload' ? (
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700" htmlFor={`file-${item.key}`}>
-            {resubmitting && item.record?.files.length ? 'Add or replace files (optional)' : 'Upload'}
-          </label>
-          <input
-            id={`file-${item.key}`}
-            type="file"
-            multiple
-            accept="application/pdf,image/jpeg,image/png,image/webp"
-            onChange={(e) => setFiles(Array.from(e.target.files || []))}
-            className="block w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-brand-dark-blue file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white hover:file:bg-brand-light-blue"
-          />
-          <p className="mt-1 text-xs text-gray-500">PDF, JPEG or PNG, up to 10 MB each. Only Head Office can see what you send.</p>
-        </div>
-      ) : (
-        <label className="flex items-start gap-2 text-sm text-gray-800">
-          <input
-            type="checkbox"
-            checked={confirmed}
-            onChange={(e) => setConfirmed(e.target.checked)}
-            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-dark-blue focus:ring-brand-light-blue"
-          />
-          I confirm this is in place.
-        </label>
-      )}
-      {r.askExpiry && (
-        <div className="max-w-xs">
-          <label className="mb-1 block text-sm font-medium text-gray-700" htmlFor={`exp-${item.key}`}>
-            Expiry date
-          </label>
-          <input id={`exp-${item.key}`} type="date" required value={expiresOn} onChange={(e) => setExpiresOn(e.target.value)} className={inputClass} />
-        </div>
-      )}
-      <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700" htmlFor={`note-${item.key}`}>
-          Note for Head Office <span className="font-normal text-gray-400">(optional)</span>
-        </label>
-        <textarea id={`note-${item.key}`} rows={2} maxLength={1000} value={note} onChange={(e) => setNote(e.target.value)} className={inputClass} />
-      </div>
-      {error && (
-        <p className="flex items-center gap-2 text-sm text-red-700" role="alert">
-          <FiAlertCircle /> {error}
-        </p>
-      )}
-      <button type="submit" disabled={busy} className={`${smallButton} bg-brand-light-blue px-4 py-2 text-white hover:bg-brand-dark-blue`}>
-        {r.evidence === 'upload' ? <FiUpload className="h-4 w-4" /> : <FiCheck className="h-4 w-4" />}
-        {busy ? 'Sending…' : resubmitting ? 'Send again' : 'Send to Head Office'}
-      </button>
-    </form>
-  );
 }
 
 /** Head Office's controls for one item */
@@ -244,23 +157,12 @@ function AdminActions({ item, franchiseId, onDone }: { item: ComplianceItem; fra
   );
 }
 
-/** One checklist item: what's needed, where it comes from, what's been sent, and what to do */
-export default function ItemRow({
-  item,
-  mode,
-  franchiseId,
-  defaultOpen = false,
-}: {
-  item: ComplianceItem;
-  mode: 'franchise' | 'admin';
-  franchiseId?: string;
-  defaultOpen?: boolean;
-}) {
+/** One compliance item for Head Office: what's needed, what's been sent, and the controls */
+export default function ItemRow({ item, franchiseId, defaultOpen = false }: { item: ComplianceItem; franchiseId: string; defaultOpen?: boolean }) {
   const router = useRouter();
   const [open, setOpen] = useState(defaultOpen);
   const r = item.requirement;
   const record = item.record;
-  const canSubmit = mode === 'franchise' && r.evidence !== 'admin' && ['overdue', 'dueSoon', 'todo', 'returned'].includes(item.state);
   const done = () => {
     setOpen(false);
     router.refresh();
@@ -344,18 +246,7 @@ export default function ItemRow({
             </div>
           )}
 
-          {mode === 'franchise' && r.evidence === 'admin' && item.state !== 'done' && item.state !== 'notApplicable' && (
-            <p className="flex items-center gap-2 text-sm text-gray-600">
-              <FiSend className="h-4 w-4" /> Head Office ticks this off. Nothing for you to send.
-            </p>
-          )}
-          {canSubmit && <SubmitForm item={item} onDone={done} />}
-          {mode === 'admin' && franchiseId && <AdminActions item={item} franchiseId={franchiseId} onDone={done} />}
-          {mode === 'franchise' && item.state === 'submitted' && (
-            <p className="flex items-center gap-2 text-sm text-blue-700">
-              <FiCheck className="h-4 w-4" /> Sent. Head Office will check it and tick it off.
-            </p>
-          )}
+          <AdminActions item={item} franchiseId={franchiseId} onDone={done} />
         </div>
       )}
     </li>
