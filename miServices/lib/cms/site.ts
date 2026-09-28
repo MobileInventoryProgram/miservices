@@ -13,7 +13,7 @@ export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
     .fetch<SiteSettings | null>(
       `*[_id == "siteSettings"][0] {
         ...,
-        "footerLocations": footerLocations[] { _key, label, "slug": franchisee->slug.current, "name": franchisee->companyName }
+        "footerLocations": footerLocations[] { _key, label, "slug": select(franchisee->isActive == true && franchisee->showOnNetwork != false => franchisee->slug.current), "name": franchisee->companyName }
       }`
     )
     .catch(() => null);

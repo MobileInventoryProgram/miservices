@@ -54,6 +54,13 @@ export default defineType({
       type: 'boolean',
       initialValue: true,
     }),
+    defineField({
+      name: 'deactivatedWithFranchise',
+      title: 'Switched off with the franchise',
+      type: 'boolean',
+      hidden: true,
+      description: 'Set when the franchise was deactivated, so reactivating it switches this login back on.',
+    }),
   ],
   preview: {
     select: {

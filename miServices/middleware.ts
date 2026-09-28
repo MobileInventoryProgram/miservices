@@ -3,7 +3,7 @@ import { withAuth } from 'next-auth/middleware';
 export default withAuth({
   secret: process.env.SESSION_SECRET,
   callbacks: {
-    authorized: ({ token }) => !!token,
+    authorized: ({ token }) => !!token && !token.revoked,
   },
 });
 

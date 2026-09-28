@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
+import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { getPageDoc, getSiteSettings, telHref } from '@/lib/cms/site';
 import { CmsIcon } from '@/lib/cms/icons';
@@ -32,7 +33,7 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const franchisee = await getFranchiseeBySlug(params.slug);
+  const franchisee = await getFranchiseeBySlug(params.slug, { preview: draftMode().isEnabled });
 
   if (!franchisee) {
     return { title: 'Operative Not Found | miServices' };
@@ -189,7 +190,9 @@ function buildJsonLd(
 }
 
 export default async function FranchiseePage({ params }: Props) {
-  const [franchisee, template, site] = await Promise.all([getFranchiseeBySlug(params.slug), getTemplate(), getSiteSettings()]);
+  // Head Office preview (draft mode) also shows franchises hidden while being set up
+  const preview = draftMode().isEnabled;
+  const [franchisee, template, site] = await Promise.all([getFranchiseeBySlug(params.slug, { preview }), getTemplate(), getSiteSettings()]);
 
   if (!franchisee) {
     notFound();
@@ -489,6 +492,14 @@ export default async function FranchiseePage({ params }: Props) {
 
   return (
     <div className="min-h-screen">
+      {preview && (
+        <div className="sticky top-0 z-50 bg-amber-400 px-4 py-2 text-center text-sm font-medium text-gray-900">
+          Preview{franchisee.showOnNetwork === false ? ': not live yet. Only Head Office can see this page.' : ''}{' '}
+          <a href="/api/admin/franchisees/preview/exit" className="underline">
+            Leave preview
+          </a>
+        </div>
+      )}
       <JsonLd data={localBusinessSchema} />
 
       {/* Hero */}

@@ -27,7 +27,8 @@ const inUk = ([lng, lat]: LngLat) => lng > -8.7 && lng < 1.9 && lat > 49.8 && la
 
 async function getJson<T>(path: string): Promise<T | null> {
   try {
-    const response = await fetch(`${API}${path}`, CACHE);
+    // A slow or unreachable postcodes.io must not hold up the page: no answer just means no map pin
+    const response = await fetch(`${API}${path}`, { ...CACHE, signal: AbortSignal.timeout(8000) });
     if (!response.ok) return null;
     return ((await response.json()) as { result: T }).result ?? null;
   } catch {

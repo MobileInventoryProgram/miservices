@@ -303,6 +303,14 @@ export default defineType({
       title: 'Active',
       type: 'boolean',
       initialValue: true,
+      description: 'Off when the franchise has left: hidden everywhere and its logins switched off.',
+    }),
+    defineField({
+      name: 'showOnNetwork',
+      title: 'Show on Our Network',
+      type: 'boolean',
+      initialValue: true,
+      description: 'Switch off to hide the franchise from the public site while it is being set up.',
     }),
   ],
   preview: {

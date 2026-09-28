@@ -329,6 +329,7 @@ export interface SanityFranchisee {
   townsCities: string;
   tags: string[];
   isActive: boolean;
+  showOnNetwork?: boolean;
   locationDescription?: any[];
   areaImage?: { asset?: { _ref: string }; alt?: string; hotspot?: unknown; crop?: unknown };
   mapTown?: string;
@@ -371,6 +372,8 @@ export interface TransformedQualifications {
 
 export interface TransformedFranchisee {
   id: string;
+  /** False while hidden from Our Network (Head Office preview only) */
+  showOnNetwork: boolean;
   companyName: string;
   slug: string;
   territory: string;
@@ -412,6 +415,7 @@ const franchiseeFields = `
   townsCities,
   tags,
   isActive,
+  showOnNetwork,
   locationDescription,
   areaImage { asset, alt, hotspot, crop },
   mapTown,
@@ -506,6 +510,7 @@ function transformFranchisee(doc: SanityFranchisee): TransformedFranchisee {
   return {
     id: doc._id,
     companyName: doc.companyName || '',
+    showOnNetwork: doc.showOnNetwork !== false,
     slug: doc.slug || '',
     territory: doc.territory || '',
     postCodes: doc.postCodes || '',
@@ -529,10 +534,14 @@ function transformFranchisee(doc: SanityFranchisee): TransformedFranchisee {
 }
 
 // Franchisee functions
+
+/** Franchisees shown on the public site: active, and not hidden while being set up */
+export const PUBLIC_FRANCHISEE_FILTER = 'isActive == true && showOnNetwork != false';
+
 export async function getFranchisees(): Promise<TransformedFranchisee[]> {
   try {
     const docs: SanityFranchisee[] = await sanityClient.fetch(
-      `*[_type == "franchisee" && isActive == true] | order(territory asc) {
+      `*[_type == "franchisee" && ${PUBLIC_FRANCHISEE_FILTER}] | order(territory asc) {
         ${franchiseeFields}
       }`
     );
@@ -543,10 +552,11 @@ export async function getFranchisees(): Promise<TransformedFranchisee[]> {
   }
 }
 
-export async function getFranchiseeBySlug(slug: string): Promise<TransformedFranchisee | null> {
+/** A public franchisee page. `preview` (Head Office draft mode) also finds hidden ones, uncached. */
+export async function getFranchiseeBySlug(slug: string, { preview = false } = {}): Promise<TransformedFranchisee | null> {
   try {
-    const doc: SanityFranchisee | null = await sanityClient.fetch(
-      `*[_type == "franchisee" && slug.current == $slug && isActive == true][0] {
+    const doc: SanityFranchisee | null = await (preview ? sanityLiveClient : sanityClient).fetch(
+      `*[_type == "franchisee" && slug.current == $slug && ${preview ? 'isActive == true' : PUBLIC_FRANCHISEE_FILTER}][0] {
         ${franchiseeFields}
       }`,
       { slug }
@@ -687,7 +697,7 @@ export interface DocumentTargetingParams {
 export async function getMemberByEmail(email: string): Promise<SanityMember | null> {
   try {
     const member = await sanityWriteClient.fetch(
-      `*[_type == "member" && email == $email && isActive == true][0] {
+      `*[_type == "member" && lower(email) == $email && isActive == true][0] {
         _id,
         email,
         name,
@@ -697,12 +707,32 @@ export async function getMemberByEmail(email: string): Promise<SanityMember | nu
         territory,
         isActive
       }`,
-      { email }
+      { email: email.trim().toLowerCase() }
     );
     return member;
   } catch (error) {
     console.error('Error fetching member by email:', error);
     return null;
+  }
+}
+
+/**
+ * Whether a signed-in member may still use the Members Area (their login and
+ * franchise are both still on). Cached for a minute per member.
+ */
+const memberActiveCache = new Map<string, { at: number; active: boolean }>();
+export async function isMemberStillActive(memberId: string): Promise<boolean> {
+  const hit = memberActiveCache.get(memberId);
+  if (hit && Date.now() - hit.at < 60_000) return hit.active;
+  try {
+    const active = await sanityWriteClient.fetch<boolean>(
+      `coalesce(*[_type == "member" && _id == $id][0]{ "ok": isActive == true && coalesce(franchisee->isActive, true) }.ok, false)`,
+      { id: memberId }
+    );
+    memberActiveCache.set(memberId, { at: Date.now(), active });
+    return active;
+  } catch {
+    return true; // Don't sign people out because Sanity is briefly unreachable
   }
 }
 
@@ -875,6 +905,16 @@ export async function getFranchiseeByTerritory(
     return doc;
   } catch (error) {
     console.error('Error fetching franchisee by territory:', error);
+    return null;
+  }
+}
+
+/** Any franchisee by id, whatever its status (Head Office), uncached */
+export async function getFranchiseeById(id: string): Promise<SanityFranchisee | null> {
+  try {
+    return await sanityLiveClient.fetch(`*[_type == "franchisee" && _id == $id][0] { ${franchiseeFields} }`, { id });
+  } catch (error) {
+    console.error('Error fetching franchisee by id:', error);
     return null;
   }
 }

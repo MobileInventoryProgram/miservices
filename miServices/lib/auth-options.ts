@@ -1,6 +1,9 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { getMemberByEmail } from '@/lib/sanity';
+import { getMemberByEmail, isMemberStillActive } from '@/lib/sanity';
+
+/** How often a signed-in member's login is re-checked */
+const ACTIVE_CHECK_MS = 5 * 60 * 1000;
 import { verifyPassword } from '@/lib/auth';
 
 export const authOptions: NextAuthOptions = {
@@ -43,10 +46,15 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.franchiseeId = user.franchiseeId;
         token.territory = user.territory;
+        token.activeCheckedAt = Date.now();
+      } else if (token.sub && Date.now() - ((token.activeCheckedAt as number) || 0) > ACTIVE_CHECK_MS) {
+        // Logins (or whole franchises) switched off by Head Office stop working within minutes
+        if (!(await isMemberStillActive(token.sub))) token.revoked = true;
       }
       return token;
     },
     async session({ session, token }) {
+      if (token.revoked) return { ...session, user: undefined } as unknown as typeof session;
       if (session.user) {
         session.user.id = token.sub!;
         session.user.role = token.role as 'franchisee' | 'admin';

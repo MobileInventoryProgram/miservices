@@ -52,6 +52,10 @@ interface HighlightedService {
 
 interface EditProfileFormProps {
   territory: string;
+  /** Head Office editing this franchise (sent with every save; the member's own franchise otherwise) */
+  adminFranchiseeId?: string;
+  /** Inside another page: no page frame or title */
+  embedded?: boolean;
   initialData: {
     locationDescription: unknown[];
     ownerFirstName: string;
@@ -147,9 +151,12 @@ function ImageUploadButton({
   onUploaded,
   label,
   saveAs,
+  franchiseeId,
 }: {
   onUploaded: (assetId: string, url: string) => void;
   label?: string;
+  /** Head Office editing another franchise */
+  franchiseeId?: string;
   /** Save the photo to the profile straight away, without waiting for the Save button */
   saveAs?: { target: 'owner' | 'area' | 'team'; key?: string };
 }) {
@@ -180,7 +187,7 @@ function ImageUploadButton({
           const saved = await fetch('/api/members/profile-photo', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...saveAs, assetId: data.assetId }),
+            body: JSON.stringify({ ...saveAs, assetId: data.assetId, franchiseeId }),
           })
             .then((r) => (r.ok ? r.json() : { saved: false }))
             .catch(() => ({ saved: false }));
@@ -230,6 +237,8 @@ function ImageUploadButton({
 export default function EditProfileForm({
   territory,
   initialData,
+  adminFranchiseeId,
+  embedded = false,
 }: EditProfileFormProps) {
   // Owner details
   const [ownerFirstName, setOwnerFirstName] = useState(initialData.ownerFirstName);
@@ -428,6 +437,7 @@ Whether you manage a single property or a large portfolio in ${territory}, miSer
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          franchiseeId: adminFranchiseeId,
           territory,
           ownerFirstName,
           ownerLastName,
@@ -490,10 +500,10 @@ Whether you manage a single property or a large portfolio in ${territory}, miSer
     'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-light-blue focus:border-brand-light-blue';
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <PageHeader width="3xl" title="Edit Profile" intro={`Update your details for the ${territory} territory page`} />
+    <div className={embedded ? '' : 'min-h-screen bg-gray-50'}>
+      {!embedded && <PageHeader width="3xl" title="Edit Profile" intro={`Update your details for the ${territory} territory page`} />}
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className={embedded ? '' : 'max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10'}>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Status messages */}
           {error && (
@@ -527,6 +537,7 @@ Whether you manage a single property or a large portfolio in ${territory}, miSer
                 </div>
               )}
               <ImageUploadButton
+                franchiseeId={adminFranchiseeId}
                 label="Upload Profile Picture"
                 saveAs={{ target: 'owner' }}
                 onUploaded={(assetId, url) => {
@@ -619,6 +630,7 @@ Whether you manage a single property or a large portfolio in ${territory}, miSer
               )}
             </div>
             <ImageUploadButton
+                franchiseeId={adminFranchiseeId}
               label={areaImageUrl ? 'Replace Area Photo' : 'Upload Area Photo'}
               saveAs={{ target: 'area' }}
               onUploaded={(assetId, url) => {
@@ -880,6 +892,7 @@ Whether you manage a single property or a large portfolio in ${territory}, miSer
                       </div>
                     )}
                     <ImageUploadButton
+                franchiseeId={adminFranchiseeId}
                       label="Photo"
                       saveAs={{ target: 'team', key: tm._key }}
                       onUploaded={(assetId, url) => {

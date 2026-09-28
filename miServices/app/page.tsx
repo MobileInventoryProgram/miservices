@@ -23,7 +23,7 @@ interface HomePageDoc {
 const getHome = () =>
   getPageDoc<HomePageDoc>(
     'homePage',
-    `..., locationsSection { ..., "locations": locations[] { _key, label, "slug": franchisee->slug.current, "name": franchisee->companyName } }`
+    `..., locationsSection { ..., "locations": locations[] { _key, label, "slug": select(franchisee->isActive == true && franchisee->showOnNetwork != false => franchisee->slug.current), "name": franchisee->companyName } }`
   );
 
 export async function generateMetadata(): Promise<Metadata> {

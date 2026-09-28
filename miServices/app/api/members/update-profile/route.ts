@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { revalidatePath } from 'next/cache';
 import { authOptions } from '@/lib/auth-options';
+import { resolveEditableFranchisee, revalidateNetwork } from '@/lib/franchisee-access';
 import { sanityWriteClient } from '@/lib/sanity';
 
 export async function POST(request: Request) {
@@ -10,13 +10,6 @@ export async function POST(request: Request) {
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    if (!session.user.franchiseeId && !session.user.territory) {
-      return NextResponse.json(
-        { error: 'No franchisee linked to your account' },
-        { status: 403 }
-      );
     }
 
     const body = await request.json();
@@ -37,32 +30,17 @@ export async function POST(request: Request) {
       highlightedServices,
     } = body;
 
-    // Resolve the franchisee from the session — reference first, territory fallback
-    let franchisee: Record<string, unknown> | null = null;
-
-    if (session.user.franchiseeId) {
-      franchisee = await sanityWriteClient.fetch<Record<string, unknown> | null>(
-        `*[_type == "franchisee" && _id == $id && isActive == true][0] { ..., "slugCurrent": slug.current }`,
-        { id: session.user.franchiseeId }
-      );
-    }
-
-    if (!franchisee && session.user.territory) {
-      franchisee = await sanityWriteClient.fetch<Record<string, unknown> | null>(
-        `*[_type == "franchisee" && territory == $territory && isActive == true][0] { ..., "slugCurrent": slug.current }`,
-        { territory: session.user.territory }
-      );
-    }
-
-    if (!franchisee) {
-      return NextResponse.json(
-        { error: 'Franchisee document not found' },
-        { status: 404 }
-      );
-    }
+    // The member's own franchise; Head Office may name any franchise
+    const resolved = await resolveEditableFranchisee<Record<string, unknown> & { _id: string }>(
+      session,
+      body.franchiseeId,
+      '{ ..., "slugCurrent": slug.current }'
+    );
+    if (resolved.response) return resolved.response;
+    const franchisee = resolved.franchisee;
 
     // If territory was sent in the body, verify it matches the resolved franchisee
-    if (territory && territory !== franchisee.territory) {
+    if (!resolved.asAdmin && territory && territory !== franchisee.territory) {
       return NextResponse.json(
         { error: 'You can only edit your own territory' },
         { status: 403 }
@@ -246,12 +224,8 @@ export async function POST(request: Request) {
       .set(patch)
       .commit();
 
-    // Revalidate the public profile page and the listing page
-    const slug = franchisee.slugCurrent as string | undefined;
-    if (slug) {
-      revalidatePath(`/our-network/${slug}`);
-    }
-    revalidatePath('/our-network');
+    // Refresh the public profile page and the listing page
+    revalidateNetwork(franchisee.slugCurrent as string | undefined);
 
     return NextResponse.json({ message: 'Profile updated successfully' });
   } catch (error) {

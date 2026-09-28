@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { revalidatePath } from 'next/cache';
 import { authOptions } from '@/lib/auth-options';
+import { resolveEditableFranchisee, revalidateNetwork } from '@/lib/franchisee-access';
 import { sanityWriteClient } from '@/lib/sanity';
 
 const ASSET_ID = /^image-[A-Za-z0-9]+-\d+x\d+-[a-z]+$/;
@@ -16,29 +16,19 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (!session.user.franchiseeId && !session.user.territory) {
-      return NextResponse.json({ error: 'No franchisee linked to your account' }, { status: 403 });
-    }
-
-    const { target, assetId, key } = await request.json();
+    const { target, assetId, key, franchiseeId } = await request.json();
     if (!['owner', 'area', 'team'].includes(target) || typeof assetId !== 'string' || !ASSET_ID.test(assetId)) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
     }
 
-    // Resolve the franchisee from the session — reference first, territory fallback
-    const query = `{ _id, "slug": slug.current, "ownerCount": count(owners), "teamKeys": teamMembers[]._key }`;
-    let franchisee: { _id: string; slug?: string; ownerCount?: number; teamKeys?: string[] } | null = null;
-    if (session.user.franchiseeId) {
-      franchisee = await sanityWriteClient.fetch(`*[_type == "franchisee" && _id == $id && isActive == true][0] ${query}`, {
-        id: session.user.franchiseeId,
-      });
-    }
-    if (!franchisee && session.user.territory) {
-      franchisee = await sanityWriteClient.fetch(`*[_type == "franchisee" && territory == $territory && isActive == true][0] ${query}`, {
-        territory: session.user.territory,
-      });
-    }
-    if (!franchisee) return NextResponse.json({ error: 'Franchisee document not found' }, { status: 404 });
+    // The member's own franchise; Head Office may name any franchise
+    const resolved = await resolveEditableFranchisee<{ _id: string; slug?: string; ownerCount?: number; teamKeys?: string[] }>(
+      session,
+      franchiseeId,
+      `{ _id, "slug": slug.current, "ownerCount": count(owners), "teamKeys": teamMembers[]._key }`
+    );
+    if (resolved.response) return resolved.response;
+    const franchisee = resolved.franchisee;
 
     const image = { _type: 'image', asset: { _type: 'reference', _ref: assetId } };
     const patch = sanityWriteClient.patch(franchisee._id);
@@ -58,8 +48,7 @@ export async function POST(request: Request) {
     }
     await patch.commit();
 
-    if (franchisee.slug) revalidatePath(`/our-network/${franchisee.slug}`);
-    revalidatePath('/our-network');
+    revalidateNetwork(franchisee.slug);
     return NextResponse.json({ saved: true });
   } catch (error) {
     console.error('Profile photo error:', error);

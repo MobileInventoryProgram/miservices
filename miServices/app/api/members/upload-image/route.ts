@@ -14,7 +14,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (!session.user.franchiseeId && !session.user.territory) {
+    // Franchise members, or Head Office editing any franchise's profile
+    if (session.user.role !== 'admin' && !session.user.franchiseeId && !session.user.territory) {
       return NextResponse.json(
         { error: 'No franchisee linked to your account' },
         { status: 403 }
