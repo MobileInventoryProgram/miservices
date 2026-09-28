@@ -54,6 +54,8 @@ export interface Overview {
   /** New jobs created in the range, and how many have gone ahead so far */
   created: number;
   createdGoneAhead: number;
+  /** Completed jobs with no value in ServiceM8 (billed elsewhere), by client */
+  unpriced: { jobs: number; clients: { id: string; name: string; jobs: number }[] };
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -107,6 +109,18 @@ function totals(jobs: Job[]) {
   return { value, jobs: jobs.length, priced, average: priced ? round(value / priced) : 0 };
 }
 
+/** Completed jobs ServiceM8 has no value for, grouped by client */
+export function unpricedByClient(completed: Job[], ref: Reference) {
+  const zero = completed.filter((j) => j.value <= 0);
+  const byClient = new Map<string, { id: string; name: string; jobs: number }>();
+  for (const j of zero) {
+    const r = byClient.get(j.clientId) || { id: j.clientId, name: clientName(ref, j.clientId), jobs: 0 };
+    r.jobs++;
+    byClient.set(j.clientId, r);
+  }
+  return { jobs: zero.length, clients: Array.from(byClient.values()).sort((a, b) => b.jobs - a.jobs) };
+}
+
 export function overview(completed: Job[], previous: Job[], dated: Job[], from: string, to: string, ref: Reference): Overview {
   const { interval, buckets: slots } = buckets(from, to);
   for (const j of completed) {
@@ -127,6 +141,7 @@ export function overview(completed: Job[], previous: Job[], dated: Job[], from: 
     categories: categoryRows(completed, ref),
     created: dated.length,
     createdGoneAhead: dated.filter((j) => j.status === 'Completed' || j.status === 'Work Order').length,
+    unpriced: unpricedByClient(completed, ref),
   };
 }
 
@@ -228,6 +243,8 @@ export interface ClientRow {
   share: number;
   previousValue: number;
   previousJobs: number;
+  /** Jobs completed with no value in ServiceM8 */
+  unpricedJobs: number;
   change: number | null;
   /** Worked with before but nothing in this range */
   lapsed: boolean;
@@ -239,7 +256,7 @@ export function clients(completed: Job[], previous: Job[], ref: Reference): Clie
   const row = (id: string) => {
     let r = rows.get(id);
     if (!r) {
-      r = { id, name: clientName(ref, id), jobs: 0, value: 0, share: 0, previousValue: 0, previousJobs: 0, change: null, lapsed: false };
+      r = { id, name: clientName(ref, id), jobs: 0, value: 0, share: 0, previousValue: 0, previousJobs: 0, unpricedJobs: 0, change: null, lapsed: false };
       rows.set(id, r);
     }
     return r;
@@ -248,6 +265,7 @@ export function clients(completed: Job[], previous: Job[], ref: Reference): Clie
     const r = row(j.clientId);
     r.jobs++;
     r.value += j.value;
+    if (j.value <= 0) r.unpricedJobs++;
   }
   for (const j of previous) {
     const r = row(j.clientId);
@@ -263,7 +281,7 @@ export function clients(completed: Job[], previous: Job[], ref: Reference): Clie
       change: change(r.value, r.previousValue),
       lapsed: r.jobs === 0 && r.previousJobs > 0,
     }))
-    .sort((a, b) => b.value - a.value || b.previousValue - a.previousValue);
+    .sort((a, b) => b.value - a.value || b.jobs - a.jobs || b.previousValue - a.previousValue);
 }
 
 export interface JobRow {

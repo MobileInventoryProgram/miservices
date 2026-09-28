@@ -7,6 +7,9 @@ import { Bar, Change, ColumnChart, CsvLink, day, ErrorBox, money, num, Panel, pc
 
 export const maxDuration = 60;
 
+/** Clients listed in the no-value panel */
+const UNPRICED_ROWS = 8;
+
 export default async function ServiceM8Overview({ searchParams }: { searchParams: SearchParams }) {
   await adminOnly();
   const range = rangeOf(searchParams);
@@ -36,9 +39,35 @@ export default async function ServiceM8Overview({ searchParams }: { searchParams
   return (
     <>
       <StatGrid>
-        <Stat label="Completed job value" value={money(o.value)} detail={<><Change value={change(o.value, o.previous.value)} /> {vsLabel}</>} />
-        <Stat label="Jobs completed" value={num(o.jobs)} detail={<><Change value={change(o.jobs, o.previous.jobs)} /> {num(o.jobs - o.priced)} with no value</>} />
-        <Stat label="Average job value" value={money(o.average, 2)} detail={<><Change value={change(o.average, o.previous.average)} /> jobs with a value</>} />
+        <Stat
+          label="Completed job value"
+          value={money(o.value)}
+          detail={
+            <>
+              <Change value={change(o.value, o.previous.value)} /> {vsLabel}
+              {o.unpriced.jobs > 0 && <div className="mt-0.5 text-amber-800">Excludes {num(o.unpriced.jobs)} jobs with no value in ServiceM8</div>}
+            </>
+          }
+        />
+        <Stat
+          label="Jobs completed"
+          value={num(o.jobs)}
+          detail={
+            <>
+              <Change value={change(o.jobs, o.previous.jobs)} /> {num(o.priced)} priced, {num(o.unpriced.jobs)} with no value ({pct(o.jobs ? o.unpriced.jobs / o.jobs : null)})
+            </>
+          }
+          tone={o.jobs && o.unpriced.jobs / o.jobs > 0.25 ? 'amber' : 'default'}
+        />
+        <Stat
+          label="Average priced job"
+          value={money(o.average, 2)}
+          detail={
+            <>
+              <Change value={change(o.average, o.previous.average)} /> across the {num(o.priced)} jobs with a value
+            </>
+          }
+        />
         <Stat
           label="New jobs created"
           value={num(o.created)}
@@ -85,6 +114,41 @@ export default async function ServiceM8Overview({ searchParams }: { searchParams
           </table>
         </div>
       </Panel>
+
+      {o.unpriced.jobs > 0 && (
+        <Panel
+          title="Jobs with no value in ServiceM8"
+          intro="Completed jobs with no price or items in ServiceM8, so they’re not in the values above. Usually these are billed another way, such as a contract or portal."
+        >
+          <div className={tableWrap}>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className={tableHead}>
+                  <th scope="col" className={th}>Client</th>
+                  <th scope="col" className={`${th} text-right`}>Jobs with no value</th>
+                  <th scope="col" className={`${th} w-1/3`}><span className="sr-only">Share</span></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {o.unpriced.clients.slice(0, UNPRICED_ROWS).map((c) => (
+                  <tr key={c.id || 'none'}>
+                    <td className={`${td} font-medium text-gray-900`}>{c.name}</td>
+                    <td className={`${td} text-right`}>{num(c.jobs)}</td>
+                    <td className={td}>
+                      <Bar share={o.unpriced.clients[0].jobs ? c.jobs / o.unpriced.clients[0].jobs : 0} tone="amber" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {o.unpriced.clients.length > UNPRICED_ROWS && (
+            <p className="text-xs text-gray-500">
+              And {num(o.unpriced.clients.length - UNPRICED_ROWS)} more clients. The Clients tab shows every client’s jobs with no value.
+            </p>
+          )}
+        </Panel>
+      )}
 
       <Pulled at={at} note={`Compared with the same number of days just before (${day(range.previous.from)} – ${day(range.previous.to)}).`} />
     </>

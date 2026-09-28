@@ -76,10 +76,10 @@ export async function GET(request: Request) {
       const prev = previousRange(from, to);
       const rows = clients(await completed(from, to), await completed(prev.from, prev.to), ref);
       csv = toCsv(
-        ['Client', 'Jobs', 'Value inc VAT', 'Share', 'Jobs before', 'Value before', 'Change'],
+        ['Client', 'Jobs', 'Jobs with no value', 'Value inc VAT', 'Share', 'Jobs before', 'Value before', 'Change'],
         rows
           .filter((r) => r.jobs > 0 || r.lapsed)
-          .map((r) => [r.name, r.jobs, r.value, r2(r.share * 100) + '%', r.previousJobs, r.previousValue, r.change === null ? '' : r2(r.change * 100) + '%'])
+          .map((r) => [r.name, r.jobs, r.unpricedJobs, r.value, r2(r.share * 100) + '%', r.previousJobs, r.previousValue, r.change === null ? '' : r2(r.change * 100) + '%'])
       );
     } else if (tab === 'client-jobs') {
       const client = params.get('client') || '';

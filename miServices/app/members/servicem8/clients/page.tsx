@@ -130,7 +130,11 @@ export default async function ClientsPage({ searchParams }: { searchParams: Sear
         </Panel>
       )}
 
-      <Panel title="Clients" intro="Completed job value per client, against the same number of days just before." actions={<CsvLink href={csvHref('clients', searchParams)} />}>
+      <Panel
+        title="Clients"
+        intro="Completed job value per client, against the same number of days just before. “No value” counts jobs with no price in ServiceM8, which are billed another way."
+        actions={<CsvLink href={csvHref('clients', searchParams)} />}
+      >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <form action={PATH} className="relative flex-1">
             {Object.entries(searchParams).map(([k, v]) =>
@@ -170,6 +174,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Sear
                 <th scope="col" className={th}>Client</th>
                 <th scope="col" className={`${th} text-right`}>Jobs</th>
                 <th scope="col" className={`${th} text-right`}>Value</th>
+                <th scope="col" className={`${th} text-right`}>No value</th>
                 <th scope="col" className={`${th} w-1/5`}>Share</th>
                 <th scope="col" className={`${th} text-right`}>Period before</th>
                 <th scope="col" className={`${th} text-right`}>Change</th>
@@ -185,6 +190,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Sear
                   </td>
                   <td className={`${td} text-right`}>{num(r.jobs)}</td>
                   <td className={`${td} text-right`}>{money(r.value)}</td>
+                  <td className={`${td} text-right ${r.unpricedJobs ? 'text-amber-800' : 'text-gray-400'}`}>{r.unpricedJobs ? num(r.unpricedJobs) : '—'}</td>
                   <td className={td}>
                     <div className="flex items-center gap-2">
                       <Bar share={max ? r.value / max : 0} />
@@ -198,7 +204,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Sear
                   <td className={`${td} text-right`}>{r.lapsed ? <span className="text-xs font-medium text-red-700">No work</span> : <Change value={r.change} />}</td>
                 </tr>
               ))}
-              {items.length === 0 && <Empty colSpan={6}>No clients match.</Empty>}
+              {items.length === 0 && <Empty colSpan={7}>No clients match.</Empty>}
             </tbody>
           </table>
         </div>
