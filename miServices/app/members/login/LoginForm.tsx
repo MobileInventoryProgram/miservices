@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { signIn, useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FiMail, FiLock, FiAlertCircle } from 'react-icons/fi';
@@ -16,7 +15,6 @@ export interface LoginText {
 }
 
 export default function LoginForm({ text }: { text: LoginText }) {
-  const router = useRouter();
   const { data: session, status } = useSession();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,9 +23,10 @@ export default function LoginForm({ text }: { text: LoginText }) {
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user) {
-      router.push('/members');
+      // A full load, so the Members Area frame (menu, name) is built for this member
+      window.location.replace('/members');
     }
-  }, [status, session, router]);
+  }, [status, session]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +44,8 @@ export default function LoginForm({ text }: { text: LoginText }) {
         setError('Invalid email or password');
         setIsLoading(false);
       } else if (result?.ok) {
-        router.push('/members');
+        // A full load, so the Members Area frame (menu, name) is built for this member
+        window.location.assign('/members');
       }
     } catch {
       setError('An error occurred. Please try again.');

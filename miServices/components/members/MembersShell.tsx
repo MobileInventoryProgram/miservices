@@ -3,8 +3,8 @@
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { signOut } from 'next-auth/react';
+import { usePathname, useRouter } from 'next/navigation';
+import { signOut, useSession } from 'next-auth/react';
 import { FiLogOut, FiMenu, FiUser, FiX } from 'react-icons/fi';
 import { activeHref, navFor } from './nav';
 
@@ -112,8 +112,15 @@ function Sidebar({ user, pathname, onNavigate }: { user: ShellUser; pathname: st
  */
 export default function MembersShell({ user, children }: { user: ShellUser | null; children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { status } = useSession();
   const [open, setOpen] = useState(false);
   const cameBack = useRef(false);
+
+  // Signed in but the frame was built before sign-in: rebuild it so the menu appears
+  useEffect(() => {
+    if (!user && status === 'authenticated' && !pathname.startsWith('/members/login')) router.refresh();
+  }, [user, status, pathname, router]);
 
   // Back/Forward should return to where the user was, so remember when that's how they arrived
   useEffect(() => {
