@@ -1,5 +1,5 @@
 import type { IconType } from 'react-icons';
-import { FiBook, FiCheckSquare, FiClock, FiEdit3, FiFileText, FiGrid, FiHelpCircle, FiImage, FiMapPin, FiUserCheck, FiUsers } from 'react-icons/fi';
+import { FiBarChart2, FiBook, FiCheckSquare, FiEdit3, FiFileText, FiGrid, FiHelpCircle, FiImage, FiMapPin, FiUserCheck, FiUsers } from 'react-icons/fi';
 import FiPoundSign from '@/components/icons/FiPoundSign';
 
 /** Members Area side menu */
@@ -53,7 +53,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: '/members/franchisees', label: 'Franchisees', icon: FiMapPin },
       { href: '/members/users', label: 'Users', icon: FiUserCheck },
       { href: '/members/quoting/template', label: 'Quote template', icon: FiEdit3 },
-      { href: '/members/timesheets', label: 'Timesheets', icon: FiClock },
+      { href: '/members/servicem8', label: 'ServiceM8', icon: FiBarChart2, also: ['/members/timesheets'] },
     ],
   },
 ];

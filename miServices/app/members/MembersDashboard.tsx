@@ -3,6 +3,7 @@ import type { IconType } from 'react-icons';
 import {
   FiAlertCircle,
   FiArrowRight,
+  FiBarChart2,
   FiBook,
   FiCheckSquare,
   FiCheckCircle,
@@ -204,7 +205,7 @@ export default function MembersDashboard({ data }: { data: DashboardData }) {
     ...(data.isAdmin
       ? [
           { href: '/members/documents', label: 'New document', icon: FiFileText },
-          { href: '/members/timesheets', label: 'Timesheets', icon: FiClock },
+          { href: '/members/servicem8', label: 'ServiceM8', icon: FiBarChart2 },
           { href: '/members/franchisees/compliance', label: 'Compliance', icon: FiShield },
         ]
       : []),

@@ -18,3 +18,9 @@ export function parseRange(fromParam?: string | null, toParam?: string | null) {
   else if (daysBetween(from, to) >= MAX_RANGE_DAYS) error = `Pick a range of up to ${MAX_RANGE_DAYS} days.`;
   return { from, to, today, error, yearStart: `${today.slice(0, 4)}-01-01`, lastMonth: addDays(`${today.slice(0, 7)}-01`, -1) };
 }
+
+/** The same number of days immediately before the range, for comparison */
+export function previousRange(from: string, to: string) {
+  const days = daysBetween(from, to) + 1;
+  return { from: addDays(from, -days), to: addDays(from, -1) };
+}

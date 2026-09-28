@@ -10,7 +10,8 @@ import type { FranchiseRow, FranchiseStatus } from '@/lib/franchisees/admin';
 import { CONTRACT_STATE_STYLES, contractInfo, feeText, formatUkDate } from '@/lib/franchisees/contract';
 import { TABLE_PAGE_SIZE } from '@/lib/pagination';
 import FranchiseStatusBadge from './StatusBadge';
-import Tabs, { FRANCHISEES_TABS } from './Tabs';
+import Tabs from '@/components/members/Tabs';
+import { FRANCHISEES_TABS } from './tabs';
 
 const selectClass =
   'px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-brand-light-blue focus:border-brand-light-blue';

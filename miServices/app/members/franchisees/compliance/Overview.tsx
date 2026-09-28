@@ -7,7 +7,8 @@ import { FiAlertCircle, FiCheckCircle, FiInbox, FiList, FiSend } from 'react-ico
 import PageHeader, { headerPrimaryButton, headerSecondaryButton } from '@/components/members/PageHeader';
 import type { FranchiseCompliance } from '@/lib/compliance/status';
 import { formatUkDate } from '@/lib/dates';
-import Tabs, { FRANCHISEES_TABS } from '../Tabs';
+import Tabs from '@/components/members/Tabs';
+import { FRANCHISEES_TABS } from '../tabs';
 
 type Row = Omit<FranchiseCompliance, 'items'>;
 

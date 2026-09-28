@@ -38,6 +38,7 @@ interface Sm8Job {
   completion_actioned_by_uuid: string;
   total_invoice_amount: string;
   geo_postcode: string;
+  category_uuid: string;
 }
 
 type Job = {
@@ -47,6 +48,7 @@ type Job = {
   completedById: string | null;
   value: number;
   postcode: string;
+  categoryId: string;
 };
 
 export type TimesheetSource = 'Checked in' | 'Booked only';
@@ -75,6 +77,8 @@ export interface TimesheetLine {
   source: TimesheetSource;
   note: string;
   postcode: string;
+  /** ServiceM8 job type */
+  categoryId: string;
 }
 
 export interface StaffSummary {
@@ -154,6 +158,7 @@ function slimJob(job: Sm8Job): Job {
     completedById: job.completion_actioned_by_uuid || null,
     value: Number(job.total_invoice_amount) || 0,
     postcode: job.geo_postcode || '',
+    categoryId: job.category_uuid || '',
   };
 }
 
@@ -247,6 +252,7 @@ async function buildTimesheets(from: string, to: string): Promise<TimesheetData>
       source,
       note,
       postcode: job.postcode,
+      categoryId: job.categoryId,
     };
   };
 

@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth-options';
 import { franchiseStatus, HEAD_OFFICE_SLUG } from '@/lib/franchisees/admin';
 import { sanityWriteClient } from '@/lib/sanity';
 import FranchiseStatusBadge from '../StatusBadge';
-import Tabs from '../Tabs';
+import Tabs from '@/components/members/Tabs';
 
 /** One franchise for Head Office: its name and status, then Details | Compliance | Contract */
 export default async function FranchiseLayout({ params, children }: { params: { id: string }; children: React.ReactNode }) {
