@@ -29,25 +29,25 @@ export default async function StaffPage({ searchParams }: { searchParams: Search
   const { all, mine, at } = result;
   const report = mine || all;
 
-  const hours = all.rows.reduce((n, r) => n + r.hours, 0);
-  const travel = all.rows.reduce((n, r) => n + r.travelHours, 0);
-  const value = all.rows.reduce((n, r) => n + r.value, 0);
-  const jobs = all.rows.reduce((n, r) => n + r.completedJobs, 0);
+  const hours = report.rows.reduce((n, r) => n + r.hours, 0);
+  const travel = report.rows.reduce((n, r) => n + r.travelHours, 0);
+  const value = report.rows.reduce((n, r) => n + r.value, 0);
+  const jobs = report.rows.reduce((n, r) => n + r.completedJobs, 0);
   const maxValue = Math.max(...all.rows.map((r) => r.value), 0);
   const chosenNames = all.rows.filter((r) => chosen.has(r.staffId)).map((r) => r.staffName);
 
   return (
     <>
       <StatGrid>
-        <Stat label="Staff with work" value={num(all.rows.length)} detail={`${num(jobs)} completed jobs between them`} />
-        <Stat label="Hours on site" value={num(hours, 0)} detail={`${num(all.timedVisits)} timed visits`} />
+        <Stat label={mine ? 'Chosen staff with work' : 'Staff with work'} value={num(report.rows.length)} detail={`${num(jobs)} completed jobs between them`} />
+        <Stat label="Hours on site" value={num(hours, 0)} detail={`${num(report.timedVisits)} timed visits`} />
         <Stat label="Travel" value={`${num(travel, 0)} h`} detail={`${pct(hours + travel ? travel / (hours + travel) : null)} of on-the-clock time`} />
         <Stat label="Value per hour on site" value={hours ? money(value / hours) : '—'} detail="Completed job value credited ÷ hours on site" />
       </StatGrid>
 
       <Panel
         title="By person"
-        intro="Jobs are credited the same way as Timesheets: whoever checked in, or whoever was booked if nobody did. Click a name to see their times by job type."
+        intro="Jobs are credited the same way as Timesheets: whoever checked in, or whoever was booked if nobody did. Click a name to look at just them."
         actions={<CsvLink href={csvHref('staff', searchParams)} />}
       >
         <div className={tableWrap}>
@@ -65,8 +65,8 @@ export default async function StaffPage({ searchParams }: { searchParams: Search
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {all.rows.map((r) => (
-                <tr key={r.staffId} className={chosen.has(r.staffId) ? 'bg-blue-50/60' : 'hover:bg-gray-50'}>
+              {report.rows.map((r) => (
+                <tr key={r.staffId} className="hover:bg-gray-50">
                   <td className={`${td} whitespace-nowrap`}>
                     <Link href={hrefWith(PATH, searchParams, { staff: r.staffId })} scroll={false} className="font-medium text-brand-dark-blue hover:text-brand-light-blue">
                       {r.staffName}
@@ -86,7 +86,7 @@ export default async function StaffPage({ searchParams }: { searchParams: Search
                   <td className={`${td} text-right`}>{r.valuePerHour === null ? '—' : money(r.valuePerHour)}</td>
                 </tr>
               ))}
-              {all.rows.length === 0 && <Empty colSpan={8}>No check-ins or completed jobs in this range.</Empty>}
+              {report.rows.length === 0 && <Empty colSpan={8}>No check-ins or completed jobs in this range.</Empty>}
             </tbody>
           </table>
         </div>

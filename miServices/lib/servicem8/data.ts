@@ -70,6 +70,8 @@ export interface JobMaterial {
 
 export interface Reference {
   staff: Map<string, string>;
+  /** Current staff, A–Z, for the staff picker */
+  activeStaff: { id: string; name: string }[];
   categories: Map<string, string>;
   queues: Map<string, string>;
   clients: Map<string, string>;
@@ -228,9 +230,15 @@ const names = <T extends { uuid: string }>(rows: T[], name: (r: T) => string) =>
 /** Staff, job types, queues, clients and items, for naming things */
 export async function reference(): Promise<Pulled<Reference>> {
   const [staff, categories, queues, clients, materials] = await Promise.all([
-    cached('ref:staff', SETTLED_TTL, async () =>
-      names(await list<{ uuid: string; first: string; last: string }>('staff'), (s) => `${s.first || ''} ${s.last || ''}`)
-    ),
+    cached('ref:staff:v2', SETTLED_TTL, async () => {
+      const rows = await list<{ uuid: string; first: string; last: string; active: number }>('staff');
+      const all = names(rows, (s) => `${s.first || ''} ${s.last || ''}`);
+      const active = rows
+        .filter((r) => r.active === 1)
+        .map((r) => ({ id: r.uuid, name: all.get(r.uuid)! }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+      return { all, active };
+    }),
     cached('ref:categories', SETTLED_TTL, async () => names(await list<{ uuid: string; name: string }>('category'), (c) => c.name || '')),
     cached('ref:queues', SETTLED_TTL, async () => names(await list<{ uuid: string; name: string }>('queue'), (q) => q.name || '')),
     cached('ref:clients', SETTLED_TTL, async () => names(await list<{ uuid: string; name: string }>('company'), (c) => c.name || '')),
@@ -240,7 +248,69 @@ export async function reference(): Promise<Pulled<Reference>> {
     }),
   ]);
   return {
-    data: { staff: staff.data, categories: categories.data, queues: queues.data, clients: clients.data, materials: materials.data },
+    data: { staff: staff.data.all, activeStaff: staff.data.active, categories: categories.data, queues: queues.data, clients: clients.data, materials: materials.data },
     at: oldest(staff, categories, queues, clients, materials),
   };
 }
+
+// ─── Who each job is credited to ────────────────────────────────────────────
+
+type Activity = { jobId: string; staffId: string; recorded: boolean };
+
+async function activities(filter: string): Promise<Activity[]> {
+  type Row = { active: number; job_uuid: string; staff_uuid: string; activity_was_recorded: number };
+  return (await list<Row>('jobactivity', `active eq 1 and ${filter}`))
+    .filter((a) => a.active === 1 && a.job_uuid && a.staff_uuid)
+    .map((a) => ({ jobId: a.job_uuid, staffId: a.staff_uuid, recorded: a.activity_was_recorded === 1 }));
+}
+
+/**
+ * Who each job is credited to, the same way as Timesheets: whoever checked in
+ * to it, or whoever was booked on it if nobody checked in. From check-ins and
+ * bookings starting on or after `since`, plus future bookings when asked.
+ */
+async function jobCredits(since: string, includeFuture: boolean): Promise<Pulled<Map<string, Set<string>>>> {
+  const today = ukToday();
+  const months = monthsIn(since, today);
+  const afterThisMonth = nextMonth(months[months.length - 1]);
+  const [chunks, future] = await Promise.all([
+    inBatches(months, CONCURRENCY, (first) =>
+      cached(`activity:${first}`, monthIsLive(first, today) ? LIVE_TTL : SETTLED_TTL, () => activities(between('start_date', first, nextMonth(first))))
+    ),
+    includeFuture ? cached(`activity:from:${afterThisMonth}`, LIVE_TTL, () => activities(`start_date gt ${sm8Date(afterThisMonth)}`)) : Promise.resolve(null),
+  ]);
+
+  const recorded = new Map<string, Set<string>>();
+  const booked = new Map<string, Set<string>>();
+  for (const a of [...chunks.flatMap((c) => c.data), ...(future?.data || [])]) {
+    const into = a.recorded ? recorded : booked;
+    if (!into.has(a.jobId)) into.set(a.jobId, new Set());
+    into.get(a.jobId)!.add(a.staffId);
+  }
+  const credits = new Map(booked);
+  recorded.forEach((staff, jobId) => credits.set(jobId, staff));
+  return { data: credits, at: oldest(...chunks, ...(future ? [future] : [])) };
+}
+
+/** Selected staff from the `staff` query value (comma separated ids) */
+export function staffSet(value: string | null | undefined): Set<string> {
+  return new Set((value || '').split(',').map((s) => s.trim()).filter(Boolean));
+}
+
+/**
+ * Keep only jobs credited to the chosen staff (or assigned to them in a
+ * queue). With nobody chosen, every job is kept and nothing extra is pulled.
+ * `since` is how far back to look for check-ins and bookings.
+ */
+export async function staffFilter(staff: Set<string>, since: string, includeFuture = false) {
+  if (!staff.size) return { active: false, keep: (_: Job) => true, at: Date.now() };
+  const credits = await jobCredits(since, includeFuture);
+  return {
+    active: true,
+    keep: (j: Job) => staff.has(j.queueStaffId) || Array.from(credits.data.get(j.id) || []).some((s) => staff.has(s)),
+    at: credits.at,
+  };
+}
+
+/** Check-ins for jobs completed in a range can start this long before it */
+export const CREDIT_LOOKBACK_DAYS = 90;

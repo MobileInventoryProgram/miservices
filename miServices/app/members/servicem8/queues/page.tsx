@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { ukToday } from '@/lib/dates';
 import { oldest } from '@/lib/servicem8/cache';
-import { queuedJobs, reference } from '@/lib/servicem8/data';
+import { queuedJobs, reference, staffFilter, staffSet } from '@/lib/servicem8/data';
 import { queues } from '@/lib/servicem8/reports';
-import { daysBetween } from '@/lib/servicem8/timesheets';
+import { addDays, daysBetween } from '@/lib/servicem8/timesheets';
 import { adminOnly, csvHref, hrefWith, param, type SearchParams } from '../params';
 import { SM8_BASE } from '../tabs';
 import { CsvLink, day, Empty, ErrorBox, num, Panel, Pulled, tableHead, tableWrap, td, th } from '../ui';
@@ -19,8 +19,8 @@ export default async function QueuesPage({ searchParams }: { searchParams: Searc
 
   let result;
   try {
-    const [ref, queued] = await Promise.all([reference(), queuedJobs()]);
-    result = { ...queues(queued.data, ref.data, today), at: oldest(ref, queued) };
+    const [ref, queued, mine] = await Promise.all([reference(), queuedJobs(), staffFilter(staffSet(param(searchParams, 'staff')), addDays(today, -365), true)]);
+    result = { ...queues(queued.data.filter(mine.keep), ref.data, today), at: oldest(ref, queued, mine) };
   } catch (error) {
     console.error('ServiceM8 queues failed:', error);
     return <ErrorBox message="Could not load job queues from ServiceM8. Try again in a minute." />;

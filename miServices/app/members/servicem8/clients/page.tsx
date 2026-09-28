@@ -3,7 +3,8 @@ import { FiSearch, FiX } from 'react-icons/fi';
 import Pagination from '@/components/members/Pagination';
 import { parsePage, slicePage, TABLE_PAGE_SIZE } from '@/lib/pagination';
 import { oldest } from '@/lib/servicem8/cache';
-import { completedJobs, reference } from '@/lib/servicem8/data';
+import { completedJobs, CREDIT_LOOKBACK_DAYS, reference, staffFilter, staffSet } from '@/lib/servicem8/data';
+import { addDays } from '@/lib/servicem8/timesheets';
 import { clients, jobRows } from '@/lib/servicem8/reports';
 import { adminOnly, csvHref, hrefWith, param, rangeOf, type SearchParams } from '../params';
 import { SM8_BASE } from '../tabs';
@@ -33,11 +34,17 @@ export default async function ClientsPage({ searchParams }: { searchParams: Sear
 
   let result;
   try {
-    const [ref, done, before] = await Promise.all([reference(), completedJobs(range.from, range.to), completedJobs(range.previous.from, range.previous.to)]);
+    const [ref, all, allBefore, mine] = await Promise.all([
+      reference(),
+      completedJobs(range.from, range.to),
+      completedJobs(range.previous.from, range.previous.to),
+      staffFilter(staffSet(param(searchParams, 'staff')), addDays(range.previous.from, -CREDIT_LOOKBACK_DAYS)),
+    ]);
+    const done = all.data.filter(mine.keep);
     result = {
-      rows: clients(done.data, before.data, ref.data),
-      detail: chosen ? jobRows(done.data.filter((j) => j.clientId === (chosen === 'none' ? '' : chosen)), ref.data) : null,
-      at: oldest(ref, done, before),
+      rows: clients(done, allBefore.data.filter(mine.keep), ref.data),
+      detail: chosen ? jobRows(done.filter((j) => j.clientId === (chosen === 'none' ? '' : chosen)), ref.data) : null,
+      at: oldest(ref, all, allBefore, mine),
     };
   } catch (error) {
     console.error('ServiceM8 clients failed:', error);

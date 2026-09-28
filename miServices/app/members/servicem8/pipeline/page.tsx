@@ -3,7 +3,8 @@ import Pagination from '@/components/members/Pagination';
 import { ukToday } from '@/lib/dates';
 import { parsePage, slicePage, TABLE_PAGE_SIZE } from '@/lib/pagination';
 import { oldest } from '@/lib/servicem8/cache';
-import { completedJobs, datedJobs, openJobs, reference } from '@/lib/servicem8/data';
+import { completedJobs, datedJobs, openJobs, reference, staffFilter, staffSet } from '@/lib/servicem8/data';
+import { addDays } from '@/lib/servicem8/timesheets';
 import { AGE_BANDS, ageBand, pipeline, type AgeBand } from '@/lib/servicem8/reports';
 import { adminOnly, csvHref, hrefWith, param, rangeOf, type SearchParams } from '../params';
 import { SM8_BASE } from '../tabs';
@@ -23,13 +24,24 @@ export default async function PipelinePage({ searchParams }: { searchParams: Sea
 
   let result;
   try {
-    const [ref, open, dated, done] = await Promise.all([reference(), openJobs(), datedJobs(range.from, range.to), completedJobs(range.from, range.to)]);
-    result = { p: pipeline(open.data, dated.data, done.data, ref.data, today), at: oldest(ref, open, dated, done) };
+    const since = [addDays(range.from, -90), addDays(today, -365)].sort()[0];
+    const [ref, open, dated, done, mine] = await Promise.all([
+      reference(),
+      openJobs(),
+      datedJobs(range.from, range.to),
+      completedJobs(range.from, range.to),
+      staffFilter(staffSet(param(searchParams, 'staff')), since, true),
+    ]);
+    result = {
+      p: pipeline(open.data.filter(mine.keep), dated.data.filter(mine.keep), done.data.filter(mine.keep), ref.data, today),
+      at: oldest(ref, open, dated, done, mine),
+      filtered: mine.active,
+    };
   } catch (error) {
     console.error('ServiceM8 pipeline failed:', error);
     return <ErrorBox message="Could not load the pipeline from ServiceM8. Try again in a minute." />;
   }
-  const { p, at } = result;
+  const { p, at, filtered: byStaff } = result;
 
   const filtered = p.open.filter(
     (r) => (!stage || (stage === 'quote') === (r.status === 'Quote')) && (!age || (r.ageDays !== null && ageBand(r.ageDays) === age))
@@ -156,7 +168,12 @@ export default async function PipelinePage({ searchParams }: { searchParams: Sea
         <Pagination {...paging} noun={paging.total === 1 ? 'job' : 'jobs'} hrefFor={(page) => hrefWith(PATH, searchParams, { page })} />
       </Panel>
 
-      <Pulled at={at} note="Open jobs are as they stand now; the date range sets which new, unsuccessful and cancelled jobs are counted." />
+      <Pulled
+        at={at}
+        note={`Open jobs are as they stand now; the date range sets which new, unsuccessful and cancelled jobs are counted.${
+          byStaff ? ' With staff chosen, quotes nobody is booked on yet won’t show.' : ''
+        }`}
+      />
     </>
   );
 }

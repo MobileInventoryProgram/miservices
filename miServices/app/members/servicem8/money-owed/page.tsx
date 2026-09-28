@@ -3,7 +3,8 @@ import Pagination from '@/components/members/Pagination';
 import { ukToday } from '@/lib/dates';
 import { parsePage, slicePage, TABLE_PAGE_SIZE } from '@/lib/pagination';
 import { oldest } from '@/lib/servicem8/cache';
-import { OWED_LOOKBACK_DAYS, reference, unpaidJobs } from '@/lib/servicem8/data';
+import { CREDIT_LOOKBACK_DAYS, OWED_LOOKBACK_DAYS, reference, staffFilter, staffSet, unpaidJobs } from '@/lib/servicem8/data';
+import { addDays } from '@/lib/servicem8/timesheets';
 import { AGE_BANDS, moneyOwed, type AgeBand } from '@/lib/servicem8/reports';
 import { adminOnly, csvHref, hrefWith, param, type SearchParams } from '../params';
 import { SM8_BASE } from '../tabs';
@@ -24,8 +25,12 @@ export default async function MoneyOwedPage({ searchParams }: { searchParams: Se
 
   let result;
   try {
-    const [ref, unpaid] = await Promise.all([reference(), unpaidJobs()]);
-    result = { m: moneyOwed(unpaid.data, ref.data, today), at: oldest(ref, unpaid) };
+    const [ref, unpaid, mine] = await Promise.all([
+      reference(),
+      unpaidJobs(),
+      staffFilter(staffSet(param(searchParams, 'staff')), addDays(today, -(OWED_LOOKBACK_DAYS + CREDIT_LOOKBACK_DAYS))),
+    ]);
+    result = { m: moneyOwed(unpaid.data.filter(mine.keep), ref.data, today), at: oldest(ref, unpaid, mine) };
   } catch (error) {
     console.error('ServiceM8 money owed failed:', error);
     return <ErrorBox message="Could not load unpaid jobs from ServiceM8. Try again in a minute." />;

@@ -1,7 +1,20 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { ukToday } from '@/lib/dates';
-import { completedJobs, datedJobs, jobMaterialsSince, openJobs, PRICING_LOOKBACK_DAYS, queuedJobs, reference, unpaidJobs } from '@/lib/servicem8/data';
+import {
+  completedJobs,
+  CREDIT_LOOKBACK_DAYS,
+  datedJobs,
+  jobMaterialsSince,
+  openJobs,
+  OWED_LOOKBACK_DAYS,
+  PRICING_LOOKBACK_DAYS,
+  queuedJobs,
+  reference,
+  staffFilter,
+  staffSet,
+  unpaidJobs,
+} from '@/lib/servicem8/data';
 import { previousRange, parseRange } from '@/lib/servicem8/range';
 import { categoryRows, clients, jobRows, moneyOwed, overview, pipeline, pricing, queues, staffReport, toCsv } from '@/lib/servicem8/reports';
 import { addDays, getTimesheets } from '@/lib/servicem8/timesheets';
@@ -27,18 +40,30 @@ export async function GET(request: Request) {
 
   try {
     const ref = (await reference()).data;
+    const staff = staffSet(params.get('staff'));
+    // The same look-backs as the tabs, so a download matches the page
+    const since = {
+      range: addDays(previousRange(from, to).from, -CREDIT_LOOKBACK_DAYS),
+      open: [addDays(from, -90), addDays(today, -365)].sort()[0],
+      owed: addDays(today, -(OWED_LOOKBACK_DAYS + CREDIT_LOOKBACK_DAYS)),
+      queues: addDays(today, -365),
+    };
+    const future = tab === 'pipeline' || tab === 'queues';
+    const origin = tab === 'pipeline' ? since.open : tab === 'money-owed' || tab === 'money-owed-clients' ? since.owed : tab === 'queues' ? since.queues : since.range;
+    const { keep } = await staffFilter(staff, origin, future);
+    const completed = async (f: string, t: string) => (await completedJobs(f, t)).data.filter(keep);
     let csv: string;
-    let name: string = tab;
+    let name: string = staff.size ? `${tab}-selected-staff` : tab;
 
     if (tab === 'overview') {
-      const jobs = (await completedJobs(from, to)).data;
+      const jobs = await completed(from, to);
       csv = toCsv(
         ['Job type', 'Jobs', 'Value inc VAT', 'Share of value', 'Average'],
         categoryRows(jobs, ref).map((c) => [c.name, c.jobs, c.value, r2(c.share * 100) + '%', c.average])
       );
-      name = 'job-types';
+      name = name.replace(tab, 'job-types');
     } else if (tab === 'pipeline') {
-      const p = pipeline((await openJobs()).data, (await datedJobs(from, to)).data, [], ref, today);
+      const p = pipeline((await openJobs()).data.filter(keep), (await datedJobs(from, to)).data.filter(keep), [], ref, today);
       const stage = params.get('stage');
       csv = toCsv(
         ['Job', 'Stage', 'Created', 'Age (days)', 'Job type', 'Client', 'Postcode'],
@@ -46,10 +71,10 @@ export async function GET(request: Request) {
           .filter((r) => !stage || (stage === 'quote') === (r.status === 'Quote'))
           .map((r) => [r.number, r.status === 'Quote' ? 'Quote' : 'Booked', r.date, r.ageDays, r.category, r.client, r.postcode])
       );
-      name = 'open-jobs';
+      name = name.replace(tab, 'open-jobs');
     } else if (tab === 'clients') {
       const prev = previousRange(from, to);
-      const rows = clients((await completedJobs(from, to)).data, (await completedJobs(prev.from, prev.to)).data, ref);
+      const rows = clients(await completed(from, to), await completed(prev.from, prev.to), ref);
       csv = toCsv(
         ['Client', 'Jobs', 'Value inc VAT', 'Share', 'Jobs before', 'Value before', 'Change'],
         rows
@@ -58,20 +83,19 @@ export async function GET(request: Request) {
       );
     } else if (tab === 'client-jobs') {
       const client = params.get('client') || '';
-      const jobs = (await completedJobs(from, to)).data.filter((j) => j.clientId === (client === 'none' ? '' : client));
+      const jobs = (await completed(from, to)).filter((j) => j.clientId === (client === 'none' ? '' : client));
       csv = toCsv(
         ['Job', 'Completed', 'Job type', 'Client', 'Value inc VAT', 'Marked paid', 'Postcode'],
         jobRows(jobs, ref).map((j) => [j.number, j.completedAt, j.category, j.client, j.value, j.paid ? 'Yes' : 'No', j.postcode])
       );
-      name = 'client-jobs';
     } else if (tab === 'staff') {
-      const report = staffReport(await getTimesheets(from, to), ref);
+      const report = staffReport(await getTimesheets(from, to), ref, staff);
       csv = toCsv(
         ['Staff', 'Completed jobs', 'Hours on site', 'Avg hours per job', 'Travel hours', 'Travel share', 'Value inc VAT', 'Value per hour'],
         report.rows.map((r) => [r.staffName, r.completedJobs, r.hours, r.hoursPerJob, r.travelHours, r.travelShare === null ? '' : r2(r.travelShare * 100) + '%', r.value, r.valuePerHour])
       );
     } else if (tab === 'money-owed' || tab === 'money-owed-clients') {
-      const m = moneyOwed((await unpaidJobs()).data, ref, today);
+      const m = moneyOwed((await unpaidJobs()).data.filter(keep), ref, today);
       if (tab === 'money-owed-clients') {
         csv = toCsv(['Client', 'Jobs', 'Owed inc VAT', 'Oldest (days)'], m.clients.map((c) => [c.name, c.jobs, c.value, c.oldestDays]));
       } else {
@@ -85,7 +109,7 @@ export async function GET(request: Request) {
         );
       }
     } else if (tab === 'queues') {
-      const q = queues((await queuedJobs()).data, ref, today);
+      const q = queues((await queuedJobs()).data.filter(keep), ref, today);
       const queue = params.get('queue');
       csv = toCsv(
         ['Job', 'Queue', 'Stage', 'Created', 'Queue date', 'Past queue date', 'Job type', 'Client', 'Assigned to', 'Postcode'],
@@ -94,7 +118,7 @@ export async function GET(request: Request) {
           .map((j) => [j.number, j.queue, j.status, j.date, j.expiry, j.expired ? 'Yes' : 'No', j.category, j.client, j.assigned, j.postcode])
       );
     } else {
-      const p = pricing((await completedJobs(from, to)).data, (await jobMaterialsSince(addDays(from, -PRICING_LOOKBACK_DAYS))).data, ref);
+      const p = pricing(await completed(from, to), (await jobMaterialsSince(addDays(from, -PRICING_LOOKBACK_DAYS))).data, ref);
       csv =
         tab === 'pricing'
           ? toCsv(

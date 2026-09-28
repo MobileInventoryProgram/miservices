@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Pagination from '@/components/members/Pagination';
 import { parsePage, slicePage, TABLE_PAGE_SIZE } from '@/lib/pagination';
 import { oldest } from '@/lib/servicem8/cache';
-import { completedJobs, jobMaterialsSince, PRICING_LOOKBACK_DAYS, reference } from '@/lib/servicem8/data';
+import { completedJobs, CREDIT_LOOKBACK_DAYS, jobMaterialsSince, PRICING_LOOKBACK_DAYS, reference, staffFilter, staffSet } from '@/lib/servicem8/data';
 import { pricing } from '@/lib/servicem8/reports';
 import { addDays } from '@/lib/servicem8/timesheets';
 import { adminOnly, csvHref, hrefWith, param, rangeOf, type SearchParams } from '../params';
@@ -21,8 +21,13 @@ export default async function PricingPage({ searchParams }: { searchParams: Sear
 
   let result;
   try {
-    const [ref, done, lines] = await Promise.all([reference(), completedJobs(range.from, range.to), jobMaterialsSince(addDays(range.from, -PRICING_LOOKBACK_DAYS))]);
-    result = { p: pricing(done.data, lines.data, ref.data), at: oldest(ref, done, lines) };
+    const [ref, done, lines, mine] = await Promise.all([
+      reference(),
+      completedJobs(range.from, range.to),
+      jobMaterialsSince(addDays(range.from, -PRICING_LOOKBACK_DAYS)),
+      staffFilter(staffSet(param(searchParams, 'staff')), addDays(range.from, -CREDIT_LOOKBACK_DAYS)),
+    ]);
+    result = { p: pricing(done.data.filter(mine.keep), lines.data, ref.data), at: oldest(ref, done, lines, mine) };
   } catch (error) {
     console.error('ServiceM8 pricing failed:', error);
     return <ErrorBox message="Could not load item prices from ServiceM8. Try again in a minute." />;

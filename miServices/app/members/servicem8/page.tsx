@@ -1,7 +1,8 @@
 import { oldest } from '@/lib/servicem8/cache';
-import { completedJobs, datedJobs, reference } from '@/lib/servicem8/data';
+import { completedJobs, CREDIT_LOOKBACK_DAYS, datedJobs, reference, staffFilter, staffSet } from '@/lib/servicem8/data';
+import { addDays } from '@/lib/servicem8/timesheets';
 import { change, overview } from '@/lib/servicem8/reports';
-import { adminOnly, csvHref, rangeOf, type SearchParams } from './params';
+import { adminOnly, csvHref, param, rangeOf, type SearchParams } from './params';
 import { Bar, Change, ColumnChart, CsvLink, day, ErrorBox, money, num, Panel, pct, Pulled, Stat, StatGrid, tableHead, tableWrap, td, th, Empty } from './ui';
 
 export const maxDuration = 60;
@@ -13,13 +14,17 @@ export default async function ServiceM8Overview({ searchParams }: { searchParams
 
   let pulled;
   try {
-    const [ref, done, before, dated] = await Promise.all([
+    const [ref, done, before, dated, mine] = await Promise.all([
       reference(),
       completedJobs(range.from, range.to),
       completedJobs(range.previous.from, range.previous.to),
       datedJobs(range.from, range.to),
+      staffFilter(staffSet(param(searchParams, 'staff')), addDays(range.previous.from, -CREDIT_LOOKBACK_DAYS), true),
     ]);
-    pulled = { o: overview(done.data, before.data, dated.data, range.from, range.to, ref.data), at: oldest(ref, done, before, dated) };
+    pulled = {
+      o: overview(done.data.filter(mine.keep), before.data.filter(mine.keep), dated.data.filter(mine.keep), range.from, range.to, ref.data),
+      at: oldest(ref, done, before, dated, mine),
+    };
   } catch (error) {
     console.error('ServiceM8 overview failed:', error);
     return <ErrorBox message="Could not load figures from ServiceM8. Try again in a minute." />;

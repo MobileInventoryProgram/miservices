@@ -37,7 +37,6 @@ export default async function TimesheetsPage({ searchParams }: { searchParams: S
       summary={data ? filterSummary(data.summary, { staff }) : []}
       lines={items}
       paging={paging}
-      staffOptions={data?.staff.filter((s) => data!.summary.some((r) => r.staffId === s.id)) ?? []}
       fetchedAt={data?.fetchedAt ?? null}
     />
   );

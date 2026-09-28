@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { FiAlertCircle, FiDownload, FiSearch } from 'react-icons/fi';
 import Pagination from '@/components/members/Pagination';
-import StaffPicker from './StaffPicker';
 import type { StaffSummary, TimesheetLine } from '@/lib/servicem8/timesheets';
 
 const selectClass =
@@ -41,7 +40,6 @@ export default function TimesheetsView({
   summary,
   lines,
   paging,
-  staffOptions,
   fetchedAt,
 }: {
   filters: Filters;
@@ -49,7 +47,6 @@ export default function TimesheetsView({
   summary: StaffSummary[];
   lines: TimesheetLine[];
   paging: { page: number; totalPages: number; total: number; start: number; end: number };
-  staffOptions: { id: string; name: string }[];
   fetchedAt: string | null;
 }) {
   const router = useRouter();
@@ -114,7 +111,6 @@ export default function TimesheetsView({
           {tab('lines', 'Timesheet lines')}
         </div>
         <div className="lg:ml-auto flex flex-col sm:flex-row gap-3">
-          <StaffPicker options={staffOptions} selected={selectedStaff} onApply={(ids) => apply({ staff: ids.join(',') })} />
           {filters.view === 'lines' && (
             <div className="relative">
               <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" aria-hidden="true" />

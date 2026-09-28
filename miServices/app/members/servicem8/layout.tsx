@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import PageHeader from '@/components/members/PageHeader';
 import Tabs from '@/components/members/Tabs';
 import { ukToday } from '@/lib/dates';
+import { reference } from '@/lib/servicem8/data';
 import { addDays } from '@/lib/servicem8/timesheets';
 import { adminOnly } from './params';
 import RangeBar from './RangeBar';
@@ -17,15 +18,20 @@ export default async function ServiceM8Layout({ children }: { children: React.Re
   const today = ukToday();
   const monthStart = `${today.slice(0, 7)}-01`;
   const lastMonthEnd = addDays(monthStart, -1);
+  // The picker still works (as "All staff") if ServiceM8 can't be reached; the tab shows the error
+  const staffOptions = await reference()
+    .then((r) => r.data.activeStaff)
+    .catch(() => []);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <PageHeader title="ServiceM8" intro="A live, read-only view of ServiceM8. Nothing is copied into the Members Area.">
-        <Tabs tabs={SM8_TABS} label="ServiceM8 sections" keepQuery={['from', 'to']} />
+        <Tabs tabs={SM8_TABS} label="ServiceM8 sections" keepQuery={['from', 'to', 'staff']} />
       </PageHeader>
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <RangeBar
           today={today}
+          staffOptions={staffOptions}
           presets={[
             { label: 'This month', from: monthStart, to: today },
             { label: 'Last month', from: `${lastMonthEnd.slice(0, 7)}-01`, to: lastMonthEnd },
