@@ -1,5 +1,5 @@
 import type { IconType } from 'react-icons';
-import { FiBook, FiClock, FiEdit3, FiFileText, FiGrid, FiHelpCircle, FiImage, FiMapPin, FiUserCheck, FiUsers } from 'react-icons/fi';
+import { FiBook, FiCheckSquare, FiClock, FiEdit3, FiFileText, FiGrid, FiHelpCircle, FiImage, FiMapPin, FiShield, FiUserCheck, FiUsers } from 'react-icons/fi';
 import FiPoundSign from '@/components/icons/FiPoundSign';
 
 /** Members Area side menu */
@@ -11,6 +11,8 @@ export interface NavItem {
   also?: string[];
   /** Where Head Office goes instead (their version of the same section) */
   adminHref?: string;
+  /** Franchise members only (Head Office has its own item) */
+  franchiseOnly?: boolean;
 }
 
 export interface NavGroup {
@@ -26,6 +28,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/members/quoting', label: 'Quotes', icon: FiFileText },
       { href: '/members/contacts', label: 'Contacts', icon: FiUsers },
+      { href: '/members/compliance', label: 'Compliance', icon: FiCheckSquare, franchiseOnly: true },
       {
         href: '/members/pricing',
         label: 'Pricing',
@@ -48,6 +51,7 @@ export const NAV_GROUPS: NavGroup[] = [
     adminOnly: true,
     items: [
       { href: '/members/franchisees', label: 'Franchisees', icon: FiMapPin },
+      { href: '/members/compliance', label: 'Compliance', icon: FiShield },
       { href: '/members/users', label: 'Users', icon: FiUserCheck },
       { href: '/members/quoting/template', label: 'Quote template', icon: FiEdit3 },
       { href: '/members/timesheets', label: 'Timesheets', icon: FiClock },
@@ -59,9 +63,9 @@ export const NAV_GROUPS: NavGroup[] = [
 export function navFor(isAdmin: boolean): NavGroup[] {
   return NAV_GROUPS.filter((g) => !g.adminOnly || isAdmin).map((g) => ({
     ...g,
-    items: g.items.map((item) =>
-      isAdmin && item.adminHref ? { ...item, href: item.adminHref, also: [item.href, ...(item.also || [])] } : item
-    ),
+    items: g.items
+      .filter((item) => !(isAdmin && item.franchiseOnly))
+      .map((item) => (isAdmin && item.adminHref ? { ...item, href: item.adminHref, also: [item.href, ...(item.also || [])] } : item)),
   }));
 }
 

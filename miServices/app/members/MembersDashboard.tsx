@@ -13,6 +13,7 @@ import {
   FiImage,
   FiPlus,
   FiSearch,
+  FiShield,
   FiSend,
   FiUserPlus,
   FiUsers,
@@ -33,6 +34,10 @@ export interface DashboardData {
   contacts: { total: number; newLeads: number } | null;
   documents: { total: number; newItems: { title: string; href: string; publishedAt: string }[] };
   drafts: { total: number; items: { title: string; slug: string; section: string; isNew: boolean }[] } | null;
+  compliance:
+    | { kind: 'franchise'; counts: { overdue: number; returned: number; dueSoon: number; todo: number; done: number; applicable: number }; items: { title: string; state: string; due: string | null }[] }
+    | { kind: 'admin'; total: number; notCompliant: number; awaitingReview: number }
+    | null;
 }
 
 type Tone = 'amber' | 'blue' | 'gray' | 'green';
@@ -75,6 +80,26 @@ const quoteLabel = (q: QuoteSummary) => `${q.reference || 'Quote'} · ${quoteCli
 /** Things worth doing next, most urgent first */
 function attentionItems(data: DashboardData): AttentionItem[] {
   const items: AttentionItem[] = [];
+  const c = data.compliance;
+  if (c?.kind === 'franchise') {
+    for (const i of c.items) {
+      items.push({
+        key: `comp-${i.title}`,
+        icon: FiShield,
+        tone: i.state === 'dueSoon' ? 'blue' : 'amber',
+        title: i.state === 'returned' ? 'Compliance: sent back by Head Office' : i.state === 'overdue' ? `Compliance overdue since ${shortDate(i.due || undefined)}` : `Compliance due ${shortDate(i.due || undefined)}`,
+        detail: i.title,
+        href: '/members/compliance',
+      });
+    }
+  } else if (c?.kind === 'admin') {
+    if (c.awaitingReview) {
+      items.push({ key: 'comp-review', icon: FiShield, tone: 'blue', title: `${c.awaitingReview} compliance submission${c.awaitingReview === 1 ? '' : 's'} to review`, detail: 'Approve, or send back with a note', href: '/members/compliance/review' });
+    }
+    if (c.notCompliant) {
+      items.push({ key: 'comp-behind', icon: FiShield, tone: 'amber', title: `${c.notCompliant} franchise${c.notCompliant === 1 ? '' : 's'} not compliant`, detail: 'See who is behind and send reminders', href: '/members/compliance' });
+    }
+  }
   for (const q of data.quotes?.expiringSoon || []) {
     items.push({ key: `exp-${q._id}`, icon: FiClock, tone: 'amber', title: `Expires ${shortDate(q.validUntil)}`, detail: quoteLabel(q), href: `/members/quoting/${q._id}` });
   }
@@ -169,6 +194,7 @@ export default function MembersDashboard({ data }: { data: DashboardData }) {
       ? [
           { href: '/members/documents', label: 'New document', icon: FiFileText },
           { href: '/members/timesheets', label: 'Timesheets', icon: FiClock },
+          { href: '/members/compliance', label: 'Compliance', icon: FiShield },
         ]
       : []),
   ];
@@ -189,7 +215,7 @@ export default function MembersDashboard({ data }: { data: DashboardData }) {
 
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         {/* Headline numbers */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${data.compliance ? 'lg:grid-cols-3 xl:grid-cols-5' : 'xl:grid-cols-4'}`}>
           {quotes && (
             <>
               <StatCard label="Open quotes" value={quotes.open} sub="Sent and waiting for an answer" href="/members/quoting" icon={FiSend} colour="bg-blue-500" />
@@ -211,6 +237,30 @@ export default function MembersDashboard({ data }: { data: DashboardData }) {
               href={contacts.newLeads ? '/members/contacts?status=lead' : '/members/contacts'}
               icon={FiUsers}
               colour="bg-amber-500"
+            />
+          )}
+          {data.compliance?.kind === 'franchise' && (
+            <StatCard
+              label="Compliance"
+              value={data.compliance.counts.overdue + data.compliance.counts.returned + data.compliance.counts.dueSoon + data.compliance.counts.todo}
+              sub={
+                data.compliance.counts.overdue + data.compliance.counts.returned
+                  ? `${data.compliance.counts.overdue + data.compliance.counts.returned} overdue · ${data.compliance.counts.done} of ${data.compliance.counts.applicable} done`
+                  : `To do · ${data.compliance.counts.done} of ${data.compliance.counts.applicable} done`
+              }
+              href="/members/compliance"
+              icon={FiShield}
+              colour={data.compliance.counts.overdue + data.compliance.counts.returned ? 'bg-red-500' : 'bg-teal-500'}
+            />
+          )}
+          {data.compliance?.kind === 'admin' && (
+            <StatCard
+              label="Compliant franchises"
+              value={data.compliance.total - data.compliance.notCompliant}
+              sub={`of ${data.compliance.total} · ${data.compliance.awaitingReview} to review`}
+              href="/members/compliance"
+              icon={FiShield}
+              colour={data.compliance.notCompliant ? 'bg-red-500' : 'bg-teal-500'}
             />
           )}
           <StatCard

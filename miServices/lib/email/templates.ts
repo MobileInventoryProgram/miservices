@@ -61,3 +61,39 @@ export function quoteResponseEmail({
     text: `${headline}\n\n${detail}\n\n${quoteUrl}`,
   };
 }
+
+/** Compliance reminder: everything a franchise still has to do, in one email */
+export function complianceReminderEmail({
+  name,
+  items,
+  checklistUrl,
+}: {
+  name: string;
+  items: { title: string; detail: string; overdue: boolean }[];
+  checklistUrl: string;
+}) {
+  const overdue = items.filter((i) => i.overdue).length;
+  const subject = overdue
+    ? `miServices compliance: ${overdue} item${overdue === 1 ? '' : 's'} overdue`
+    : `miServices compliance: ${items.length} item${items.length === 1 ? '' : 's'} due soon`;
+  const rows = items
+    .map(
+      (i) =>
+        `<tr><td style="padding:10px 0;border-bottom:1px solid #e5e7eb;"><strong>${escapeHtml(i.title)}</strong><br><span style="font-size:13px;color:${i.overdue ? '#b45309' : '#6b7280'};">${escapeHtml(i.detail)}</span></td></tr>`
+    )
+    .join('');
+  return {
+    subject,
+    html: layout(
+      `<p style="margin:0 0 14px;">Hello ${escapeHtml(name)},</p>` +
+        `<p style="margin:0 0 14px;">This is a reminder about your franchise compliance checklist. The following ${items.length === 1 ? 'item needs' : 'items need'} your attention:</p>` +
+        `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table>` +
+        button(checklistUrl, 'Open your checklist') +
+        `<p style="margin:0;font-size:13px;color:#6b7280;">If you have already sent something, it will be ticked off once Head Office has checked it. Reply to this email if you have any questions.</p>`
+    ),
+    text:
+      `Hello ${name},\n\nThis is a reminder about your franchise compliance checklist. The following ${items.length === 1 ? 'item needs' : 'items need'} your attention:\n\n` +
+      items.map((i) => `- ${i.title}: ${i.detail}`).join('\n') +
+      `\n\nOpen your checklist: ${checklistUrl}\n\nIf you have already sent something, it will be ticked off once Head Office has checked it.`,
+  };
+}

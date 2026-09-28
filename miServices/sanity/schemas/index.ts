@@ -8,6 +8,10 @@ import member from './member';
 import memberDocument from './memberDocument';
 import documentSection from './documentSection';
 import helpArticle from './helpArticle';
+import complianceRequirement from './complianceRequirement';
+import complianceRecord from './complianceRecord';
+import complianceSetting from './complianceSetting';
+import complianceReminder from './complianceReminder';
 import membersArea from './membersArea';
 import priceList from './priceList';
 import flyerSettings from './flyerSettings';
@@ -30,6 +34,10 @@ export const schemaTypes = [
   memberDocument,
   documentSection,
   helpArticle,
+  complianceRequirement,
+  complianceRecord,
+  complianceSetting,
+  complianceReminder,
   membersArea,
   priceList,
   flyerSettings,
