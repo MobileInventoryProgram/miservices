@@ -7,7 +7,6 @@ import {
   FiCheck,
   FiCheckCircle,
   FiCircle,
-  FiCopy,
   FiExternalLink,
   FiEye,
   FiEyeOff,
@@ -16,10 +15,10 @@ import {
   FiPower,
   FiSave,
   FiUserX,
-  FiX,
 } from 'react-icons/fi';
 import type { FranchiseLogin, FranchiseStatus } from '@/lib/franchisees/admin';
 import { newLoginKey } from '../loginNotice';
+import PasswordNotice from '../PasswordNotice';
 
 const inputClass =
   'w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-brand-light-blue focus:border-brand-light-blue';
@@ -61,41 +60,6 @@ function Card({ title, children, tone = 'default' }: { title: string; children: 
       <h2 className="mb-4 text-lg font-semibold text-gray-900 font-helvetica">{title}</h2>
       {children}
     </section>
-  );
-}
-
-/** A temporary password to pass on, shown once */
-function PasswordNotice({ email, password, onClose }: { email: string; password: string; onClose: () => void }) {
-  const [copied, setCopied] = useState(false);
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(`Members Area login\nEmail: ${email}\nTemporary password: ${password}`);
-      setCopied(true);
-    } catch {
-      // Copy blocked: the details are on screen to copy by hand
-    }
-  };
-  return (
-    <div className="rounded-lg border border-green-200 bg-green-50 p-4" role="status">
-      <div className="flex items-start justify-between gap-3">
-        <div className="text-sm text-gray-800">
-          <p className="font-semibold text-green-800">Login ready: pass these details on</p>
-          <p className="mt-1">
-            Email: <strong>{email}</strong>
-          </p>
-          <p>
-            Temporary password: <code className="rounded bg-white px-1.5 py-0.5 font-mono text-base">{password}</code>
-          </p>
-          <p className="mt-1 text-xs text-gray-600">This is the only time the password is shown. If it&apos;s lost, use Reset password.</p>
-        </div>
-        <button type="button" onClick={onClose} className="p-1 text-gray-400 hover:text-gray-700" aria-label="Close">
-          <FiX className="h-4 w-4" />
-        </button>
-      </div>
-      <button type="button" onClick={copy} className={`${smallButton} mt-3 bg-white text-green-800 hover:bg-green-100`}>
-        {copied ? <FiCheck className="h-4 w-4" /> : <FiCopy className="h-4 w-4" />} {copied ? 'Copied' : 'Copy login details'}
-      </button>
-    </div>
   );
 }
 
@@ -389,7 +353,7 @@ function LoginsCard({ franchise, logins, currentMemberId }: { franchise: Franchi
     });
 
   return (
-    <Card title="Members Area logins">
+    <Card title="Users">
       <div className="space-y-4">
         {notice && <PasswordNotice {...notice} onClose={() => setNotice(null)} />}
 
@@ -440,8 +404,16 @@ function LoginsCard({ franchise, logins, currentMemberId }: { franchise: Franchi
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-gray-500">No logins yet. Add one so the owner can use the Members Area.</p>
+          <p className="text-sm text-gray-500">No users yet. Add one so the owner can use the Members Area.</p>
         )}
+
+        <p className="text-xs text-gray-500">
+          Head Office admins and everyone else are on the{' '}
+          <a href="/members/users" className="text-brand-light-blue hover:text-brand-dark-blue">
+            Users
+          </a>{' '}
+          page.
+        </p>
 
         {adding ? (
           <form onSubmit={add} className="grid gap-3 rounded-md border border-gray-200 bg-gray-50 p-4 sm:grid-cols-[1fr_1fr_auto]">
@@ -459,7 +431,7 @@ function LoginsCard({ franchise, logins, currentMemberId }: { franchise: Franchi
             </div>
             <div className="flex items-end gap-2">
               <button type="submit" disabled={busy === 'add'} className={`${smallButton} bg-brand-light-blue px-4 py-2 text-white hover:bg-brand-dark-blue`}>
-                {busy === 'add' ? 'Adding…' : 'Add login'}
+                {busy === 'add' ? 'Adding…' : 'Add user'}
               </button>
               <button type="button" onClick={() => setAdding(false)} className="px-2 py-2 text-sm text-gray-600 hover:text-gray-900">
                 Cancel
@@ -468,7 +440,7 @@ function LoginsCard({ franchise, logins, currentMemberId }: { franchise: Franchi
           </form>
         ) : (
           <button type="button" onClick={() => setAdding(true)} className="inline-flex items-center gap-1.5 text-sm text-brand-light-blue hover:text-brand-dark-blue">
-            <FiPlus className="h-4 w-4" /> Add a login
+            <FiPlus className="h-4 w-4" /> Add a user
           </button>
         )}
 

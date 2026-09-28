@@ -133,16 +133,68 @@ export async function emailInUse(email: string, exceptMemberId?: string): Promis
 
 /** A new franchise login; returns its temporary password (shown once, never stored in plain text) */
 export async function createFranchiseLogin(franchise: { _id: string; territory?: string }, name: string, email: string) {
+  return createLogin({ name, email, role: 'franchisee', franchise });
+}
+
+/**
+ * A new login. Franchise users belong to a franchise; Head Office admins
+ * don't (they see every franchise). Returns the temporary password, once.
+ */
+export async function createLogin({
+  name,
+  email,
+  role,
+  franchise,
+}: {
+  name: string;
+  email: string;
+  role: 'franchisee' | 'admin';
+  franchise?: { _id: string; territory?: string } | null;
+}) {
   const password = temporaryPassword();
   const doc = await sanityWriteClient.create({
     _type: 'member',
     name: name.trim(),
     email: normaliseEmail(email),
     hashedPassword: await hashPassword(password),
-    role: 'franchisee',
-    franchisee: { _type: 'reference', _ref: franchise._id },
-    territory: franchise.territory || '',
+    role,
+    ...(role === 'franchisee' && franchise
+      ? { franchisee: { _type: 'reference', _ref: franchise._id }, territory: franchise.territory || '' }
+      : {}),
     isActive: true,
   });
   return { memberId: doc._id, password };
+}
+
+export interface UserRow {
+  _id: string;
+  name: string;
+  email: string;
+  role: 'franchisee' | 'admin';
+  isActive: boolean;
+  franchiseId: string | null;
+  franchiseName: string | null;
+  /** The franchise is deactivated, so this login can't be switched on by itself */
+  franchiseInactive: boolean;
+}
+
+/** Every Members Area login, for Head Office */
+export async function listUsers(): Promise<UserRow[]> {
+  return sanityWriteClient.fetch<UserRow[]>(
+    `*[_type == "member" && !(_id in path("drafts.**"))] | order(role asc, lower(coalesce(name, email)) asc) {
+      _id, "name": coalesce(name, ""), "email": coalesce(email, ""), "role": coalesce(role, "franchisee"),
+      "isActive": isActive == true,
+      "franchiseId": franchisee._ref,
+      "franchiseName": coalesce(franchisee->territory, franchisee->companyName, territory),
+      "franchiseInactive": defined(franchisee) && franchisee->isActive != true
+    }`
+  );
+}
+
+/** Whether switching this login off would leave no Head Office admin able to sign in */
+export async function isLastActiveAdmin(memberId: string): Promise<boolean> {
+  return sanityWriteClient.fetch<boolean>(
+    `*[_id == $id][0].role == "admin" && count(*[_type == "member" && role == "admin" && isActive == true && _id != $id]) == 0`,
+    { id: memberId }
+  );
 }
